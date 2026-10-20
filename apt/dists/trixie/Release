@@ -1,0 +1,31 @@
+Architectures: amd64 arm64
+Codename: trixie
+Components: main
+Date: Tue, 20 Oct 2026 21:41:08 +0000
+Label: SuplaOS
+Origin: SuplaOS
+Suite: trixie
+MD5Sum:
+ 05043204fec33618f02640294364cce8              144 Release
+ 88706087cbccd74c31918e9b4bab226e              818 main/binary-amd64/Packages
+ f00c0d4b2bc6c800c735acbcc4872075              565 main/binary-amd64/Packages.gz
+ f10b3178f105d3fa6ff8087a3cd81603              818 main/binary-arm64/Packages
+ 0bd64eed9a487170bd2cdb67bbf71a58              569 main/binary-arm64/Packages.gz
+SHA1:
+ 50d162f3732c77352a1ebdf54bc34458fc2d3465              144 Release
+ c31b12b20b6ffffcada07f66908386de2c2019be              818 main/binary-amd64/Packages
+ ab48eda9be336bc5681ab131ea8d77b9529a9c1a              565 main/binary-amd64/Packages.gz
+ 2b0107706af880a10b9d4911f5d74cc78ffbbb7d              818 main/binary-arm64/Packages
+ 84738439d48d4db3d9d73fe27dec53cf33c28448              569 main/binary-arm64/Packages.gz
+SHA256:
+ 0ff98691e3108b4424c37d6293e4a50d2f88cb2b8e9feac218c4e5f855e9b5cb              144 Release
+ 85199187d916a2b9986fa3466cdcf076916536deb3b4894b2ebcc571747f07e2              818 main/binary-amd64/Packages
+ 56f8cdd493e0e58371ab1625547919ac39944efbe038e30b33260fbc3ae76085              565 main/binary-amd64/Packages.gz
+ f7a636a102820d4ee038243f8413abb2f4edb97e7ee624ec8a2ea4e547a9c83e              818 main/binary-arm64/Packages
+ 8f267d1a0bcebc8820e0437900f92520a652b6bb9ba9aee65a35a7e766ab0de5              569 main/binary-arm64/Packages.gz
+SHA512:
+ a88ea5ca579bd3ecea9c79620566a9ac9652aee2cb1113ae9bb8e1695f8caf13a32f4cb00469538158b884750faac668386f278916ed700aaae99576c79fb37c              144 Release
+ b47eeb8532d57d6e9c44e6409adb616d564b1902639877fc4cdbf0ac8209df21cbeed3af45cacf9a77d3d44acce61dae8b20a9504d2ef4427e8acf5095478077              818 main/binary-amd64/Packages
+ bb69dc6a172d7ad63b0d86dcf6ab5b510d1f7113ef5c343285c69b9a6b85a4a8ab0dadc7b95d80a5b827fdb67d4219e3a3639f65a5457e68aada4d712fa8bfd0              565 main/binary-amd64/Packages.gz
+ deccc711762126b23306326d81a4ec7cea8fb384773b129cba20d021d7d0e66efbe45821d31528b7beaed17e466a9eb0b46d21820e3dd04a2cb78d257b43be23              818 main/binary-arm64/Packages
+ af2e98eaa05599cb724cb66a231c344a94714d69bb8dfad7a2d850f167b02e85e4121c0392621206476e4b30e44cb4fb93f9913dd1fb3656d45a2635439a78d9              569 main/binary-arm64/Packages.gz

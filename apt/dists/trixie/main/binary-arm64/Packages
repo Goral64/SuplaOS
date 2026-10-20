@@ -1,0 +1,18 @@
+Package: suplaos
+Architecture: arm64
+Version: 0.2.0
+Priority: optional
+Section: admin
+Maintainer: Goral64 <goral64@gmail.com>
+Depends: docker.io, docker-cli, docker-compose, network-manager, avahi-daemon, cloud-guest-utils, e2fsprogs
+Filename: pool/main/s/suplaos/suplaos_0.2.0_arm64.deb
+Size: 2797804
+MD5sum: f28de2ed40d91c9731d2851f1407d5e7
+SHA1: 6661ee8e59d226c195231f1f832d55ea3b4e405a
+SHA256: ad82f0b0553d54b47099d8d496f2cf2abaa02969bc257281f07ba5c44d59ac6c
+SHA512: 0cf3d00b7d72012e65bf14c10b837506307f1cebdaf1d4deb76c241345910f6c92bcaf3ec8731ec030cf99271f87384eb8d8740c6af8017280040a1fddd635d3
+Homepage: https://github.com/Goral64/SuplaOS
+Description: SuplaOS panel and add-ons
+ Web panel and suplaos command of SuplaOS: your own Supla server with
+ add-ons (Mosquitto, Zigbee2MQTT, zigbee2supla) on one device.
+
