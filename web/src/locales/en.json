@@ -175,9 +175,13 @@
     "running": "Updating, the panel may disappear for a moment...",
     "done": "Last update: {time}",
     "failed": "The last update failed ({time}), see the log",
-    "rebootRequired": "A new kernel was installed, restart the device to use it.",
+    "rebootRequired": "A new kernel is installed, restart the device to use it.",
     "addonsTitle": "New versions of add-ons",
     "addonsText": "SuplaOS brought new versions of: {list}. Applying them recreates their containers (a backup is made first), so they are unavailable for a moment.",
-    "apply": "Apply"
+    "apply": "Apply",
+    "autoTitle": "Automatic updates",
+    "auto": "Install Debian security and stable updates every day",
+    "autoHelp": "SuplaOS itself and the Raspberry Pi kernel are updated only from this page. The device is not restarted automatically.",
+    "autoLast": "Last run: {time}"
   }
 }

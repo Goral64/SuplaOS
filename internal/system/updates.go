@@ -21,6 +21,10 @@ const (
 	upgradeState  = "/var/lib/suplaos/upgrade-state"
 	upgradeLog    = "/var/log/suplaos/upgrade.log"
 	rebootFlag    = "/run/suplaos/reboot-required"
+
+	// Daily automatic updates of Debian (unattended-upgrades).
+	autoUpgradesFile  = "/etc/apt/apt.conf.d/20auto-upgrades"
+	autoUpgradesStamp = "/var/lib/apt/periodic/unattended-upgrades-stamp"
 )
 
 // Package is an update of a Debian package.
@@ -40,6 +44,10 @@ type Updates struct {
 	Checked        *time.Time `json:"checked"`
 	Packages       []Package  `json:"packages"`
 	RebootRequired bool       `json:"rebootRequired"`
+	// Auto: daily automatic updates of Debian packages; AutoLast is their
+	// last run.
+	Auto     bool       `json:"auto"`
+	AutoLast *time.Time `json:"autoLast"`
 }
 
 // ReadUpdates returns the state from the downloaded package lists; it does
@@ -60,8 +68,11 @@ func ReadUpdates() (*Updates, error) {
 	if u.State == "running" && exec.Command("systemctl", "is-active", "--quiet", upgradeUnit).Run() != nil {
 		u.State = "failed"
 	}
-	if _, err := os.Stat(rebootFlag); err == nil {
-		u.RebootRequired = true
+	u.RebootRequired = rebootRequired()
+	u.Auto = AutoUpgrades()
+	if st, err := os.Stat(autoUpgradesStamp); err == nil {
+		t := st.ModTime()
+		u.AutoLast = &t
 	}
 	if lists, _ := filepath.Glob("/var/lib/apt/lists/*Release"); len(lists) > 0 {
 		var newest time.Time
@@ -102,6 +113,88 @@ func parseUpgradable(out string) []Package {
 		list = append(list, Package{Name: name, To: f[1], From: strings.TrimSuffix(from, "]")})
 	}
 	return list
+}
+
+// rebootRequired tells whether a newer kernel than the running one is
+// installed, by any update (also the automatic one).
+func rebootRequired() bool {
+	if _, err := os.Stat(rebootFlag); err == nil {
+		return true
+	}
+	data, err := os.ReadFile("/proc/sys/kernel/osrelease")
+	if err != nil {
+		return false
+	}
+	running := strings.TrimSpace(string(data))
+	files, _ := filepath.Glob("/boot/vmlinuz-*")
+	var installed []string
+	for _, f := range files {
+		installed = append(installed, strings.TrimPrefix(filepath.Base(f), "vmlinuz-"))
+	}
+	return newerKernel(running, installed)
+}
+
+// newerKernel tells whether installed has a newer kernel of the flavour of
+// running, e.g. 6.18.51+rpt-rpi-v8 for 6.18.50+rpt-rpi-v8 (and not
+// 6.18.51+rpt-rpi-2712, the Pi 5 kernel).
+func newerKernel(running string, installed []string) bool {
+	_, flavour, ok := strings.Cut(running, "-")
+	if !ok {
+		return false
+	}
+	for _, k := range installed {
+		if _, f, _ := strings.Cut(k, "-"); f == flavour && compareVersions(k, running) > 0 {
+			return true
+		}
+	}
+	return false
+}
+
+// compareVersions compares kernel versions number by number.
+func compareVersions(a, b string) int {
+	split := func(s string) []int {
+		var n []int
+		for _, p := range strings.FieldsFunc(s, func(r rune) bool { return r < '0' || r > '9' }) {
+			v, _ := strconv.Atoi(p)
+			n = append(n, v)
+		}
+		return n
+	}
+	x, y := split(a), split(b)
+	for i := 0; i < len(x) && i < len(y); i++ {
+		if x[i] != y[i] {
+			if x[i] > y[i] {
+				return 1
+			}
+			return -1
+		}
+	}
+	return len(x) - len(y)
+}
+
+// AutoUpgrades tells whether the daily automatic updates are on.
+func AutoUpgrades() bool {
+	data, err := os.ReadFile(autoUpgradesFile)
+	if err != nil {
+		return false
+	}
+	for _, line := range strings.Split(string(data), "\n") {
+		if strings.Contains(line, "APT::Periodic::Unattended-Upgrade") {
+			return strings.Contains(line, `"1"`)
+		}
+	}
+	return false
+}
+
+// SetAutoUpgrades turns the daily automatic updates on or off, like
+// dpkg-reconfigure unattended-upgrades.
+func SetAutoUpgrades(on bool) error {
+	v := "0"
+	if on {
+		v = "1"
+	}
+	content := fmt.Sprintf("APT::Periodic::Update-Package-Lists \"%s\";\nAPT::Periodic::Unattended-Upgrade \"%s\";\n", v, v)
+	return os.WriteFile(autoUpgradesFile, []byte(content), 0o644)
 }
 
 // Version is the version of the installed suplaos package.

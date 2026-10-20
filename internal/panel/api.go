@@ -693,6 +693,19 @@ func (s *Server) startUpgrade(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusAccepted, map[string]any{})
 }
 
+func (s *Server) setAutoUpdates(w http.ResponseWriter, r *http.Request) {
+	var req struct{ Enabled bool }
+	if err := readJSON(r, &req); err != nil {
+		jsonError(w, http.StatusBadRequest, err)
+		return
+	}
+	if err := system.SetAutoUpgrades(req.Enabled); err != nil {
+		jsonError(w, http.StatusInternalServerError, err)
+		return
+	}
+	writeJSON(w, http.StatusOK, map[string]any{"enabled": system.AutoUpgrades()})
+}
+
 func (s *Server) upgradeLog(w http.ResponseWriter, r *http.Request) {
 	offset, _ := strconv.ParseInt(r.URL.Query().Get("offset"), 10, 64)
 	text, next, err := system.UpgradeLog(offset)

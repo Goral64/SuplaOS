@@ -37,6 +37,9 @@ function webURL(a) {
 
 <template>
   <h1>{{ $t('dashboard.title') }}</h1>
+  <div v-if="info?.rebootRequired" class="alert warn">
+    {{ $t('updates.rebootRequired') }} <router-link to="/updates">{{ $t('nav.updates') }}</router-link>
+  </div>
   <div v-if="info" class="grid">
     <div class="card">
       <div class="stat-label">{{ $t('dashboard.addresses') }}</div>

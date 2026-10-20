@@ -88,6 +88,16 @@ async function applyAddons() {
   }
 }
 
+async function setAuto(e) {
+  error.value = ''
+  try {
+    const r = await api('PUT', '/updates/auto', { enabled: e.target.checked })
+    info.value.auto = r.enabled
+  } catch (err) {
+    error.value = err.message
+  }
+}
+
 async function reboot() {
   if (!confirm(t('system.rebootConfirm'))) return
   await api('POST', '/system/reboot')
@@ -136,6 +146,13 @@ async function reboot() {
         <p v-if="following" class="muted small">{{ $t('updates.running') }}</p>
         <pre ref="pre" class="log">{{ log || '...' }}</pre>
       </div>
+    </div>
+
+    <div class="card">
+      <h2>{{ $t('updates.autoTitle') }}</h2>
+      <label class="check"><input type="checkbox" :checked="info.auto" @change="setAuto"> {{ $t('updates.auto') }}</label>
+      <p class="muted small mt">{{ $t('updates.autoHelp') }}</p>
+      <p v-if="info.auto" class="muted small">{{ $t('updates.autoLast', { time: when(info.autoLast) }) }}</p>
     </div>
 
     <div v-if="addons.length" class="card">

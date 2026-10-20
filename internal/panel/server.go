@@ -121,6 +121,7 @@ func (s *Server) Handler() http.Handler {
 	api("POST /api/updates/check", s.checkUpdates)
 	api("POST /api/updates/upgrade", s.startUpgrade)
 	api("GET /api/updates/log", s.upgradeLog)
+	api("PUT /api/updates/auto", s.setAutoUpdates)
 
 	api("GET /api/backups", s.getBackups)
 	api("GET /api/backups/{name}", s.downloadBackup)

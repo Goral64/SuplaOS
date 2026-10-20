@@ -41,6 +41,8 @@ type Info struct {
 	Temperature *float64 `json:"temperature"`
 	Timezone    string   `json:"timezone"`
 	Time        string   `json:"time"`
+	// RebootRequired: a newer kernel is installed.
+	RebootRequired bool `json:"rebootRequired"`
 }
 
 // ReadInfo collects Info; dataDir is the disk shown.
@@ -78,6 +80,7 @@ func ReadInfo(dataDir string) Info {
 	}
 	i.Timezone = Timezone()
 	i.Time = time.Now().Format(time.RFC3339)
+	i.RebootRequired = rebootRequired()
 	return i
 }
 

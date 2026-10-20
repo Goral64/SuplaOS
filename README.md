@@ -49,6 +49,9 @@ Everything lives in `/srv/suplaos`: the generated compose project in
 The panel shows available updates under Updates and installs them with one
 button: Debian packages, the Raspberry Pi kernel and SuplaOS itself, which
 comes from its own apt repository. Over SSH it's `sudo suplaos upgrade`.
+Debian security and stable updates are also installed automatically every
+day (it can be turned off on the same page); the panel reminds you to
+restart the device when a new kernel is waiting.
 When an update brings new versions of add-on files (e.g. a newer
 supla-docker), the panel lists them and applies them when you ask, after
 a backup, because their containers are recreated. Containers of add-ons

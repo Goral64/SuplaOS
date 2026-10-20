@@ -178,6 +178,10 @@
     "rebootRequired": "Zainstalowano nowe jądro, uruchom urządzenie ponownie, żeby z niego korzystać.",
     "addonsTitle": "Nowe wersje dodatków",
     "addonsText": "SuplaOS przyniósł nowe wersje: {list}. Zastosowanie tworzy ich kontenery od nowa (najpierw robi kopię), więc na chwilę będą niedostępne.",
-    "apply": "Zastosuj"
+    "apply": "Zastosuj",
+    "autoTitle": "Aktualizacje automatyczne",
+    "auto": "Codziennie instaluj poprawki bezpieczeństwa i aktualizacje stabilnego Debiana",
+    "autoHelp": "Sam SuplaOS i jądro Raspberry Pi aktualizują się tylko z tej strony. Urządzenie nie jest restartowane automatycznie.",
+    "autoLast": "Ostatnie uruchomienie: {time}"
   }
 }
