@@ -1,5 +1,7 @@
 # SuplaOS
 
+[Po polsku](docs/pl/README.md)
+
 An operating system for Raspberry Pi 4/5, x86-64 computers and virtual
 machines ([Proxmox, VirtualBox, VMware, Hyper-V](docs/virtual-machines.md)), built around
 [supla-docker](https://github.com/SUPLA/supla-docker), i.e. your own Supla
@@ -52,6 +54,7 @@ comes from its own apt repository. Over SSH it's `sudo suplaos upgrade`.
 Debian security and stable updates are also installed automatically every
 day (it can be turned off on the same page); the panel reminds you to
 restart the device when a new kernel is waiting.
+
 When an update brings new versions of add-on files (e.g. a newer
 supla-docker), the panel lists them and applies them when you ask, after
 a backup, because their containers are recreated. Containers of add-ons

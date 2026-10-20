@@ -1,5 +1,7 @@
 # Virtual machines
 
+[Po polsku](pl/virtual-machines.md)
+
 The x86-64 image (`suplaos-<version>-amd64.img.xz`) runs in virtual machines
 as well. What every hypervisor needs:
 

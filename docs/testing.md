@@ -1,5 +1,7 @@
 # Testing SuplaOS
 
+[Po polsku](pl/testing.md)
+
 SuplaOS is at an early stage and I'm looking for people who can try it,
 especially on a Raspberry Pi 4 or 5, which I can't test myself right now.
 Don't use it for your main Supla setup yet: things will change. Updates
