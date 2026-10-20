@@ -17,6 +17,26 @@ address is also shown on a screen connected to the device.
 SSH login: `ssh supla@suplaos.local`, password `supla`.
 Change it with `passwd` after logging in.
 
+## Add-ons
+
+Until the panel is ready, add-ons are managed from SSH with `suplaos`:
+
+    suplaos list
+    suplaos info supla
+    suplaos install supla
+    suplaos run supla console supla:user:create
+
+Supla Cloud is then at https://<device address> (port 80 is kept for the
+panel). For ZigBee with a USB coordinator:
+
+    suplaos install mosquitto
+    suplaos install zigbee2mqtt ZIGBEE_ADAPTER=/dev/serial/by-id/usb-...
+    suplaos install zigbee2supla Z2S_SUPLA_EMAIL=you@example.com
+
+Settings can be changed later with `suplaos config <add-on> KEY=VALUE`.
+Everything lives in `/srv/suplaos`: the generated compose project in
+`stack/`, database dumps from `suplaos backup` in `backups/`.
+
 ## Building the image
 
 You need Docker.

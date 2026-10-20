@@ -1,2 +1,4 @@
 /out/
 /image/.debos-*/
+/.cache/
+/image/build/

@@ -42,6 +42,10 @@ actions:
     description: SuplaOS configuration files
     source: overlays/common
 
+  - action: overlay
+    description: suplaos CLI and add-on catalog (staged by tools/build.sh)
+    source: build/{{ $architecture }}
+
   - action: run
     description: Version file
     chroot: true

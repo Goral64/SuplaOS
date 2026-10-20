@@ -1,0 +1,12 @@
+# Local Supla server from the supla add-on.
+services:
+  zigbee2supla:
+    environment:
+      Z2S_SUPLA_SERVER: supla-server
+      # supla-docker uses a self-signed certificate: trust exactly this one.
+      Z2S_SUPLA_SECURITY_LEVEL: "3"
+      Z2S_SUPLA_CA_FILE: /etc/supla-server-ssl/cert.crt
+    volumes:
+      - ./ssl/server:/etc/supla-server-ssl:ro
+    depends_on:
+      - supla-server

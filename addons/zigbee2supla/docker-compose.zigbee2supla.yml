@@ -1,0 +1,17 @@
+services:
+  zigbee2supla:
+    container_name: ${COMPOSE_PROJECT_NAME}-zigbee2supla
+    image: ${ZIGBEE2SUPLA_IMAGE:-ghcr.io/goral64/zigbee2supla:latest}
+    restart: unless-stopped
+    env_file:
+      - zigbee2supla.env
+    environment:
+      TZ: ${TZ}
+      Z2S_STATE_DIR: /data
+    volumes:
+      # identities.json - Supla identities of all devices. Back it up!
+      - ${VOLUME_DATA}/zigbee2supla:/data
+    logging:
+      driver: "json-file"
+      options:
+        max-size: 50m

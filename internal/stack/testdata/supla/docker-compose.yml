@@ -1,0 +1,9 @@
+# Minimal stand-in for supla-docker's docker-compose.yml.
+services:
+  supla-cloud:
+    image: supla/supla-cloud
+    env_file: [.env.default, .env]
+  supla-db:
+    image: ${DATABASE_IMAGE}
+  supla-server:
+    image: supla/supla-server

@@ -1,0 +1,5 @@
+services:
+  supla-cloud:
+    ports:
+      - "${PORT_HTTP}:80"
+      - "${PORT_HTTPS}:443"

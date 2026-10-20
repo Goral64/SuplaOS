@@ -1,0 +1,7 @@
+# Network ZigBee coordinator (e.g. SLZB-06). zigbee2mqtt cannot discover
+# network coordinators from a container, so the adapter type has to be given.
+services:
+  zigbee2mqtt:
+    environment:
+      ZIGBEE2MQTT_CONFIG_SERIAL_PORT: ${ZIGBEE2MQTT_SERIAL_PORT}
+      ZIGBEE2MQTT_CONFIG_SERIAL_ADAPTER: ${ZIGBEE2MQTT_SERIAL_ADAPTER}

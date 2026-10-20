@@ -1,0 +1,8 @@
+# MQTT broker from the mosquitto add-on.
+services:
+  zigbee2supla:
+    environment:
+      Z2S_MQTT_HOST: mosquitto
+      Z2S_MQTT_PORT: "1883"
+    depends_on:
+      - mosquitto

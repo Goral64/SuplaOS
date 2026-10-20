@@ -1,0 +1,59 @@
+id: zigbee2mqtt
+name: Zigbee2MQTT
+description:
+  en: ZigBee coordinator (USB or network) and device pairing
+  pl: Koordynator ZigBee (USB albo sieciowy) i parowanie urządzeń
+requires: [mosquitto]
+recommends: [zigbee2supla]
+compose:
+  - docker-compose.zigbee2mqtt.yml
+  - file: docker-compose.zigbee2mqtt-usb.yml
+    when: {option: ZIGBEE2MQTT_COORDINATOR, equals: usb}
+  - file: docker-compose.zigbee2mqtt-network.yml
+    when: {option: ZIGBEE2MQTT_COORDINATOR, equals: network}
+services: [zigbee2mqtt]
+dirs: [var/zigbee2mqtt]
+data: [var/zigbee2mqtt]
+
+options:
+  - key: ZIGBEE2MQTT_COORDINATOR
+    label: {en: Coordinator, pl: Koordynator}
+    type: select
+    choices: [usb, network]
+    default: usb
+    required: true
+  - key: ZIGBEE_ADAPTER
+    label: {en: USB device, pl: Urządzenie USB}
+    help:
+      en: Preferably /dev/serial/by-id/..., the name does not change between restarts.
+      pl: Najlepiej /dev/serial/by-id/..., ta nazwa nie zmienia się po restarcie.
+    type: serial
+    required: true
+    when: {option: ZIGBEE2MQTT_COORDINATOR, equals: usb}
+  - key: ZIGBEE2MQTT_SERIAL_PORT
+    label: {en: Coordinator address, pl: Adres koordynatora}
+    help:
+      en: e.g. tcp://192.168.1.50:6638
+      pl: np. tcp://192.168.1.50:6638
+    required: true
+    when: {option: ZIGBEE2MQTT_COORDINATOR, equals: network}
+  - key: ZIGBEE2MQTT_SERIAL_ADAPTER
+    label: {en: Coordinator type, pl: Typ koordynatora}
+    help:
+      en: zstack - TI CC2652/CC1352, ember - Silicon Labs (e.g. SLZB-06M)
+      pl: zstack - TI CC2652/CC1352, ember - Silicon Labs (np. SLZB-06M)
+    type: select
+    choices: [zstack, ember, deconz, zigate, zboss]
+    default: zstack
+    required: true
+    when: {option: ZIGBEE2MQTT_COORDINATOR, equals: network}
+  - key: ZIGBEE2MQTT_PORT
+    label: {en: Web interface port, pl: Port interfejsu WWW}
+    type: port
+    default: "8080"
+    required: true
+
+ports: ["${ZIGBEE2MQTT_PORT}"]
+
+web:
+  port: "${ZIGBEE2MQTT_PORT}"

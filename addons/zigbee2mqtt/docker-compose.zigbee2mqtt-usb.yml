@@ -1,0 +1,7 @@
+# USB ZigBee coordinator.
+services:
+  zigbee2mqtt:
+    devices:
+      - "${ZIGBEE_ADAPTER}:/dev/zigbee"
+    environment:
+      ZIGBEE2MQTT_CONFIG_SERIAL_PORT: /dev/zigbee

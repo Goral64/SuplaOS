@@ -1,0 +1,11 @@
+services:
+  mosquitto:
+    container_name: ${COMPOSE_PROJECT_NAME}-mosquitto
+    image: ${MOSQUITTO_IMAGE:-eclipse-mosquitto:2}
+    restart: unless-stopped
+    # Anonymous access, reachable only inside this compose network.
+    command: mosquitto -c /mosquitto-no-auth.conf
+    logging:
+      driver: "json-file"
+      options:
+        max-size: 10m

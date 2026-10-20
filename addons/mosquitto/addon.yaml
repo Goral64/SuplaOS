@@ -1,0 +1,7 @@
+id: mosquitto
+name: Mosquitto
+description:
+  en: MQTT broker for Zigbee2MQTT and zigbee2supla
+  pl: Broker MQTT dla Zigbee2MQTT i zigbee2supla
+compose: [docker-compose.mosquitto.yml]
+services: [mosquitto]

@@ -1,0 +1,77 @@
+id: supla
+name: Supla
+description:
+  en: Your own Supla server - Supla Cloud, supla-server and the database (supla-docker)
+  pl: Własny serwer Supla - Supla Cloud, supla-server i baza danych (supla-docker)
+
+# supla-docker files at a fixed commit, updated together with this file.
+fetch:
+  url: https://github.com/SUPLA/supla-docker/archive/aa63388961cfecda152b1450a0061b80e21c741e.tar.gz
+  files: [docker-compose.yml, docker-compose.standalone.yml, .env.default]
+files: [.env.default]
+env_base: .env.default
+# Variables of this add-on for the containers, instead of the whole .env.
+env_file: supla.env
+compose: [docker-compose.yml, docker-compose.standalone.yml, docker-compose.supla-suplaos.yml]
+services: [supla-cloud, supla-db, supla-server]
+dirs: [ssl/cloud, ssl/server, var]
+data: [ssl/cloud, ssl/server, var/mysql, var/cloud-local, var/cloud-logs]
+
+options:
+  - key: SUPLA_HOST_ADDRESS
+    label:
+      en: Cloud address
+      pl: Adres Cloud
+    help:
+      en: IP address or domain the Cloud is reached at, with the port if it is not 443.
+      pl: Adres IP albo domena, pod którą działa Cloud, z portem, jeśli inny niż 443.
+    default: "{ip}"
+    required: true
+  - key: PORT_HTTPS
+    label: {en: HTTPS port, pl: Port HTTPS}
+    type: port
+    default: "443"
+    required: true
+  - key: PORT_HTTP
+    label: {en: HTTP port (redirects to HTTPS), pl: Port HTTP (przekierowanie na HTTPS)}
+    help:
+      en: Port 80 belongs to the SuplaOS panel.
+      pl: Port 80 zajmuje panel SuplaOS.
+    type: port
+    default: "8081"
+    required: true
+  - key: MAILER_DSN
+    label: {en: E-mail sending, pl: Wysyłanie e-maili}
+    help:
+      en: "e.g. smtp://user:password@smtp.example.com:587, null://null turns it off"
+      pl: "np. smtp://login:hasło@smtp.example.com:587, null://null wyłącza"
+    default: null://null
+  - key: SUPLA_MAILER_FROM
+    label: {en: Sender address, pl: Adres nadawcy}
+    type: email
+  - key: DATABASE_PASSWORD
+    type: secret
+    generate: 32
+  - key: APP_SECRET
+    type: secret
+    generate: 64
+
+ports: ["${PORT_HTTP}", "${PORT_HTTPS}", "2015", "2016"]
+
+web:
+  scheme: https
+  port: "${PORT_HTTPS}"
+
+backup:
+  service: supla-db
+  command: [sh, -c, 'exec mariadb-dump --user=supla --password="$MYSQL_PASSWORD" supla']
+  file: supla-{time}.sql
+
+commands:
+  console:
+    help:
+      en: Supla Cloud console (php bin/console), e.g. supla:user:create
+      pl: Konsola Supla Cloud (php bin/console), np. supla:user:create
+    service: supla-cloud
+    user: www-data
+    exec: [php, bin/console]

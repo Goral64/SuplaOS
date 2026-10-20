@@ -1,0 +1,61 @@
+id: zigbee2supla
+name: zigbee2supla
+description:
+  en: ZigBee devices in Supla, each one as a separate Supla device
+  pl: Urządzenia ZigBee w Supli, każde jako osobne urządzenie Supli
+recommends: [supla, zigbee2mqtt]
+compose:
+  - docker-compose.zigbee2supla.yml
+  - file: docker-compose.zigbee2supla-supla.yml
+    when: {installed: supla}
+  - file: docker-compose.zigbee2supla-mosquitto.yml
+    when: {installed: mosquitto}
+services: [zigbee2supla]
+dirs: [var/zigbee2supla]
+data: [var/zigbee2supla]
+
+options:
+  - key: Z2S_SUPLA_EMAIL
+    label: {en: Supla account e-mail, pl: E-mail konta Supla}
+    type: email
+    required: true
+    file: zigbee2supla.env
+  - key: Z2S_SUPLA_SERVER
+    label: {en: Supla server, pl: Serwer Supla}
+    help:
+      en: Supla Cloud server of your account, e.g. svr12.supla.org
+      pl: Serwer Supla Cloud twojego konta, np. svr12.supla.org
+    required: true
+    file: zigbee2supla.env
+    when: {not_installed: supla}
+  - key: Z2S_MQTT_HOST
+    label: {en: MQTT broker, pl: Broker MQTT}
+    help:
+      en: Broker used by zigbee2mqtt, e.g. Mosquitto in Home Assistant.
+      pl: Broker, z którego korzysta zigbee2mqtt, np. Mosquitto w Home Assistant.
+    file: zigbee2supla.env
+    when: {not_installed: mosquitto}
+  - key: Z2S_MQTT_PORT
+    label: {en: MQTT port, pl: Port MQTT}
+    type: port
+    default: "1883"
+    file: zigbee2supla.env
+    when: {not_installed: mosquitto}
+  - key: Z2S_MQTT_USERNAME
+    label: {en: MQTT user, pl: Użytkownik MQTT}
+    file: zigbee2supla.env
+    when: {not_installed: mosquitto}
+  - key: Z2S_MQTT_PASSWORD
+    label: {en: MQTT password, pl: Hasło MQTT}
+    type: password
+    file: zigbee2supla.env
+    when: {not_installed: mosquitto}
+  - key: Z2S_INCLUDE
+    label: {en: Only these devices, pl: Tylko te urządzenia}
+    help:
+      en: IEEE addresses or names, comma separated. Empty - all devices.
+      pl: Adresy IEEE albo nazwy, rozdzielone przecinkami. Puste - wszystkie.
+    file: zigbee2supla.env
+  - key: Z2S_EXCLUDE
+    label: {en: Skip these devices, pl: Pomiń te urządzenia}
+    file: zigbee2supla.env

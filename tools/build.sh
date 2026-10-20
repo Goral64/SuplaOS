@@ -15,7 +15,19 @@ if [ -z "$target" ] || [ ! -f "$recipe" ]; then
   exit 1
 fi
 
+case "$target" in
+  amd64) goarch=amd64 ;;
+  *) goarch=arm64 ;;
+esac
+
 mkdir -p out
+
+# suplaos CLI and the add-on catalog, put into the image by common.yaml.
+staging="image/build/$goarch"
+rm -rf "$staging"
+mkdir -p "$staging/usr/bin" "$staging/usr/share/suplaos"
+GOARCH="$goarch" tools/go.sh build -trimpath -ldflags="-s -w" -o "$staging/usr/bin/suplaos" ./cmd/suplaos
+cp -r addons "$staging/usr/share/suplaos/addons"
 
 debos_image="${DEBOS_IMAGE:-godebos/debos:latest}"
 args=(--rm --tty --workdir /recipes
