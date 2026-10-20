@@ -52,3 +52,21 @@ Description: SuplaOS panel and add-ons
  Web panel and suplaos command of SuplaOS: your own Supla server with
  add-ons (Mosquitto, Zigbee2MQTT, zigbee2supla) on one device.
 
+Package: suplaos
+Architecture: amd64
+Version: 0.2.3
+Priority: optional
+Section: admin
+Maintainer: Goral64 <goral64@gmail.com>
+Depends: docker.io, docker-cli, docker-compose, network-manager, avahi-daemon, cloud-guest-utils, e2fsprogs
+Filename: pool/main/s/suplaos/suplaos_0.2.3_amd64.deb
+Size: 3307472
+MD5sum: 8b48868369b66f5fbf55a4e35b623b1f
+SHA1: 262d26dadc0f463f8076dbb186cd5fd74f04cf59
+SHA256: 8fc765e4a7e953e6476a5202ac635a0a9e0f9b6cbb06a3f5d9ca812a230363fa
+SHA512: 92731894a18bf394868ad5c9fdbd6b47aca3643d47a14dc1aca36b3b67b8c8ce92f5bcc6cbe0cebb909061d4724ded5a151c68a5653572f168783915552efb51
+Homepage: https://github.com/Goral64/SuplaOS
+Description: SuplaOS panel and add-ons
+ Web panel and suplaos command of SuplaOS: your own Supla server with
+ add-ons (Mosquitto, Zigbee2MQTT, zigbee2supla) on one device.
+
