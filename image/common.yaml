@@ -1,6 +1,6 @@
 {{- $architecture := .architecture -}}
 {{- $version := or .version "dev" -}}
-{{- $expire_password := or .expire_password "false" -}}
+{{- $expire_password := or .expire_password "true" -}}
 
 # Steps shared by all SuplaOS images: base packages, Docker, default user,
 # system configuration. Expects a debootstrapped trixie rootfs.

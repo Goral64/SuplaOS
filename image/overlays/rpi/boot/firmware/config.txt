@@ -1,0 +1,9 @@
+# Raspberry Pi firmware configuration of SuplaOS.
+# Options: https://www.raspberrypi.com/documentation/computers/config_txt.html
+arm_64bit=1
+# kernel8.img (Pi 4) or kernel_2712.img (Pi 5) with its initramfs.
+auto_initramfs=1
+disable_overscan=1
+# Serial console on GPIO 14/15.
+enable_uart=1
+dtparam=audio=off

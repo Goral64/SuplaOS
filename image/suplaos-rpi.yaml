@@ -1,0 +1,80 @@
+{{- $suite := or .suite "trixie" -}}
+{{- $version := or .version "dev" -}}
+{{- $expire_password := or .expire_password "true" -}}
+{{- $image := or .image (printf "suplaos-%s-rpi-arm64.img" $version) -}}
+{{- $size := or .size "4GB" -}}
+
+# SuplaOS for Raspberry Pi 4 and 5 (64-bit). Debian with the kernel and the
+# boot firmware from the Raspberry Pi repository.
+architecture: arm64
+
+actions:
+  - action: debootstrap
+    suite: {{ $suite }}
+    components: [main, non-free-firmware]
+    mirror: https://deb.debian.org/debian
+    variant: minbase
+
+  - action: overlay
+    description: Raspberry Pi repository for the kernel and firmware
+    source: overlays/rpi-apt
+
+  - action: apt
+    description: Kernel and boot firmware
+    recommends: false
+    packages:
+      - initramfs-tools
+      - linux-image-rpi-v8
+      - linux-image-rpi-2712
+      - raspi-firmware
+      - firmware-brcm80211
+
+  - action: recipe
+    recipe: common.yaml
+    variables:
+      architecture: arm64
+      version: {{ $version }}
+      expire_password: {{ $expire_password }}
+
+  - action: overlay
+    description: Raspberry Pi boot configuration
+    source: overlays/rpi
+
+  - action: image-partition
+    imagename: {{ $image }}
+    imagesize: {{ $size }}
+    partitiontype: msdos
+    mountpoints:
+      - mountpoint: /
+        partition: root
+      - mountpoint: /boot/firmware
+        partition: firmware
+    partitions:
+      - name: firmware
+        fs: vfat
+        # FAT32 (LBA), required by the Raspberry Pi boot loader.
+        parttype: "0c"
+        start: 4MiB
+        end: 516MiB
+      - name: root
+        fs: ext4
+        start: 516MiB
+        end: 100%
+
+  - action: filesystem-deploy
+    description: Deploy filesystem onto image
+
+  - action: run
+    description: Kernel command line
+    chroot: true
+    command: |
+      set -e
+      # /etc/kernel/cmdline has the root filesystem from filesystem-deploy.
+      echo "console=serial0,115200 console=tty1 $(cat /etc/kernel/cmdline) rootwait fsck.repair=yes cgroup_enable=memory" > /boot/firmware/cmdline.txt
+      cat /boot/firmware/cmdline.txt
+      ls /boot/firmware
+
+  - action: run
+    description: Compress image
+    postprocess: true
+    command: xz -T0 -f -k "${ARTIFACTDIR}/{{ $image }}"

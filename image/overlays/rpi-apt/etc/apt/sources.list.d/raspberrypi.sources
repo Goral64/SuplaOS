@@ -1,0 +1,6 @@
+# Kernel and boot firmware of the Raspberry Pi (see preferences.d/raspberrypi).
+Types: deb
+URIs: http://archive.raspberrypi.com/debian/
+Suites: trixie
+Components: main
+Signed-By: /usr/share/keyrings/raspberrypi-archive-keyring.pgp

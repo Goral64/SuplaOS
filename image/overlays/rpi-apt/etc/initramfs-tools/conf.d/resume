@@ -1,0 +1,2 @@
+# No hibernation; without this the image would point at a disk of the build host.
+RESUME=none

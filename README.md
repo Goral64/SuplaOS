@@ -6,7 +6,9 @@ server at home. Write the image to an SD card or a disk, power the device on
 and do the rest from a web browser. Besides Supla you can add extras: an MQTT
 broker, Zigbee2MQTT, zigbee2supla.
 
-The project is at an early stage, for now only the x86-64 image is being built.
+The project is at an early stage. The Raspberry Pi image hasn't been tested
+on real hardware yet, if you can help, see [testing](docs/testing.md).
+Images are in [Releases](https://github.com/Goral64/SuplaOS/releases).
 
 ## First start
 
@@ -14,7 +16,8 @@ The device gets its address from your router (DHCP). Open
 http://suplaos.local in a browser (the IP address is also shown on a screen
 connected to the device) and log in with the password `supla`. The panel asks
 you to change it first, the new one also works for SSH
-(`ssh supla@suplaos.local`). Then you pick the language, the time zone and the
+(`ssh supla@suplaos.local`, which asks for a new password too if you log in
+there first). Then you pick the language, the time zone and the
 name of the device, and you can install Supla right away.
 
 ## Add-ons
@@ -45,8 +48,10 @@ Everything lives in `/srv/suplaos`: the generated compose project in
 You need Docker.
 
     tools/build.sh amd64
+    tools/build.sh rpi
 
-The image lands in `out/`. For a quick test in QEMU:
+The image lands in `out/`. On an x86-64 machine the Raspberry Pi image is
+built with qemu emulation, which takes a while. For a quick test in QEMU:
 
     tools/run-qemu.sh
 
@@ -61,3 +66,7 @@ It converts the image to VHDX in `F:\Hyper-V\SuplaOS` (change it with
 external switch and starts it. Windows asks for admin rights. The VM gets its
 address from the router, so `http://suplaos.local` works like with
 a real device. Every run replaces the VM disk with a fresh image.
+
+## License
+
+GPL-3.0, see [LICENSE](LICENSE).

@@ -1,6 +1,6 @@
 {{- $suite := or .suite "trixie" -}}
 {{- $version := or .version "dev" -}}
-{{- $expire_password := or .expire_password "false" -}}
+{{- $expire_password := or .expire_password "true" -}}
 {{- $image := or .image (printf "suplaos-%s-amd64.img" $version) -}}
 {{- $size := or .size "4GB" -}}
 

@@ -1,0 +1,24 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Web interface
+        run: tools/npm.sh ci --no-audit --no-fund && tools/npm.sh run build
+      - name: Go vet and tests
+        run: tools/go.sh vet ./... && tools/go.sh test ./...
+      - name: Build for amd64 and arm64
+        run: |
+          for arch in amd64 arm64; do
+            for cmd in suplaos suplaos-panel; do
+              GOARCH=$arch tools/go.sh build -trimpath -o "out/$cmd-$arch" "./cmd/$cmd"
+            done
+          done
+          ls -l out

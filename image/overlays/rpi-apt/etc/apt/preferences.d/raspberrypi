@@ -1,0 +1,9 @@
+# Everything comes from Debian, only the kernel and the boot firmware from
+# the Raspberry Pi repository.
+Package: *
+Pin: origin archive.raspberrypi.com
+Pin-Priority: 100
+
+Package: linux-image-rpi-* linux-image-*-rpi-* linux-headers-rpi-* linux-headers-*-rpi-* linux-base-rpi-* linux-kbuild-* raspi-firmware
+Pin: origin archive.raspberrypi.com
+Pin-Priority: 600
