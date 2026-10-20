@@ -682,6 +682,10 @@ func (s *Server) checkUpdates(w http.ResponseWriter, r *http.Request) {
 // startUpgrade starts the system update. It runs apart from the panel,
 // which it may restart; the browser follows /api/updates/log.
 func (s *Server) startUpgrade(w http.ResponseWriter, r *http.Request) {
+	if j := s.jobs.current(); j != nil {
+		jsonError(w, http.StatusConflict, errBusy{j})
+		return
+	}
 	if err := system.StartUpgrade(); err != nil {
 		jsonError(w, http.StatusConflict, err)
 		return

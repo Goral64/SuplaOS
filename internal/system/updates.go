@@ -72,7 +72,10 @@ func ReadUpdates() (*Updates, error) {
 		}
 		u.Checked = &newest
 	}
-	out, err := exec.Command("apt", "list", "--upgradable").Output()
+	cmd := exec.Command("apt", "list", "--upgradable")
+	// The output is parsed: no translations.
+	cmd.Env = append(os.Environ(), "LC_ALL=C")
+	out, err := cmd.Output()
 	if err != nil {
 		return nil, fmt.Errorf("apt list: %w", err)
 	}
@@ -125,6 +128,12 @@ func StartUpgrade() error {
 	if exec.Command("systemctl", "is-active", "--quiet", upgradeUnit).Run() == nil {
 		return ErrUpgradeRunning
 	}
+	// The browser starts reading the log right away: no lines of the last
+	// update.
+	if err := os.MkdirAll(filepath.Dir(upgradeLog), 0o755); err == nil {
+		os.WriteFile(upgradeLog, nil, 0o644)
+	}
+	os.WriteFile(upgradeState, []byte(fmt.Sprintf("running %d\n", time.Now().Unix())), 0o644)
 	return run("systemd-run", "--unit="+upgradeUnit, "--collect", "--description=SuplaOS update", upgradeScript)
 }
 

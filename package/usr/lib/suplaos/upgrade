@@ -14,10 +14,22 @@ echo "running $(date +%s)" > "$state"
 exec > >(tee -a "$log") 2>&1
 
 export DEBIAN_FRONTEND=noninteractive
-apt_opts=(-y -o Dpkg::Options::=--force-confdef -o Dpkg::Options::=--force-confold)
+# Wait for apt used by something else (e.g. the daily unattended-upgrades).
+lock_opts=(-o DPkg::Lock::Timeout=600)
+apt_opts=(-y "${lock_opts[@]}" -o Dpkg::Options::=--force-confdef -o Dpkg::Options::=--force-confold)
 
+# apt-get update does not wait for the lock of the package lists itself.
+# Messages in English, to recognize that error.
+export LC_ALL=C.UTF-8
 rc=0
-apt-get update || rc=$?
+for try in $(seq 60); do
+  rc=0
+  out=$(apt-get "${lock_opts[@]}" update 2>&1) || rc=$?
+  echo "$out"
+  [ $rc -ne 0 ] && grep -q "Could not get lock" <<< "$out" || break
+  echo "Waiting for another apt to finish..."
+  sleep 10
+done
 if [ $rc -eq 0 ]; then
   apt-get "${apt_opts[@]}" full-upgrade || rc=$?
 fi
