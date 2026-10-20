@@ -20,7 +20,7 @@ jobs:
             runner: ubuntu-24.04-arm
     runs-on: ${{ matrix.runner }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Version
         run: |
           if [ "$GITHUB_REF_TYPE" = tag ]; then
@@ -35,7 +35,7 @@ jobs:
         run: tools/build.sh ${{ matrix.target }} "$VERSION"
       - name: Checksum
         run: cd out && sha256sum *.img.xz > "suplaos-$VERSION-${{ matrix.target }}.sha256"
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: image-${{ matrix.target }}
           path: |
@@ -51,7 +51,7 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           path: out
           merge-multiple: true
