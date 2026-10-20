@@ -12,7 +12,14 @@ files: [.env.default]
 env_base: .env.default
 # Variables of this add-on for the containers, instead of the whole .env.
 env_file: supla.env
-compose: [docker-compose.yml, docker-compose.standalone.yml, docker-compose.supla-suplaos.yml]
+compose:
+  - docker-compose.yml
+  - docker-compose.standalone.yml
+  - docker-compose.supla-suplaos.yml
+  - file: docker-compose.supla-mqtt.yml
+    when: {installed: mosquitto, option: SUPLA_MQTT_BROKER_ENABLED, equals: "true"}
+  - file: docker-compose.supla-mqtt-tls.yml
+    when: {installed: mosquitto, option: "mosquitto:MOSQUITTO_LAN", in: [tls, both]}
 services: [supla-cloud, supla-db, supla-server]
 dirs: [ssl/cloud, ssl/server, var]
 data: [ssl/cloud, ssl/server, var/mysql, var/cloud-local, var/cloud-logs]
@@ -48,7 +55,44 @@ options:
     default: null://null
   - key: SUPLA_MAILER_FROM
     label: {en: Sender address, pl: Adres nadawcy}
+    help:
+      en: The Cloud fails to register accounts with an empty sender, even without e-mail sending.
+      pl: Z pustym nadawcą Cloud nie zarejestruje konta, nawet bez wysyłania e-maili.
     type: email
+    default: "supla@{hostname}.local"
+    required: true
+  - key: SUPLA_ACCOUNTS_REGISTRATION_ENABLED
+    label: {en: Account registration in the Cloud, pl: Zakładanie kont w Cloud}
+    help:
+      en: Accounts registered in the Cloud have to be confirmed by e-mail, which needs e-mail sending set up above. Without it create accounts in the SuplaOS panel.
+      pl: Konta zakładane w Cloud trzeba potwierdzić e-mailem, co wymaga ustawienia wysyłania e-maili powyżej. Bez tego zakładaj konta w panelu SuplaOS.
+    type: select
+    choices: ["false", "true"]
+    choice_labels:
+      "false": {en: "Off", pl: "Wyłączone"}
+      "true": {en: "On", pl: "Włączone"}
+    default: "false"
+    required: true
+  - key: SUPLA_MQTT_BROKER_ENABLED
+    label: {en: MQTT, pl: MQTT}
+    help:
+      en: supla-server publishes the channels to the Mosquitto add-on and the Cloud shows MQTT in the account settings. For other devices turn on access from the local network in Mosquitto.
+      pl: supla-server publikuje kanały do dodatku Mosquitto, a Cloud pokazuje MQTT w ustawieniach konta. Dla innych urządzeń włącz w Mosquitto dostęp z sieci lokalnej.
+    type: select
+    choices: ["false", "true"]
+    choice_labels:
+      "false": {en: "Off", pl: "Wyłączone"}
+      "true": {en: "On", pl: "Włączone"}
+    default: "false"
+    required: true
+    when: {installed: mosquitto}
+    # Turn MQTT on also in the accounts (the Cloud has a switch per account)
+    # and let supla-server read it.
+    after:
+      - value: "true"
+        service: supla-db
+        command: [sh, -c, 'exec mariadb --user=supla --password="$MYSQL_PASSWORD" supla -e "update supla_user set mqtt_broker_enabled = 1"']
+        restart: [supla-server]
   - key: DATABASE_PASSWORD
     type: secret
     generate: 32

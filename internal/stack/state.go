@@ -6,8 +6,10 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
+	"strings"
 	"syscall"
 
 	"gopkg.in/yaml.v3"
@@ -36,8 +38,15 @@ type Stack struct {
 	State   *State
 	// TZ is the system time zone, passed to the containers.
 	TZ string
+	// Stdin, Stdout and Stderr of docker compose; nil means those of this
+	// process.
+	Stdin          io.Reader
+	Stdout, Stderr io.Writer
 
 	lock *os.File
+	// after are the option actions Up runs, queued by Install and
+	// Configure.
+	after []addon.After
 }
 
 // Open loads the catalog and the state.
@@ -68,17 +77,17 @@ func Open(root, catalogDir string) (*Stack, error) {
 	return s, nil
 }
 
-func (s *Stack) statePath() string  { return filepath.Join(s.Root, "state.yaml") }
-func (s *Stack) Dir() string        { return filepath.Join(s.Root, "stack") }
-func (s *Stack) BackupDir() string  { return filepath.Join(s.Root, "backups") }
+func (s *Stack) statePath() string { return filepath.Join(s.Root, "state.yaml") }
+func (s *Stack) Dir() string       { return filepath.Join(s.Root, "stack") }
+func (s *Stack) BackupDir() string { return filepath.Join(s.Root, "backups") }
 func (s *Stack) cacheDir(id string) string {
 	return filepath.Join(s.Root, "cache", id)
 }
 
 // Lock takes an exclusive lock on the data directory, held until the
-// process exits. Taken by every command that changes something.
+// process exits or Unlock. Taken by every command that changes something.
 func (s *Stack) Lock() error {
-	if err := os.MkdirAll(s.Root, 0o755); err != nil {
+	if err := s.mkdir(s.Root); err != nil {
 		return err
 	}
 	f, err := os.OpenFile(filepath.Join(s.Root, ".lock"), os.O_CREATE|os.O_RDWR, 0o644)
@@ -89,8 +98,17 @@ func (s *Stack) Lock() error {
 		f.Close()
 		return fmt.Errorf("another suplaos command is running")
 	}
+	s.chown(f.Name())
 	s.lock = f
 	return nil
+}
+
+// Unlock releases the lock taken by Lock.
+func (s *Stack) Unlock() {
+	if s.lock != nil {
+		s.lock.Close()
+		s.lock = nil
+	}
 }
 
 // Save writes state.yaml. It holds secrets, so it is readable only by the
@@ -102,7 +120,7 @@ func (s *Stack) Save() error {
 	if err := enc.Encode(s.State); err != nil {
 		return err
 	}
-	return writeFile(s.statePath(), buf.Bytes(), 0o600)
+	return s.writeFile(s.statePath(), buf.Bytes(), 0o600)
 }
 
 // IsInstalled tells whether the add-on is installed.
@@ -111,8 +129,8 @@ func (s *Stack) IsInstalled(id string) bool {
 }
 
 // writeFile replaces a file atomically.
-func writeFile(path string, data []byte, perm os.FileMode) error {
-	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
+func (s *Stack) writeFile(path string, data []byte, perm os.FileMode) error {
+	if err := s.mkdir(filepath.Dir(path)); err != nil {
 		return err
 	}
 	tmp := path + ".tmp"
@@ -122,19 +140,52 @@ func writeFile(path string, data []byte, perm os.FileMode) error {
 	if err := os.Chmod(tmp, perm); err != nil {
 		return err
 	}
+	s.chown(tmp)
 	return os.Rename(tmp, path)
 }
 
+// mkdir creates a directory with its parents inside the data directory.
+func (s *Stack) mkdir(dir string) error {
+	var created []string
+	for d := dir; ; d = filepath.Dir(d) {
+		if _, err := os.Stat(d); err == nil || d == filepath.Dir(d) {
+			break
+		}
+		created = append(created, d)
+	}
+	if err := os.MkdirAll(dir, 0o755); err != nil {
+		return err
+	}
+	for _, d := range created {
+		s.chown(d)
+	}
+	return nil
+}
+
+// chown gives a file created by root (the panel) to the owner of the data
+// directory, so that the suplaos command keeps working for that user.
+func (s *Stack) chown(path string) {
+	if os.Geteuid() != 0 || !strings.HasPrefix(path, s.Root) {
+		return
+	}
+	st, err := os.Stat(s.Root)
+	if err != nil {
+		return
+	}
+	if sys, ok := st.Sys().(*syscall.Stat_t); ok {
+		os.Lchown(path, int(sys.Uid), int(sys.Gid))
+	}
+}
+
 func systemTZ() string {
-	if data, err := os.ReadFile("/etc/timezone"); err == nil {
-		if tz := string(bytes.TrimSpace(data)); tz != "" {
+	if link, err := os.Readlink("/etc/localtime"); err == nil {
+		if _, tz, ok := strings.Cut(link, "zoneinfo/"); ok {
 			return tz
 		}
 	}
-	if link, err := os.Readlink("/etc/localtime"); err == nil {
-		const prefix = "/usr/share/zoneinfo/"
-		if i := bytes.Index([]byte(link), []byte(prefix)); i >= 0 {
-			return link[i+len(prefix):]
+	if data, err := os.ReadFile("/etc/timezone"); err == nil {
+		if tz := string(bytes.TrimSpace(data)); tz != "" {
+			return tz
 		}
 	}
 	return "UTC"

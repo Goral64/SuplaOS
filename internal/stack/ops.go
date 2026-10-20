@@ -34,7 +34,7 @@ func (s *Stack) Install(id string, set map[string]string) error {
 	vars := systemVars()
 	for _, o := range a.Options {
 		switch {
-		case o.Type == addon.TypeSecret:
+		case o.Generate > 0:
 			inst.Options[o.Key] = randomString(o.Generate)
 		case strings.Contains(o.Default, "{"):
 			inst.Options[o.Key] = expand(o.Default, vars)
@@ -53,7 +53,36 @@ func (s *Stack) Install(id string, set map[string]string) error {
 		delete(s.State.Addons, id)
 		return err
 	}
+	s.queueAfter(a, nil)
 	return s.Save()
+}
+
+// queueAfter queues the actions of options whose value changed from old
+// (nil on install) to the value of the action.
+func (s *Stack) queueAfter(a *addon.Addon, old map[string]string) {
+	values := s.Values(a)
+	for _, o := range a.Options {
+		for _, act := range o.After {
+			if values[o.Key] == act.Value && (old == nil || old[o.Key] != act.Value) {
+				s.after = append(s.after, act)
+			}
+		}
+	}
+}
+
+// QueueAfter queues the actions for the current value of an option, e.g.
+// after creating a Supla account; Up or RunAfter runs them.
+func (s *Stack) QueueAfter(id, key string) {
+	a := s.Catalog[id]
+	if a == nil || !s.IsInstalled(id) || a.Option(key) == nil {
+		return
+	}
+	v := s.Values(a)[key]
+	for _, act := range a.Option(key).After {
+		if act.Value == v {
+			s.after = append(s.after, act)
+		}
+	}
 }
 
 // Configure changes option values of an installed add-on and rewrites the
@@ -69,6 +98,7 @@ func (s *Stack) Configure(id string, set map[string]string) error {
 	for k, v := range old {
 		inst.Options[k] = v
 	}
+	before := s.Values(a)
 	if err := s.setOptions(a, inst, set); err != nil {
 		inst.Options = old
 		return err
@@ -77,6 +107,7 @@ func (s *Stack) Configure(id string, set map[string]string) error {
 		inst.Options = old
 		return err
 	}
+	s.queueAfter(a, before)
 	return s.Save()
 }
 
@@ -138,7 +169,7 @@ func (s *Stack) setOptions(a *addon.Addon, inst *Installed, set map[string]strin
 		}
 		// An empty value restores the default.
 		if v == "" {
-			if o.Type == addon.TypeSecret {
+			if o.Generate > 0 {
 				v = randomString(o.Generate)
 			} else {
 				v = expand(o.Default, systemVars())
@@ -147,8 +178,8 @@ func (s *Stack) setOptions(a *addon.Addon, inst *Installed, set map[string]strin
 		inst.Options[k] = v
 	}
 	values := map[string]string{}
-	for _, o := range a.Options {
-		values[o.Key] = o.Default
+	for i := range a.Options {
+		values[a.Options[i].Key] = DefaultValue(&a.Options[i])
 	}
 	for k, v := range inst.Options {
 		values[k] = v
@@ -156,7 +187,7 @@ func (s *Stack) setOptions(a *addon.Addon, inst *Installed, set map[string]strin
 	var errs []string
 	for i := range a.Options {
 		o := &a.Options[i]
-		if !o.When.Match(s.IsInstalled, values) {
+		if !o.When.Match(s.IsInstalled, s.withOthers(values)) {
 			continue
 		}
 		if err := checkValue(o, values[o.Key]); err != nil {
@@ -216,6 +247,15 @@ func randomString(n int) string {
 		b[i] = alphanumeric[r.Int64()]
 	}
 	return string(b)
+}
+
+// DefaultValue returns the default of an option with placeholders such as
+// {ip} filled in.
+func DefaultValue(o *addon.Option) string {
+	if strings.Contains(o.Default, "{") {
+		return expand(o.Default, systemVars())
+	}
+	return o.Default
 }
 
 // systemVars are the placeholders allowed in option defaults.

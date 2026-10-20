@@ -22,11 +22,16 @@ esac
 
 mkdir -p out
 
-# suplaos CLI and the add-on catalog, put into the image by common.yaml.
+# suplaos CLI, the panel (with the web interface built in) and the add-on
+# catalog, put into the image by common.yaml.
+tools/npm.sh ci --no-audit --no-fund
+tools/npm.sh run build
 staging="image/build/$goarch"
 rm -rf "$staging"
 mkdir -p "$staging/usr/bin" "$staging/usr/share/suplaos"
-GOARCH="$goarch" tools/go.sh build -trimpath -ldflags="-s -w" -o "$staging/usr/bin/suplaos" ./cmd/suplaos
+for cmd in suplaos suplaos-panel; do
+  GOARCH="$goarch" tools/go.sh build -trimpath -ldflags="-s -w" -o "$staging/usr/bin/$cmd" "./cmd/$cmd"
+done
 cp -r addons "$staging/usr/share/suplaos/addons"
 
 debos_image="${DEBOS_IMAGE:-godebos/debos:latest}"

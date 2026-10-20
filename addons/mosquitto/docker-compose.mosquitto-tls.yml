@@ -1,0 +1,5 @@
+# MQTT over TLS for the local network.
+services:
+  mosquitto:
+    ports:
+      - "8883:8883"

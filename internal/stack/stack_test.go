@@ -65,6 +65,9 @@ func TestInstallSupla(t *testing.T) {
 		"DATABASE_IMAGE":       "mariadb:12.2.2",
 		"TZ":                   "Europe/Warsaw",
 	}
+	host, _ := os.Hostname()
+	want["SUPLA_MAILER_FROM"] = "supla@" + host + ".local"
+	want["SUPLA_ACCOUNTS_REGISTRATION_ENABLED"] = "false"
 	for k, v := range want {
 		if env[k] != v {
 			t.Errorf("%s = %q, want %q", k, env[k], v)
@@ -190,5 +193,91 @@ func must(t *testing.T, err error) {
 	t.Helper()
 	if err != nil {
 		t.Fatal(err)
+	}
+}
+
+func TestMosquitto(t *testing.T) {
+	s := newStack(t)
+	must(t, s.Install("mosquitto", nil))
+	env := readEnv(t, s, ".env")
+	if len(env["MOSQUITTO_PASSWORD"]) != 16 || env["MOSQUITTO_USERNAME"] != "mqtt" || env["MOSQUITTO_LAN"] != "off" {
+		t.Errorf("mosquitto env: %v", env)
+	}
+	if env["COMPOSE_FILE"] != "docker-compose.mosquitto.yml" {
+		t.Errorf("COMPOSE_FILE = %s", env["COMPOSE_FILE"])
+	}
+	crt, err := os.ReadFile(filepath.Join(s.Dir(), "ssl/mosquitto/server.crt"))
+	if err != nil || !strings.Contains(string(crt), "BEGIN CERTIFICATE") {
+		t.Fatalf("certificate: %v", err)
+	}
+	if st, _ := os.Stat(filepath.Join(s.Dir(), "ssl/mosquitto/server.key")); st.Mode().Perm() != 0o600 {
+		t.Errorf("key mode %v", st.Mode())
+	}
+
+	must(t, s.Configure("mosquitto", map[string]string{"MOSQUITTO_LAN": "both"}))
+	env = readEnv(t, s, ".env")
+	if !strings.Contains(env["COMPOSE_FILE"], "mosquitto-lan") || !strings.Contains(env["COMPOSE_FILE"], "mosquitto-tls") {
+		t.Errorf("COMPOSE_FILE = %s", env["COMPOSE_FILE"])
+	}
+	// The certificate is made once.
+	if again, _ := os.ReadFile(filepath.Join(s.Dir(), "ssl/mosquitto/server.crt")); string(again) != string(crt) {
+		t.Error("certificate regenerated")
+	}
+	if err := s.Configure("mosquitto", map[string]string{"MOSQUITTO_LAN": "maybe"}); err == nil {
+		t.Error("invalid choice accepted")
+	}
+
+	// A password missing from an older installation is generated.
+	delete(s.State.Addons["mosquitto"].Options, "MOSQUITTO_PASSWORD")
+	must(t, s.Apply())
+	if len(readEnv(t, s, ".env")["MOSQUITTO_PASSWORD"]) != 16 {
+		t.Error("password not filled in")
+	}
+}
+
+func TestSuplaMQTT(t *testing.T) {
+	s := newStack(t)
+	must(t, s.Install("supla", nil))
+	if v := s.Values(s.Catalog["supla"]); s.Active(s.Catalog["supla"].Option("SUPLA_MQTT_BROKER_ENABLED"), v) {
+		t.Error("MQTT option active without mosquitto")
+	}
+	must(t, s.Install("mosquitto", map[string]string{"MOSQUITTO_LAN": "tls"}))
+	files := readEnv(t, s, ".env")["COMPOSE_FILE"]
+	if strings.Contains(files, "supla-mqtt.yml") || !strings.Contains(files, "supla-mqtt-tls.yml") {
+		t.Errorf("COMPOSE_FILE = %s", files)
+	}
+	must(t, s.Configure("supla", map[string]string{"SUPLA_MQTT_BROKER_ENABLED": "true"}))
+	files = readEnv(t, s, ".env")["COMPOSE_FILE"]
+	if !strings.Contains(files, "supla-mqtt.yml:docker-compose.supla-mqtt-tls.yml") {
+		t.Errorf("COMPOSE_FILE = %s", files)
+	}
+	if readEnv(t, s, "supla.env")["SUPLA_MQTT_BROKER_ENABLED"] != "true" {
+		t.Error("supla.env without SUPLA_MQTT_BROKER_ENABLED")
+	}
+	must(t, s.Configure("mosquitto", map[string]string{"MOSQUITTO_LAN": "off"}))
+	if files = readEnv(t, s, ".env")["COMPOSE_FILE"]; strings.Contains(files, "mqtt-tls") {
+		t.Errorf("COMPOSE_FILE = %s", files)
+	}
+}
+
+func TestAfterQueue(t *testing.T) {
+	s := newStack(t)
+	must(t, s.Install("supla", nil))
+	must(t, s.Install("mosquitto", nil))
+	if len(s.after) != 0 {
+		t.Fatalf("after on install with MQTT off: %v", s.after)
+	}
+	must(t, s.Configure("supla", map[string]string{"SUPLA_MQTT_BROKER_ENABLED": "true"}))
+	if len(s.after) != 1 || s.after[0].Service != "supla-db" || s.after[0].Restart[0] != "supla-server" {
+		t.Fatalf("after = %v", s.after)
+	}
+	s.after = nil
+	must(t, s.Configure("supla", map[string]string{"PORT_HTTP": "8082"}))
+	if len(s.after) != 0 {
+		t.Errorf("after without a change of the option: %v", s.after)
+	}
+	s.QueueAfter("supla", "SUPLA_MQTT_BROKER_ENABLED")
+	if len(s.after) != 1 {
+		t.Errorf("QueueAfter: %v", s.after)
 	}
 }

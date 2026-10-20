@@ -40,11 +40,11 @@ func (s *Stack) fetch(a *addon.Addon) error {
 		return err
 	}
 	for name, data := range files {
-		if err := writeFile(filepath.Join(dir, name), data, 0o644); err != nil {
+		if err := s.writeFile(filepath.Join(dir, name), data, 0o644); err != nil {
 			return err
 		}
 	}
-	return writeFile(filepath.Join(dir, sourceFile), []byte(a.Fetch.URL), 0o644)
+	return s.writeFile(filepath.Join(dir, sourceFile), []byte(a.Fetch.URL), 0o644)
 }
 
 // Refetch downloads again the files of installed add-ons whose upstream URL

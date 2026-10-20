@@ -1,7 +1,53 @@
 id: mosquitto
 name: Mosquitto
 description:
-  en: MQTT broker for Zigbee2MQTT and zigbee2supla
-  pl: Broker MQTT dla Zigbee2MQTT i zigbee2supla
-compose: [docker-compose.mosquitto.yml]
+  en: MQTT broker for Zigbee2MQTT and zigbee2supla, optionally for other devices in your network
+  pl: Broker MQTT dla Zigbee2MQTT i zigbee2supla, opcjonalnie też dla innych urządzeń w sieci
+files: [mosquitto-start.sh]
+compose:
+  - docker-compose.mosquitto.yml
+  - file: docker-compose.mosquitto-lan.yml
+    when: {option: MOSQUITTO_LAN, in: [plain, both]}
+  - file: docker-compose.mosquitto-tls.yml
+    when: {option: MOSQUITTO_LAN, in: [tls, both]}
 services: [mosquitto]
+dirs: [var/mosquitto]
+data: [var/mosquitto, ssl/mosquitto]
+certificates: [ssl/mosquitto]
+downloads:
+  - file: ssl/mosquitto/server.crt
+    label: {en: TLS certificate (port 8883), pl: Certyfikat TLS (port 8883)}
+
+options:
+  - key: MOSQUITTO_USERNAME
+    label: {en: User, pl: Użytkownik}
+    default: mqtt
+    required: true
+  - key: MOSQUITTO_PASSWORD
+    label: {en: Password, pl: Hasło}
+    help:
+      en: Generated on install. Zigbee2MQTT and zigbee2supla get it automatically.
+      pl: Generowane przy instalacji. Zigbee2MQTT i zigbee2supla dostają je automatycznie.
+    type: password
+    generate: 16
+    required: true
+  - key: MOSQUITTO_LAN
+    label: {en: Access from the local network, pl: Dostęp z sieci lokalnej}
+    help:
+      en: "Encrypted port 8883 uses a self-signed certificate (ssl/mosquitto/server.crt in /srv/suplaos/stack)."
+      pl: "Szyfrowany port 8883 używa certyfikatu samopodpisanego (ssl/mosquitto/server.crt w /srv/suplaos/stack)."
+    type: select
+    choices: [off, plain, tls, both]
+    choice_labels:
+      "off": {en: "Off - only add-ons on this device", pl: "Wyłączony - tylko dodatki na tym urządzeniu"}
+      plain: {en: "Port 1883, not encrypted", pl: "Port 1883, bez szyfrowania"}
+      tls: {en: "Port 8883, encrypted (TLS)", pl: "Port 8883, szyfrowany (TLS)"}
+      both: {en: "Both ports", pl: "Oba porty"}
+    default: "off"
+    required: true
+
+ports:
+  - port: "1883"
+    when: {option: MOSQUITTO_LAN, in: [plain, both]}
+  - port: "8883"
+    when: {option: MOSQUITTO_LAN, in: [tls, both]}

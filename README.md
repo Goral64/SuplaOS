@@ -10,24 +10,27 @@ The project is at an early stage, for now only the x86-64 image is being built.
 
 ## First start
 
-The device gets its address from your router (DHCP). The panel will be at
-http://suplaos.local (for now there is only a placeholder page), and the IP
-address is also shown on a screen connected to the device.
-
-SSH login: `ssh supla@suplaos.local`, password `supla`.
-Change it with `passwd` after logging in.
+The device gets its address from your router (DHCP). Open
+http://suplaos.local in a browser (the IP address is also shown on a screen
+connected to the device) and log in with the password `supla`. The panel asks
+you to change it first, the new one also works for SSH
+(`ssh supla@suplaos.local`). Then you pick the language, the time zone and the
+name of the device, and you can install Supla right away.
 
 ## Add-ons
 
-Until the panel is ready, add-ons are managed from SSH with `suplaos`:
+Add-ons are installed, configured and updated in the panel, under Add-ons.
+After installing Supla, Supla Cloud is at https://<device address> (port 80
+belongs to the panel) and the account can be created on the Supla add-on page.
+
+The same can be done from SSH with `suplaos`:
 
     suplaos list
     suplaos info supla
     suplaos install supla
     suplaos run supla console supla:user:create
 
-Supla Cloud is then at https://<device address> (port 80 is kept for the
-panel). For ZigBee with a USB coordinator:
+For ZigBee with a USB coordinator:
 
     suplaos install mosquitto
     suplaos install zigbee2mqtt ZIGBEE_ADAPTER=/dev/serial/by-id/usb-...
@@ -35,7 +38,7 @@ panel). For ZigBee with a USB coordinator:
 
 Settings can be changed later with `suplaos config <add-on> KEY=VALUE`.
 Everything lives in `/srv/suplaos`: the generated compose project in
-`stack/`, database dumps from `suplaos backup` in `backups/`.
+`stack/`, database dumps in `backups/`.
 
 ## Building the image
 

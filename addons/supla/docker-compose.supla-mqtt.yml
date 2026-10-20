@@ -1,0 +1,20 @@
+# MQTT through the mosquitto add-on. supla-server connects inside the
+# compose network, the Cloud shows users the address in the local network.
+services:
+  supla-server:
+    environment:
+      SUPLA_MQTT_BROKER_HOST: mosquitto
+      SUPLA_MQTT_BROKER_PORT: "1883"
+      SUPLA_MQTT_BROKER_TLS: "false"
+      SUPLA_MQTT_BROKER_USERNAME: ${MOSQUITTO_USERNAME}
+      SUPLA_MQTT_BROKER_PASSWORD: ${MOSQUITTO_PASSWORD}
+      SUPLA_MQTT_BROKER_CLIENT_ID: supla-server
+    depends_on:
+      - mosquitto
+  supla-cloud:
+    environment:
+      SUPLA_MQTT_BROKER_HOST: ${SUPLAOS_IP}
+      SUPLA_MQTT_BROKER_PORT: "1883"
+      SUPLA_MQTT_BROKER_TLS: "false"
+      SUPLA_MQTT_BROKER_USERNAME: ${MOSQUITTO_USERNAME}
+      SUPLA_MQTT_BROKER_PASSWORD: ${MOSQUITTO_PASSWORD}

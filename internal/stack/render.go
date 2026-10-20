@@ -62,8 +62,8 @@ func (s *Stack) Order() []*addon.Addon {
 // over defaults.
 func (s *Stack) Values(a *addon.Addon) map[string]string {
 	v := map[string]string{}
-	for _, o := range a.Options {
-		v[o.Key] = o.Default
+	for i := range a.Options {
+		v[a.Options[i].Key] = DefaultValue(&a.Options[i])
 	}
 	if inst := s.State.Addons[a.ID]; inst != nil {
 		for k, val := range inst.Options {
@@ -75,7 +75,22 @@ func (s *Stack) Values(a *addon.Addon) map[string]string {
 
 // Active tells whether the option applies to the current setup.
 func (s *Stack) Active(o *addon.Option, values map[string]string) bool {
-	return o.When.Match(s.IsInstalled, values)
+	return o.When.Match(s.IsInstalled, s.withOthers(values))
+}
+
+// withOthers adds the option values of the other installed add-ons as
+// "<add-on>:<KEY>", for conditions on them.
+func (s *Stack) withOthers(values map[string]string) map[string]string {
+	all := map[string]string{}
+	for _, a := range s.Order() {
+		for k, v := range s.Values(a) {
+			all[a.ID+":"+k] = v
+		}
+	}
+	for k, v := range values {
+		all[k] = v
+	}
+	return all
 }
 
 // Plan builds the stack directory content from the state.
@@ -86,6 +101,9 @@ func (s *Stack) Plan() (*Plan, error) {
 	env.set("COMPOSE_FILE", "")
 	env.set("VOLUME_DATA", "./var")
 	env.set("TZ", s.TZ)
+	// Address of the device for settings shown to clients, e.g. the MQTT
+	// broker in Supla Cloud.
+	env.set("SUPLAOS_IP", PrimaryIP())
 	globals := map[string]bool{}
 	for _, kv := range env.list {
 		globals[kv.Key] = true
@@ -113,7 +131,7 @@ func (s *Stack) Plan() (*Plan, error) {
 			}
 		}
 		for _, c := range a.Compose {
-			if !c.When.Match(s.IsInstalled, values) {
+			if !c.When.Match(s.IsInstalled, s.withOthers(values)) {
 				continue
 			}
 			data, err := s.source(a, c.File)
@@ -217,11 +235,11 @@ func (s *Stack) source(a *addon.Addon, name string) ([]byte, error) {
 // before that are no longer needed.
 func (s *Stack) Write(p *Plan) error {
 	dir := s.Dir()
-	if err := os.MkdirAll(dir, 0o755); err != nil {
+	if err := s.mkdir(dir); err != nil {
 		return err
 	}
 	for _, d := range p.Dirs {
-		if err := os.MkdirAll(filepath.Join(dir, d), 0o755); err != nil {
+		if err := s.mkdir(filepath.Join(dir, d)); err != nil {
 			return err
 		}
 	}
@@ -231,7 +249,7 @@ func (s *Stack) Write(p *Plan) error {
 		if strings.HasSuffix(name, ".env") || strings.HasPrefix(name, ".env") {
 			perm = 0o600
 		}
-		if err := writeFile(filepath.Join(dir, name), data, perm); err != nil {
+		if err := s.writeFile(filepath.Join(dir, name), data, perm); err != nil {
 			return err
 		}
 		names = append(names, name)
@@ -244,7 +262,7 @@ func (s *Stack) Write(p *Plan) error {
 			os.Remove(filepath.Join(dir, name))
 		}
 	}
-	return writeFile(filepath.Join(dir, generatedList), []byte(strings.Join(names, "\n")+"\n"), 0o644)
+	return s.writeFile(filepath.Join(dir, generatedList), []byte(strings.Join(names, "\n")+"\n"), 0o644)
 }
 
 // reservedPorts are used by the system itself.
@@ -261,8 +279,12 @@ func (s *Stack) CheckPorts(p *Plan) error {
 		used[port] = who
 	}
 	for _, a := range s.Order() {
+		values := s.Values(a)
 		for _, spec := range a.Ports {
-			v := os.Expand(spec, func(k string) string { return env[k] })
+			if !spec.When.Match(s.IsInstalled, s.withOthers(values)) {
+				continue
+			}
+			v := os.Expand(spec.Port, func(k string) string { return env[k] })
 			if v == "" {
 				continue
 			}
@@ -279,8 +301,23 @@ func (s *Stack) CheckPorts(p *Plan) error {
 	return nil
 }
 
+// Expand replaces ${VAR} with values from the .env of the project, e.g.
+// the port of an add-on web interface.
+func (s *Stack) Expand(str string) string {
+	p, err := s.Plan()
+	if err != nil {
+		return ""
+	}
+	env := map[string]string{}
+	for _, kv := range p.Env {
+		env[kv.Key] = kv.Value
+	}
+	return os.Expand(str, func(k string) string { return env[k] })
+}
+
 // Apply writes the stack directory for the current state.
 func (s *Stack) Apply() error {
+	filled := s.fillGenerated()
 	p, err := s.Plan()
 	if err != nil {
 		return err
@@ -288,7 +325,32 @@ func (s *Stack) Apply() error {
 	if err := s.CheckPorts(p); err != nil {
 		return err
 	}
-	return s.Write(p)
+	if err := s.Write(p); err != nil {
+		return err
+	}
+	if err := s.certificates(); err != nil {
+		return err
+	}
+	if filled {
+		return s.Save()
+	}
+	return nil
+}
+
+// fillGenerated generates values of installed add-ons that have none yet,
+// e.g. a password added to the add-on after it was installed.
+func (s *Stack) fillGenerated() bool {
+	filled := false
+	for _, a := range s.Order() {
+		inst := s.State.Addons[a.ID]
+		for _, o := range a.Options {
+			if o.Generate > 0 && inst.Options[o.Key] == "" {
+				inst.Options[o.Key] = randomString(o.Generate)
+				filled = true
+			}
+		}
+	}
+	return filled
 }
 
 type envList struct {

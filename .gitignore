@@ -2,3 +2,6 @@
 /image/.debos-*/
 /.cache/
 /image/build/
+/web/dist/*
+!/web/dist/.gitkeep
+/web/node_modules/

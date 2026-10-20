@@ -7,7 +7,6 @@ import (
 	"flag"
 	"fmt"
 	"os"
-	"os/exec"
 	"sort"
 	"strings"
 	"text/tabwriter"
@@ -24,8 +23,9 @@ Add-ons:
   install <add-on> [KEY=VALUE...] [--no-start]
   remove <add-on> [--purge]    --purge also deletes its data
   purge <add-on>               delete data of a removed add-on
-  config <add-on> [KEY=VALUE...]
-                               show or change settings (KEY= restores the default)
+  config <add-on> [KEY=VALUE...] [--show]
+                               show or change settings (KEY= restores the default,
+                               --show shows passwords)
 
 Containers:
   status                       containers of the installed add-ons
@@ -84,7 +84,7 @@ func run(args []string) error {
 		if len(args) != 1 {
 			return errors.New("usage: suplaos info <add-on>")
 		}
-		return info(s, args[0])
+		return info(s, args[0], false)
 	case "install":
 		return install(s, args)
 	case "remove":
@@ -166,7 +166,8 @@ func list(s *stack.Stack) error {
 	return w.Flush()
 }
 
-func info(s *stack.Stack, id string) error {
+// info prints an add-on; passwords only with show.
+func info(s *stack.Stack, id string, show bool) error {
 	a := s.Catalog[id]
 	if a == nil {
 		return fmt.Errorf("unknown add-on %q", id)
@@ -210,7 +211,7 @@ func info(s *stack.Stack, id string) error {
 			continue
 		}
 		v := values[o.Key]
-		if o.Type == addon.TypePassword && v != "" {
+		if o.Type == addon.TypePassword && v != "" && !show {
 			v = "********"
 		}
 		if !installed {
@@ -340,8 +341,7 @@ func remove(s *stack.Stack, args []string) error {
 			return err
 		}
 	} else {
-		// Without compose files compose cannot clean up its network.
-		exec.Command("docker", "network", "rm", stack.ProjectName+"_default").Run()
+		s.RemoveNetwork()
 	}
 	if *purge {
 		if err := s.Purge(id); err != nil {
@@ -376,15 +376,19 @@ func config(s *stack.Stack, args []string) error {
 	if !s.IsInstalled(id) {
 		return fmt.Errorf("%s is not installed", id)
 	}
-	if len(args) == 1 {
-		return info(s, id)
-	}
 	set, rest, err := parseSettings(args[1:])
 	if err != nil {
 		return err
 	}
-	if len(rest) > 0 {
-		return fmt.Errorf("unknown flag %s", rest[0])
+	show := false
+	for _, f := range rest {
+		if f != "--show" {
+			return fmt.Errorf("unknown flag %s", f)
+		}
+		show = true
+	}
+	if len(set) == 0 {
+		return info(s, id, show)
 	}
 	if err := s.Lock(); err != nil {
 		return err

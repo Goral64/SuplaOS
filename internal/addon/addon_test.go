@@ -63,3 +63,11 @@ func TestParseErrors(t *testing.T) {
 		}
 	}
 }
+
+func TestConditionIn(t *testing.T) {
+	c := &Condition{Option: "M", In: []string{"a", "b"}}
+	none := func(string) bool { return false }
+	if !c.Match(none, map[string]string{"M": "b"}) || c.Match(none, map[string]string{"M": "c"}) {
+		t.Error("in")
+	}
+}

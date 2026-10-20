@@ -1,0 +1,5 @@
+# MQTT without encryption for the local network.
+services:
+  mosquitto:
+    ports:
+      - "1883:1883"

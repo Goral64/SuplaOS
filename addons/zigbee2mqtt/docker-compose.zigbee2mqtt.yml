@@ -15,6 +15,9 @@ services:
     environment:
       TZ: ${TZ}
       ZIGBEE2MQTT_CONFIG_MQTT_SERVER: mqtt://mosquitto:1883
+      # Login to the mosquitto add-on.
+      ZIGBEE2MQTT_CONFIG_MQTT_USER: ${MOSQUITTO_USERNAME}
+      ZIGBEE2MQTT_CONFIG_MQTT_PASSWORD: ${MOSQUITTO_PASSWORD}
       ZIGBEE2MQTT_CONFIG_FRONTEND_ENABLED: "true"
       ZIGBEE2MQTT_CONFIG_FRONTEND_PORT: "8080"
       # zigbee2supla shows devices unavailable in ZigBee as offline in Supla.

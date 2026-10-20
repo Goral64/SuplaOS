@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"slices"
 	"sort"
 	"strings"
 
@@ -39,12 +40,15 @@ func (t Text) In(lang string) string {
 }
 
 // Condition limits a compose file or an option to some setups. All set
-// fields must match.
+// fields must match. Option names an option of the same add-on, or of
+// another one as "<add-on>:<KEY>".
 type Condition struct {
-	Installed    string `yaml:"installed"`
-	NotInstalled string `yaml:"not_installed"`
-	Option       string `yaml:"option"`
-	Equals       string `yaml:"equals"`
+	Installed    string `yaml:"installed" json:"installed,omitempty"`
+	NotInstalled string `yaml:"not_installed" json:"notInstalled,omitempty"`
+	Option       string `yaml:"option" json:"option,omitempty"`
+	Equals       string `yaml:"equals" json:"equals,omitempty"`
+	// In is an alternative to Equals: the option has one of these values.
+	In []string `yaml:"in" json:"in,omitempty"`
 }
 
 // Match tells whether the condition holds for the installed add-ons and the
@@ -59,8 +63,15 @@ func (c *Condition) Match(installed func(id string) bool, options map[string]str
 	if c.NotInstalled != "" && installed(c.NotInstalled) {
 		return false
 	}
-	if c.Option != "" && options[c.Option] != c.Equals {
-		return false
+	if c.Option != "" {
+		v := options[c.Option]
+		if len(c.In) > 0 {
+			if !slices.Contains(c.In, v) {
+				return false
+			}
+		} else if v != c.Equals {
+			return false
+		}
 	}
 	return true
 }
@@ -84,16 +95,30 @@ func (c *ComposeFile) UnmarshalYAML(n *yaml.Node) error {
 // Option is a setting the user fills in. Its value goes to the .env of the
 // compose project (compose variables) or to the env file named in File.
 type Option struct {
-	Key      string     `yaml:"key"`
-	Label    Text       `yaml:"label"`
-	Help     Text       `yaml:"help"`
-	Type     string     `yaml:"type"`
-	Default  string     `yaml:"default"`
-	Choices  []string   `yaml:"choices"`
-	Required bool       `yaml:"required"`
-	Generate int        `yaml:"generate"`
-	File     string     `yaml:"file"`
-	When     *Condition `yaml:"when"`
+	Key     string   `yaml:"key" json:"key"`
+	Label   Text     `yaml:"label" json:"label"`
+	Help    Text     `yaml:"help" json:"help,omitempty"`
+	Type    string   `yaml:"type" json:"type"`
+	Default string   `yaml:"default" json:"default"`
+	Choices []string `yaml:"choices" json:"choices,omitempty"`
+	// ChoiceLabels are shown instead of the choices of a select.
+	ChoiceLabels map[string]Text `yaml:"choice_labels" json:"choiceLabels,omitempty"`
+	Required     bool            `yaml:"required" json:"required"`
+	Generate     int             `yaml:"generate" json:"generate,omitempty"`
+	File         string          `yaml:"file" json:"-"`
+	When         *Condition      `yaml:"when" json:"when,omitempty"`
+	// After are run when the option gets a value, once the containers are
+	// up.
+	After []After `yaml:"after" json:"-"`
+}
+
+// After is an action for an option value: Command runs in Service, then
+// the Restart services are restarted.
+type After struct {
+	Value   string   `yaml:"value"`
+	Service string   `yaml:"service"`
+	Command []string `yaml:"command"`
+	Restart []string `yaml:"restart"`
 }
 
 // Option types.
@@ -106,6 +131,30 @@ const (
 	TypeSelect   = "select"
 	TypeSerial   = "serial" // serial device, e.g. /dev/serial/by-id/...
 )
+
+// Port is a host port the add-on publishes, e.g. "2015" or "${PORT_HTTP}",
+// optionally only in some setups. In addon.yaml a string or
+// {port: ..., when: {...}}.
+type Port struct {
+	Port string     `yaml:"port"`
+	When *Condition `yaml:"when"`
+}
+
+func (p *Port) UnmarshalYAML(n *yaml.Node) error {
+	if n.Kind == yaml.ScalarNode {
+		p.Port = n.Value
+		return nil
+	}
+	type plain Port
+	return n.Decode((*plain)(p))
+}
+
+// Download is a file of the add-on in the stack directory the panel
+// offers for download, e.g. a certificate for clients.
+type Download struct {
+	File  string `yaml:"file" json:"file"`
+	Label Text   `yaml:"label" json:"label"`
+}
 
 // Fetch downloads files of an add-on from an upstream archive (tar.gz) on
 // install instead of keeping them in the catalog.
@@ -138,25 +187,29 @@ type Web struct {
 }
 
 type Addon struct {
-	ID          string             `yaml:"id"`
-	Name        Text               `yaml:"name"`
-	Description Text               `yaml:"description"`
-	Requires    []string           `yaml:"requires"`
-	Recommends  []string           `yaml:"recommends"`
-	Fetch       *Fetch             `yaml:"fetch"`
-	Files       []string           `yaml:"files"`
-	EnvBase     string             `yaml:"env_base"`
-	EnvFile     string             `yaml:"env_file"`
-	Compose     []ComposeFile      `yaml:"compose"`
-	Services    []string           `yaml:"services"`
-	Env         yaml.Node          `yaml:"env"`
-	Options     []Option           `yaml:"options"`
-	Ports       []string           `yaml:"ports"`
-	Dirs        []string           `yaml:"dirs"`
-	Data        []string           `yaml:"data"`
-	Web         *Web               `yaml:"web"`
-	Backup      *Backup            `yaml:"backup"`
-	Commands    map[string]Command `yaml:"commands"`
+	ID          string        `yaml:"id"`
+	Name        Text          `yaml:"name"`
+	Description Text          `yaml:"description"`
+	Requires    []string      `yaml:"requires"`
+	Recommends  []string      `yaml:"recommends"`
+	Fetch       *Fetch        `yaml:"fetch"`
+	Files       []string      `yaml:"files"`
+	EnvBase     string        `yaml:"env_base"`
+	EnvFile     string        `yaml:"env_file"`
+	Compose     []ComposeFile `yaml:"compose"`
+	Services    []string      `yaml:"services"`
+	Env         yaml.Node     `yaml:"env"`
+	Options     []Option      `yaml:"options"`
+	Ports       []Port        `yaml:"ports"`
+	// Certificates are directories that get a self-signed certificate
+	// (server.crt, server.key) for the device on install.
+	Certificates []string           `yaml:"certificates"`
+	Downloads    []Download         `yaml:"downloads"`
+	Dirs         []string           `yaml:"dirs"`
+	Data         []string           `yaml:"data"`
+	Web          *Web               `yaml:"web"`
+	Backup       *Backup            `yaml:"backup"`
+	Commands     map[string]Command `yaml:"commands"`
 
 	// Dir is the catalog directory of the add-on.
 	Dir string `yaml:"-"`
@@ -240,11 +293,19 @@ func (a *Addon) validate() error {
 		default:
 			return fmt.Errorf("%s: option %s has unknown type %q", a.ID, o.Key, o.Type)
 		}
+		if o.Generate > 0 && o.Type != TypeSecret && o.Type != TypePassword {
+			return fmt.Errorf("%s: only passwords and secrets can be generated (%s)", a.ID, o.Key)
+		}
+		for c := range o.ChoiceLabels {
+			if !slices.Contains(o.Choices, c) {
+				return fmt.Errorf("%s: option %s: label for unknown choice %q", a.ID, o.Key, c)
+			}
+		}
 		if o.File != "" && o.File != filepath.Base(o.File) {
 			return fmt.Errorf("%s: option %s: file must be a plain name", a.ID, o.Key)
 		}
 	}
-	for _, list := range [][]string{a.Files, a.Dirs, a.Data} {
+	for _, list := range [][]string{a.Files, a.Dirs, a.Data, a.Certificates} {
 		for _, p := range list {
 			if !local(p) {
 				return fmt.Errorf("%s: path %q leaves the stack directory", a.ID, p)
@@ -253,6 +314,11 @@ func (a *Addon) validate() error {
 	}
 	if a.EnvFile != "" && a.EnvFile != filepath.Base(a.EnvFile) {
 		return fmt.Errorf("%s: env_file must be a plain name", a.ID)
+	}
+	for _, d := range a.Downloads {
+		if !local(d.File) {
+			return fmt.Errorf("%s: download %q leaves the stack directory", a.ID, d.File)
+		}
 	}
 	for _, c := range a.Compose {
 		if c.File != filepath.Base(c.File) {

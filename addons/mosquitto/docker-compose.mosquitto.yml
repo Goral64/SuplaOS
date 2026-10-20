@@ -3,8 +3,17 @@ services:
     container_name: ${COMPOSE_PROJECT_NAME}-mosquitto
     image: ${MOSQUITTO_IMAGE:-eclipse-mosquitto:2}
     restart: unless-stopped
-    # Anonymous access, reachable only inside this compose network.
-    command: mosquitto -c /mosquitto-no-auth.conf
+    # Configuration and password file are written on start from the add-on
+    # settings.
+    entrypoint: ["/bin/sh", "/mosquitto-start.sh"]
+    environment:
+      MOSQUITTO_USERNAME: ${MOSQUITTO_USERNAME}
+      MOSQUITTO_PASSWORD: ${MOSQUITTO_PASSWORD}
+      MOSQUITTO_LAN: ${MOSQUITTO_LAN}
+    volumes:
+      - ./mosquitto-start.sh:/mosquitto-start.sh:ro
+      - ./ssl/mosquitto:/mosquitto/certs:ro
+      - ${VOLUME_DATA}/mosquitto:/mosquitto/data
     logging:
       driver: "json-file"
       options:
