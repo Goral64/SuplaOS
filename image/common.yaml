@@ -48,7 +48,8 @@ actions:
   - action: run
     description: suplaos package
     chroot: true
-    command: dpkg -i /tmp/suplaos.deb && rm /tmp/suplaos.deb
+    # Not in /tmp: commands run in a container with an empty /tmp.
+    command: dpkg -i /var/cache/suplaos-image/suplaos.deb && rm -r /var/cache/suplaos-image
 
   - action: run
     description: Version file

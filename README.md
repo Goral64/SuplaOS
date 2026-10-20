@@ -1,6 +1,7 @@
 # SuplaOS
 
-An operating system for Raspberry Pi 4/5 and x86-64 computers, built around
+An operating system for Raspberry Pi 4/5, x86-64 computers and virtual
+machines ([Proxmox, VirtualBox, VMware, Hyper-V](docs/virtual-machines.md)), built around
 [supla-docker](https://github.com/SUPLA/supla-docker), i.e. your own Supla
 server at home. Write the image to an SD card or a disk, power the device on
 and do the rest from a web browser. Besides Supla you can add extras: an MQTT

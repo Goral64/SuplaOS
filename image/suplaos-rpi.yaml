@@ -19,6 +19,10 @@ actions:
     description: Raspberry Pi repository for the kernel and firmware
     source: overlays/rpi-apt
 
+  - action: overlay
+    description: initramfs settings
+    source: overlays/initramfs
+
   - action: apt
     description: Kernel and boot firmware
     recommends: false

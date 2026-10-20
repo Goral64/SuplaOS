@@ -29,10 +29,10 @@ tools/npm.sh ci --no-audit --no-fund
 tools/npm.sh run build
 staging="image/build/$goarch"
 rm -rf "$staging"
-mkdir -p "$staging/tmp"
+mkdir -p "$staging/var/cache/suplaos-image"
 rm -f out/suplaos_*_"$goarch".deb
 tools/package.sh "$goarch" "$version" out
-cp out/suplaos_*_"$goarch".deb "$staging/tmp/suplaos.deb"
+cp out/suplaos_*_"$goarch".deb "$staging/var/cache/suplaos-image/suplaos.deb"
 
 debos_image="${DEBOS_IMAGE:-godebos/debos:latest}"
 args=(--rm --workdir /recipes

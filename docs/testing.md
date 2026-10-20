@@ -12,7 +12,7 @@ Images are in [Releases](https://github.com/Goral64/SuplaOS/releases):
 
 - `suplaos-<version>-rpi-arm64.img.xz` for Raspberry Pi 4 and 5,
 - `suplaos-<version>-amd64.img.xz` for x86-64 computers and virtual machines
-  (UEFI).
+  (UEFI, see [virtual machines](virtual-machines.md)).
 
 Write it to an SD card, a USB disk or an SSD with Raspberry Pi Imager
 ("Choose OS", then "Use custom") or balenaEtcher. Both take the `.xz` file

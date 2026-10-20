@@ -14,6 +14,10 @@ actions:
     mirror: https://deb.debian.org/debian
     variant: minbase
 
+  - action: overlay
+    description: initramfs settings
+    source: overlays/initramfs
+
   - action: apt
     description: Kernel, bootloader and firmware
     recommends: false
@@ -25,8 +29,10 @@ actions:
       - firmware-misc-nonfree
       - intel-microcode
       - amd64-microcode
-      # IP address and clean shutdown in Hyper-V.
+      # IP address and clean shutdown in virtual machines (Hyper-V; QEMU,
+      # e.g. Proxmox). Both start only on their own hypervisor.
       - hyperv-daemons
+      - qemu-guest-agent
 
   - action: recipe
     recipe: common.yaml
