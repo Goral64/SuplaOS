@@ -1,0 +1,90 @@
+{{- $architecture := .architecture -}}
+{{- $version := or .version "dev" -}}
+{{- $expire_password := or .expire_password "false" -}}
+
+# Steps shared by all SuplaOS images: base packages, Docker, default user,
+# system configuration. Expects a debootstrapped trixie rootfs.
+architecture: {{ $architecture }}
+
+actions:
+  - action: apt
+    description: Base system
+    recommends: false
+    packages:
+      - systemd-sysv
+      - systemd-timesyncd
+      - dbus
+      - udev
+      - sudo
+      - locales
+      - tzdata
+      - ca-certificates
+      - curl
+      - jq
+      - less
+      - nano
+      - iproute2
+      - iputils-ping
+      - network-manager
+      - openssh-server
+      - avahi-daemon
+      - libnss-mdns
+      - cloud-guest-utils
+      - e2fsprogs
+      - unattended-upgrades
+      - docker.io
+      - docker-cli
+      - docker-compose
+      - apparmor
+      - busybox
+
+  - action: overlay
+    description: SuplaOS configuration files
+    source: overlays/common
+
+  - action: run
+    description: Version file
+    chroot: true
+    command: |
+      printf 'VERSION=%s\n' '{{ $version }}' > /etc/suplaos-release
+
+  - action: run
+    description: Default user supla
+    chroot: true
+    command: |
+      set -e
+      useradd -m -s /bin/bash -G sudo,docker supla
+      echo 'supla:supla' | chpasswd
+      {{- if eq $expire_password "true" }}
+      # Force a password change on the first login.
+      chage -d 0 supla
+      {{- end }}
+      passwd -l root
+
+  - action: run
+    description: System settings
+    chroot: true
+    command: |
+      set -e
+      echo 'en_US.UTF-8 UTF-8' > /etc/locale.gen
+      echo 'pl_PL.UTF-8 UTF-8' >> /etc/locale.gen
+      locale-gen
+      echo 'LANG=C.UTF-8' > /etc/default/locale
+      ln -sf /usr/share/zoneinfo/Europe/Warsaw /etc/localtime
+      echo 'Europe/Warsaw' > /etc/timezone
+      mkdir -p /srv/suplaos
+      chown supla:supla /srv/suplaos
+      # Debian motd and default header are replaced by the SuplaOS one.
+      rm -f /etc/motd /etc/update-motd.d/10-uname
+      systemctl enable suplaos-firstboot.service suplaos-placeholder.service NetworkManager ssh avahi-daemon docker systemd-timesyncd
+
+  - action: run
+    description: Clean up identity and caches
+    chroot: true
+    command: |
+      set -e
+      rm -f /etc/ssh/ssh_host_*
+      truncate -s 0 /etc/machine-id
+      rm -f /var/lib/dbus/machine-id
+      apt-get clean
+      rm -rf /var/lib/apt/lists/*

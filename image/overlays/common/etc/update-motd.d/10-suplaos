@@ -1,0 +1,7 @@
+#!/bin/sh
+. /etc/suplaos-release
+ip=$(hostname -I 2>/dev/null | cut -d' ' -f1)
+echo
+echo "  SuplaOS $VERSION"
+echo "  Panel: http://$(hostname).local   (http://${ip:-?})"
+echo

@@ -1,0 +1,13 @@
+[Unit]
+Description=SuplaOS placeholder page on port 80 (until the panel is ready)
+After=network.target
+
+[Service]
+DynamicUser=yes
+AmbientCapabilities=CAP_NET_BIND_SERVICE
+RuntimeDirectory=suplaos-placeholder
+ExecStart=/usr/lib/suplaos/placeholder-page
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target

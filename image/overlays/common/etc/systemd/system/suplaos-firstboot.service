@@ -1,0 +1,12 @@
+[Unit]
+Description=SuplaOS first boot setup
+ConditionPathExists=!/var/lib/suplaos/firstboot-done
+Before=ssh.service docker.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/lib/suplaos/firstboot
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target

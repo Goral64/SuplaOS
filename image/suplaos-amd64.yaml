@@ -1,0 +1,80 @@
+{{- $suite := or .suite "trixie" -}}
+{{- $version := or .version "dev" -}}
+{{- $expire_password := or .expire_password "false" -}}
+{{- $image := or .image (printf "suplaos-%s-amd64.img" $version) -}}
+{{- $size := or .size "4GB" -}}
+
+# SuplaOS for x86-64 PCs and virtual machines (UEFI).
+architecture: amd64
+
+actions:
+  - action: debootstrap
+    suite: {{ $suite }}
+    components: [main, non-free-firmware]
+    mirror: https://deb.debian.org/debian
+    variant: minbase
+
+  - action: apt
+    description: Kernel, bootloader and firmware
+    recommends: false
+    packages:
+      - linux-image-amd64
+      - grub-efi-amd64
+      - firmware-linux-free
+      - firmware-realtek
+      - firmware-misc-nonfree
+      - intel-microcode
+      - amd64-microcode
+      # IP address and clean shutdown in Hyper-V.
+      - hyperv-daemons
+
+  - action: recipe
+    recipe: common.yaml
+    variables:
+      architecture: amd64
+      version: {{ $version }}
+      expire_password: {{ $expire_password }}
+
+  - action: run
+    description: GRUB settings
+    chroot: true
+    command: |
+      set -e
+      sed -i 's/^GRUB_TIMEOUT=.*/GRUB_TIMEOUT=1/' /etc/default/grub
+      sed -i 's/^GRUB_CMDLINE_LINUX_DEFAULT=.*/GRUB_CMDLINE_LINUX_DEFAULT="console=tty0 console=ttyS0,115200n8"/' /etc/default/grub
+
+  - action: image-partition
+    imagename: {{ $image }}
+    imagesize: {{ $size }}
+    partitiontype: gpt
+    mountpoints:
+      - mountpoint: /
+        partition: root
+      - mountpoint: /boot/efi
+        partition: efi
+    partitions:
+      - name: efi
+        fs: vfat
+        start: 1MiB
+        end: 257MiB
+        flags: [boot, esp]
+      - name: root
+        fs: ext4
+        start: 257MiB
+        end: 100%
+
+  - action: filesystem-deploy
+    description: Deploy filesystem onto image
+
+  - action: run
+    description: Install GRUB (removable path, works without NVRAM entries)
+    chroot: true
+    command: |
+      set -e
+      grub-install --target=x86_64-efi --efi-directory=/boot/efi --removable --no-nvram
+      update-grub
+
+  - action: run
+    description: Compress image
+    postprocess: true
+    command: xz -T0 -f -k "${ARTIFACTDIR}/{{ $image }}"
