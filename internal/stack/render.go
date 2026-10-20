@@ -29,6 +29,8 @@ type Plan struct {
 	Env []addon.KV
 	// Dirs to create in the stack directory.
 	Dirs []string
+	// Owner is the add-on that brings each file ("suplaos" for .env).
+	Owner map[string]string
 }
 
 // Order returns the installed add-ons, each after the add-ons it requires.
@@ -95,7 +97,7 @@ func (s *Stack) withOthers(values map[string]string) map[string]string {
 
 // Plan builds the stack directory content from the state.
 func (s *Stack) Plan() (*Plan, error) {
-	p := &Plan{Files: map[string][]byte{}}
+	p := &Plan{Files: map[string][]byte{}, Owner: map[string]string{}}
 	env := &envList{}
 	env.set("COMPOSE_PROJECT_NAME", ProjectName)
 	env.set("COMPOSE_FILE", "")
@@ -115,6 +117,7 @@ func (s *Stack) Plan() (*Plan, error) {
 			return fmt.Errorf("%s and %s both bring %s", o, id, name)
 		}
 		owner[name] = id
+		p.Owner[name] = id
 		p.Files[name] = data
 		return nil
 	}
@@ -299,6 +302,42 @@ func (s *Stack) CheckPorts(p *Plan) error {
 		}
 	}
 	return nil
+}
+
+// Pending returns the installed add-ons whose files in the stack directory
+// differ from what the catalog brings now, e.g. after an update of
+// SuplaOS. Apply (and Up) puts the new files in place.
+func (s *Stack) Pending() ([]string, error) {
+	p, err := s.Plan()
+	if err != nil {
+		return nil, err
+	}
+	pending := map[string]bool{}
+	for name, data := range p.Files {
+		id := p.Owner[name]
+		if id == "suplaos" {
+			continue
+		}
+		disk, err := os.ReadFile(filepath.Join(s.Dir(), name))
+		if err != nil || !bytes.Equal(disk, data) {
+			pending[id] = true
+		}
+	}
+	for _, a := range s.Order() {
+		if a.Fetch == nil {
+			continue
+		}
+		if src, err := os.ReadFile(filepath.Join(s.cacheDir(a.ID), sourceFile)); err != nil || string(src) != a.Fetch.URL {
+			pending[a.ID] = true
+		}
+	}
+	var out []string
+	for _, a := range s.Order() {
+		if pending[a.ID] {
+			out = append(out, a.ID)
+		}
+	}
+	return out, nil
 }
 
 // Expand replaces ${VAR} with values from the .env of the project, e.g.

@@ -1,8 +1,9 @@
 name: Images
 
-# Builds the images on a version tag (v*) or by hand. Tagged builds go to a
-# release (marked as a pre-release), manual ones are kept as workflow
-# artifacts for a week.
+# Builds the images and the suplaos packages on a version tag (v*) or by
+# hand. Tagged builds go to a release (marked as a pre-release) and the
+# packages to the apt repository on GitHub Pages; manual ones are kept as
+# workflow artifacts for a week.
 on:
   push:
     tags: ['v*']
@@ -41,8 +42,39 @@ jobs:
           path: |
             out/*.img.xz
             out/*.sha256
+            out/*.deb
           retention-days: 7
           compression-level: 0
+
+  apt:
+    if: github.ref_type == 'tag'
+    needs: build
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/download-artifact@v8
+        with:
+          path: out
+          merge-multiple: true
+      - name: Repository
+        env:
+          APT_SIGNING_KEY: ${{ secrets.APT_SIGNING_KEY }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          command -v apt-ftparchive >/dev/null || sudo apt-get install -y apt-utils
+          echo "$APT_SIGNING_KEY" | gpg --batch --import
+          git clone --branch gh-pages --depth 1 \
+            "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" site
+          tools/apt-repo.sh site/apt out/*.deb
+          cp package/usr/share/keyrings/suplaos-archive-keyring.pgp site/apt/
+          cd site
+          git add -A
+          git -c user.name="github-actions[bot]" \
+            -c user.email="41898282+github-actions[bot]@users.noreply.github.com" \
+            commit -q -m "Packages for $GITHUB_REF_NAME"
+          git push -q origin gh-pages
 
   release:
     if: github.ref_type == 'tag'

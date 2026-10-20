@@ -115,6 +115,13 @@ func (s *Server) Handler() http.Handler {
 	api("GET /api/supla/users", s.suplaUsers)
 	api("POST /api/supla/users", s.createSuplaUser)
 
+	api("POST /api/addons/apply", s.applyAddons)
+
+	api("GET /api/updates", s.getUpdates)
+	api("POST /api/updates/check", s.checkUpdates)
+	api("POST /api/updates/upgrade", s.startUpgrade)
+	api("GET /api/updates/log", s.upgradeLog)
+
 	api("GET /api/backups", s.getBackups)
 	api("GET /api/backups/{name}", s.downloadBackup)
 	api("DELETE /api/backups/{name}", s.deleteBackup)

@@ -3,7 +3,8 @@
     "dashboard": "Dashboard",
     "addons": "Add-ons",
     "system": "System",
-    "logout": "Log out"
+    "logout": "Log out",
+    "updates": "Updates"
   },
   "common": {
     "save": "Save",
@@ -160,5 +161,23 @@
     "done": "Done.",
     "failed": "Failed: {error}",
     "busy": "Another operation is running."
+  },
+  "updates": {
+    "title": "Updates",
+    "check": "Check for updates",
+    "checked": "Last checked: {time}",
+    "upToDate": "Everything is up to date.",
+    "available": "Updates available: {n}.",
+    "newSuplaos": "New SuplaOS version: {version}",
+    "packages": "Debian packages",
+    "upgrade": "Update the system",
+    "confirm": "Update the system now? The panel restarts on the way, add-ons keep running.",
+    "running": "Updating, the panel may disappear for a moment...",
+    "done": "Last update: {time}",
+    "failed": "The last update failed ({time}), see the log",
+    "rebootRequired": "A new kernel was installed, restart the device to use it.",
+    "addonsTitle": "New versions of add-ons",
+    "addonsText": "SuplaOS brought new versions of: {list}. Applying them recreates their containers (a backup is made first), so they are unavailable for a moment.",
+    "apply": "Apply"
   }
 }

@@ -1,0 +1,6 @@
+# SuplaOS itself: panel, suplaos command and add-on catalog.
+Types: deb
+URIs: https://goral64.github.io/SuplaOS/apt/
+Suites: trixie
+Components: main
+Signed-By: /usr/share/keyrings/suplaos-archive-keyring.pgp

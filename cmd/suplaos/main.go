@@ -13,6 +13,7 @@ import (
 
 	"github.com/Goral64/SuplaOS/internal/addon"
 	"github.com/Goral64/SuplaOS/internal/stack"
+	"github.com/Goral64/SuplaOS/internal/system"
 )
 
 const usage = `Usage: suplaos <command> [arguments]
@@ -35,8 +36,11 @@ Containers:
   backup [add-on...]           dump add-on data to /srv/suplaos/backups
   run <add-on> <command> [args...]
                                add-on command, e.g. suplaos run supla console
-  apply                        rewrite the compose project and start it
+  apply                        apply new versions of the add-ons (after backups)
   compose [args...]            docker compose on the SuplaOS project
+
+System:
+  upgrade                      update the system and SuplaOS (as root)
 
 Environment: SUPLAOS_ROOT (default /srv/suplaos), SUPLAOS_ADDONS
 (default /usr/share/suplaos/addons).
@@ -74,7 +78,7 @@ func run(args []string) error {
 			}
 		}
 	}
-	if (cmd == "list" || cmd == "status" || cmd == "apply") && len(args) > 0 {
+	if (cmd == "list" || cmd == "status" || cmd == "apply" || cmd == "upgrade") && len(args) > 0 {
 		return fmt.Errorf("%s takes no arguments", cmd)
 	}
 	switch cmd {
@@ -128,6 +132,13 @@ func run(args []string) error {
 		if err := s.Lock(); err != nil {
 			return err
 		}
+		pending, err := s.Pending()
+		if err != nil {
+			return err
+		}
+		if err := backup(s, pending, true); err != nil {
+			return err
+		}
 		if err := s.Refetch(); err != nil {
 			return err
 		}
@@ -135,6 +146,17 @@ func run(args []string) error {
 			return err
 		}
 		return s.Up()
+	case "upgrade":
+		if os.Geteuid() != 0 {
+			return errors.New("run it as root: sudo suplaos upgrade")
+		}
+		if err := system.RunUpgrade(); err != nil {
+			return err
+		}
+		if pending, _ := s.Pending(); len(pending) > 0 {
+			fmt.Printf("New versions of add-ons: %s. Apply them with: suplaos apply\n", strings.Join(pending, ", "))
+		}
+		return nil
 	case "compose":
 		return s.Compose(args...)
 	}
@@ -154,11 +176,19 @@ func lang() string {
 }
 
 func list(s *stack.Stack) error {
+	pending := map[string]bool{}
+	if p, err := s.Pending(); err == nil {
+		for _, id := range p {
+			pending[id] = true
+		}
+	}
 	w := tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', 0)
 	fmt.Fprintln(w, "ADD-ON\tSTATE\tDESCRIPTION")
 	for _, id := range s.Catalog.IDs() {
 		state := "-"
-		if s.IsInstalled(id) {
+		if pending[id] {
+			state = "new version (suplaos apply)"
+		} else if s.IsInstalled(id) {
 			state = "installed"
 		}
 		fmt.Fprintf(w, "%s\t%s\t%s\n", id, state, s.Catalog[id].Description.In(lang()))

@@ -1,8 +1,8 @@
 #!/bin/sh
-. /etc/suplaos-release
+version=$(cat /usr/share/suplaos/version 2>/dev/null)
 ip=$(hostname -I 2>/dev/null | cut -d' ' -f1)
 echo
-echo "  SuplaOS $VERSION"
+echo "  SuplaOS $version"
 echo "  Panel: http://$(hostname).local   (http://${ip:-?})"
 echo "  Add-ons: suplaos list   (suplaos help)"
 echo

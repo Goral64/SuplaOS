@@ -3,7 +3,8 @@
     "dashboard": "Pulpit",
     "addons": "Dodatki",
     "system": "System",
-    "logout": "Wyloguj"
+    "logout": "Wyloguj",
+    "updates": "Aktualizacje"
   },
   "common": {
     "save": "Zapisz",
@@ -160,5 +161,23 @@
     "done": "Gotowe.",
     "failed": "Błąd: {error}",
     "busy": "Trwa inna operacja."
+  },
+  "updates": {
+    "title": "Aktualizacje",
+    "check": "Sprawdź aktualizacje",
+    "checked": "Ostatnie sprawdzenie: {time}",
+    "upToDate": "Wszystko jest aktualne.",
+    "available": "Dostępne aktualizacje: {n}.",
+    "newSuplaos": "Nowa wersja SuplaOS: {version}",
+    "packages": "Pakiety Debiana",
+    "upgrade": "Aktualizuj system",
+    "confirm": "Zaktualizować system teraz? Panel po drodze uruchomi się ponownie, dodatki działają dalej.",
+    "running": "Trwa aktualizacja, panel może na chwilę zniknąć...",
+    "done": "Ostatnia aktualizacja: {time}",
+    "failed": "Ostatnia aktualizacja się nie udała ({time}), zobacz log",
+    "rebootRequired": "Zainstalowano nowe jądro, uruchom urządzenie ponownie, żeby z niego korzystać.",
+    "addonsTitle": "Nowe wersje dodatków",
+    "addonsText": "SuplaOS przyniósł nowe wersje: {list}. Zastosowanie tworzy ich kontenery od nowa (najpierw robi kopię), więc na chwilę będą niedostępne.",
+    "apply": "Zastosuj"
   }
 }

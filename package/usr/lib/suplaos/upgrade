@@ -1,0 +1,46 @@
+#!/bin/bash
+# Update the system: Debian packages, the Raspberry Pi kernel and SuplaOS.
+# Run as its own systemd unit (suplaos upgrade, the panel), so that a
+# restart of the panel during the update does not stop it. The panel reads
+# the log and the state file.
+set -uo pipefail
+
+state=/var/lib/suplaos/upgrade-state
+log=/var/log/suplaos/upgrade.log
+mkdir -p "$(dirname "$state")" "$(dirname "$log")"
+
+echo "running $(date +%s)" > "$state"
+: > "$log"
+exec > >(tee -a "$log") 2>&1
+
+export DEBIAN_FRONTEND=noninteractive
+apt_opts=(-y -o Dpkg::Options::=--force-confdef -o Dpkg::Options::=--force-confold)
+
+rc=0
+apt-get update || rc=$?
+if [ $rc -eq 0 ]; then
+  apt-get "${apt_opts[@]}" full-upgrade || rc=$?
+fi
+if [ $rc -eq 0 ]; then
+  apt-get "${apt_opts[@]}" autoremove --purge || true
+fi
+
+# A newer kernel of the running flavour (e.g. rpi-v8, amd64) needs a restart;
+# /run is emptied by it.
+running=$(uname -r)
+flavour=${running#*-}
+newest=$(ls /boot/vmlinuz-*-"$flavour" 2>/dev/null | sed 's|^/boot/vmlinuz-||' | sort -V | tail -n 1)
+if [ -n "$newest" ] && [ "$newest" != "$running" ]; then
+  mkdir -p /run/suplaos
+  touch /run/suplaos/reboot-required
+  echo "Kernel $newest installed, restart the device to use it."
+fi
+
+if [ $rc -eq 0 ]; then
+  echo "Update finished."
+  echo "done $(date +%s)" > "$state"
+else
+  echo "Update failed (exit code $rc)."
+  echo "failed $(date +%s)" > "$state"
+fi
+exit $rc

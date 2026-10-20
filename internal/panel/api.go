@@ -650,6 +650,87 @@ func (s *Server) createSuplaUser(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
+// --- Updates ---------------------------------------------------------------
+
+func (s *Server) getUpdates(w http.ResponseWriter, r *http.Request) {
+	u, err := system.ReadUpdates()
+	if err != nil {
+		jsonError(w, http.StatusInternalServerError, err)
+		return
+	}
+	pending := []string{}
+	if st, err := s.openStack(); err == nil {
+		if p, err := st.Pending(); err == nil && p != nil {
+			pending = p
+		}
+	}
+	writeJSON(w, http.StatusOK, map[string]any{"system": u, "addons": pending})
+}
+
+// checkUpdates downloads the package lists as a job.
+func (s *Server) checkUpdates(w http.ResponseWriter, r *http.Request) {
+	j, err := s.jobs.start("check for updates", func(j *Job) error {
+		return system.CheckUpdates(j)
+	})
+	if err != nil {
+		jsonError(w, http.StatusConflict, err)
+		return
+	}
+	writeJSON(w, http.StatusAccepted, j.snapshot())
+}
+
+// startUpgrade starts the system update. It runs apart from the panel,
+// which it may restart; the browser follows /api/updates/log.
+func (s *Server) startUpgrade(w http.ResponseWriter, r *http.Request) {
+	if err := system.StartUpgrade(); err != nil {
+		jsonError(w, http.StatusConflict, err)
+		return
+	}
+	writeJSON(w, http.StatusAccepted, map[string]any{})
+}
+
+func (s *Server) upgradeLog(w http.ResponseWriter, r *http.Request) {
+	offset, _ := strconv.ParseInt(r.URL.Query().Get("offset"), 10, 64)
+	text, next, err := system.UpgradeLog(offset)
+	if err != nil {
+		jsonError(w, http.StatusInternalServerError, err)
+		return
+	}
+	state := ""
+	if u, err := system.ReadUpdates(); err == nil {
+		state = u.State
+	}
+	writeJSON(w, http.StatusOK, map[string]any{"text": stripANSI(text), "offset": next, "state": state})
+}
+
+// applyAddons puts new versions of add-on files in place, after a backup
+// of the add-ons that have one.
+func (s *Server) applyAddons(w http.ResponseWriter, r *http.Request) {
+	s.stackJob(w, "apply add-on updates", func(st *stack.Stack, j *Job) error {
+		pending, err := st.Pending()
+		if err != nil {
+			return err
+		}
+		for _, id := range pending {
+			if st.Catalog[id].Backup != nil {
+				path, err := st.Backup(id)
+				if err != nil {
+					return err
+				}
+				j.Logf("Backup saved to %s", path)
+			}
+		}
+		j.Logf("Applying: %s", strings.Join(pending, ", "))
+		if err := st.Refetch(); err != nil {
+			return err
+		}
+		if err := st.Apply(); err != nil {
+			return err
+		}
+		return st.Up()
+	})
+}
+
 // --- Backups ---------------------------------------------------------------
 
 func (s *Server) backupPath(name string) (string, error) {

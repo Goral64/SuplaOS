@@ -2,8 +2,9 @@
 
 SuplaOS is at an early stage and I'm looking for people who can try it,
 especially on a Raspberry Pi 4 or 5, which I can't test myself right now.
-Don't use it for your main Supla setup yet: things will change and an
-update may mean writing a fresh image.
+Don't use it for your main Supla setup yet: things will change. Updates
+are installed from the panel (Updates), but early versions may still need
+a fresh image now and then.
 
 ## Getting the image
 
@@ -45,6 +46,8 @@ The device needs a network cable, Wi-Fi isn't set up yet.
   the Zigbee2MQTT settings.
 - Restart the device from the panel (System), everything should come back
   on its own.
+- When a new version comes out: update from the panel (Updates) and check
+  that everything still works.
 
 ## Feedback
 

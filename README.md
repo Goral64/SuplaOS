@@ -43,6 +43,16 @@ Settings can be changed later with `suplaos config <add-on> KEY=VALUE`.
 Everything lives in `/srv/suplaos`: the generated compose project in
 `stack/`, database dumps in `backups/`.
 
+## Updates
+
+The panel shows available updates under Updates and installs them with one
+button: Debian packages, the Raspberry Pi kernel and SuplaOS itself, which
+comes from its own apt repository. Over SSH it's `sudo suplaos upgrade`.
+When an update brings new versions of add-on files (e.g. a newer
+supla-docker), the panel lists them and applies them when you ask, after
+a backup, because their containers are recreated. Containers of add-ons
+get newer images with Update on the add-on page.
+
 ## Building the image
 
 You need Docker.

@@ -281,3 +281,34 @@ func TestAfterQueue(t *testing.T) {
 		t.Errorf("QueueAfter: %v", s.after)
 	}
 }
+
+func TestPending(t *testing.T) {
+	s := newStack(t)
+	must(t, s.Install("supla", nil))
+	must(t, s.Install("mosquitto", nil))
+	if p, err := s.Pending(); err != nil || len(p) != 0 {
+		t.Fatalf("pending after install: %v %v", p, err)
+	}
+	// A newer catalog changes a compose file of mosquitto.
+	a := s.Catalog["mosquitto"]
+	dir := t.TempDir()
+	for _, f := range []string{"docker-compose.mosquitto.yml", "docker-compose.mosquitto-lan.yml", "docker-compose.mosquitto-tls.yml", "mosquitto-start.sh"} {
+		data, _ := os.ReadFile(filepath.Join(a.Dir, f))
+		if f == "docker-compose.mosquitto.yml" {
+			data = append(data, []byte("# new version\n")...)
+		}
+		os.WriteFile(filepath.Join(dir, f), data, 0o644)
+	}
+	a.Dir = dir
+	// And a new supla-docker commit.
+	s.Catalog["supla"].Fetch.URL += "?new"
+	p, err := s.Pending()
+	if err != nil || strings.Join(p, ",") != "mosquitto,supla" {
+		t.Fatalf("pending = %v %v", p, err)
+	}
+	s.Catalog["supla"].Fetch.URL = strings.TrimSuffix(s.Catalog["supla"].Fetch.URL, "?new")
+	must(t, s.Apply())
+	if p, _ := s.Pending(); len(p) != 0 {
+		t.Errorf("pending after apply: %v", p)
+	}
+}

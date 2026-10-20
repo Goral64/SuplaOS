@@ -1,0 +1,6 @@
+#!/bin/sh
+set -e
+
+if [ "$1" = remove ]; then
+  systemctl disable --now suplaos-panel.service >/dev/null 2>&1 || true
+fi

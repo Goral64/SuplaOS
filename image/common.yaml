@@ -42,8 +42,13 @@ actions:
     source: overlays/common
 
   - action: overlay
-    description: suplaos CLI, panel and add-on catalog (staged by tools/build.sh)
+    description: suplaos package (built by tools/build.sh)
     source: build/{{ $architecture }}
+
+  - action: run
+    description: suplaos package
+    chroot: true
+    command: dpkg -i /tmp/suplaos.deb && rm /tmp/suplaos.deb
 
   - action: run
     description: Version file
@@ -79,7 +84,7 @@ actions:
       chown supla:supla /srv/suplaos
       # Debian motd and default header are replaced by the SuplaOS one.
       rm -f /etc/motd /etc/update-motd.d/10-uname
-      systemctl enable suplaos-firstboot.service suplaos-panel.service NetworkManager ssh avahi-daemon docker systemd-timesyncd
+      systemctl enable NetworkManager ssh avahi-daemon docker systemd-timesyncd
 
   - action: run
     description: Clean up identity and caches

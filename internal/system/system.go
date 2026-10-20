@@ -47,7 +47,7 @@ type Info struct {
 func ReadInfo(dataDir string) Info {
 	var i Info
 	i.Hostname, _ = os.Hostname()
-	i.Version = releaseVersion()
+	i.Version = Version()
 	i.Addresses = Addresses()
 	if data, err := os.ReadFile("/proc/uptime"); err == nil {
 		f := strings.Fields(string(data))

@@ -7,6 +7,7 @@ import Dashboard from './views/Dashboard.vue'
 import Addons from './views/Addons.vue'
 import Addon from './views/Addon.vue'
 import System from './views/System.vue'
+import Updates from './views/Updates.vue'
 
 export const router = createRouter({
   history: createWebHistory(),
@@ -18,6 +19,7 @@ export const router = createRouter({
     { path: '/addons', component: Addons },
     { path: '/addons/:id', component: Addon, props: true },
     { path: '/system', component: System },
+    { path: '/updates', component: Updates },
     { path: '/:rest(.*)', redirect: '/' },
   ],
 })

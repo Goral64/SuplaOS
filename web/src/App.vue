@@ -32,6 +32,7 @@ async function logout() {
       <nav v-if="session.loggedIn && !session.mustChange && session.setupDone" class="nav">
         <router-link to="/" exact-active-class="router-link-active" active-class="">{{ $t('nav.dashboard') }}</router-link>
         <router-link to="/addons">{{ $t('nav.addons') }}</router-link>
+        <router-link to="/updates">{{ $t('nav.updates') }}</router-link>
         <router-link to="/system">{{ $t('nav.system') }}</router-link>
       </nav>
       <span v-else class="spacer"></span>
