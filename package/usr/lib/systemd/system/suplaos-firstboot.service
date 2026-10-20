@@ -1,6 +1,8 @@
 [Unit]
 Description=SuplaOS first boot setup
 ConditionPathExists=!/var/lib/suplaos/firstboot-done
+# Only on a SuplaOS image (the file comes from the image build).
+ConditionPathExists=/etc/suplaos-release
 Before=ssh.service docker.service
 
 [Service]

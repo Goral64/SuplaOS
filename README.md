@@ -60,6 +60,10 @@ supla-docker), the panel lists them and applies them when you ask, after
 a backup, because their containers are recreated. Containers of add-ons
 get newer images with Update on the add-on page.
 
+The `suplaos` package from that repository is a part of the images. It
+isn't meant for installing on an existing Debian system: the panel expects
+the `supla` account and port 80, and the package brings Docker from Debian.
+
 ## Building the image
 
 You need Docker.

@@ -3,7 +3,9 @@ set -e
 
 if [ "$1" = configure ]; then
   systemctl daemon-reload 2>/dev/null || true
-  systemctl enable suplaos-panel.service suplaos-firstboot.service >/dev/null 2>&1 || true
+  # suplaos-firstboot is enabled by the image build only: on another system
+  # it would regenerate the SSH host keys and grow the root partition.
+  systemctl enable suplaos-panel.service >/dev/null 2>&1 || true
   # On a running system (not while the image is built) use the new panel.
   if [ -d /run/systemd/system ]; then
     systemctl try-restart suplaos-panel.service || true
