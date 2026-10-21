@@ -121,7 +121,7 @@
     "updateAvailable": "Jest nowsza wersja",
     "upToDate": "Obrazy są aktualne (sprawdzane co kilka godzin i przy sprawdzaniu aktualizacji).",
     "changelog": "Co nowego",
-    "newImage": "nowy obraz"
+    "rebuild": "{version}, nowa kompilacja z {date}"
   },
   "state": {
     "running": "działa",
@@ -180,7 +180,7 @@
     "confirm": "Zaktualizować system teraz? Panel po drodze uruchomi się ponownie, dodatki działają dalej.",
     "running": "Trwa aktualizacja, panel może na chwilę zniknąć...",
     "done": "Ostatnia aktualizacja: {time}",
-    "failed": "Ostatnia aktualizacja się nie udała ({time}), zobacz log",
+    "failed": "Ostatnia aktualizacja się nie udała ({time})",
     "rebootRequired": "Zainstalowano nowe jądro, uruchom urządzenie ponownie, żeby z niego korzystać.",
     "addonsTitle": "Nowe wersje dodatków",
     "addonsText": "SuplaOS przyniósł nowe wersje: {list}. Zastosowanie tworzy ich kontenery od nowa (najpierw robi kopię), więc na chwilę będą niedostępne.",
@@ -191,6 +191,9 @@
     "autoLast": "Ostatnie uruchomienie: {time}",
     "imagesTitle": "Nowe obrazy dodatków",
     "imagesText": "Są nowsze obrazy kontenerów tych dodatków. Aktualizuje się je na stronie dodatku przyciskiem Aktualizuj.",
-    "imagesChecked": "Obrazy dodatków sprawdzone: {time}"
+    "imagesChecked": "Obrazy dodatków sprawdzone: {time}",
+    "upgradeTitle": "Aktualizacja systemu",
+    "seeLog": "zobacz log powyżej",
+    "showLog": "Pokaż log"
   }
 }

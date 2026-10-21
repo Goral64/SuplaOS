@@ -13,6 +13,7 @@ watch(() => activeJob.lines.length, async () => {
   <div v-if="activeJob.job" class="modal-back">
     <div class="modal">
       <h2>{{ activeJob.job.title }}</h2>
+      <p v-if="activeJob.note && !activeJob.result" class="muted small">{{ activeJob.note }}</p>
       <pre ref="log" class="log">{{ activeJob.lines.join('\n') || ' ' }}</pre>
       <div class="row mt">
         <span v-if="!activeJob.result" class="badge warn">{{ $t('job.running') }}</span>

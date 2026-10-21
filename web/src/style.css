@@ -179,6 +179,8 @@ pre.log {
   z-index: 50;
 }
 .modal { background: var(--surface); border-radius: var(--radius); padding: 20px; width: 100%; max-width: 760px; max-height: 90vh; overflow: auto; }
+.modal.narrow { max-width: 460px; }
+.dialog-text { margin: 0; white-space: pre-line; }
 
 .addon-list .card { display: flex; flex-direction: column; }
 .addon-list .card p { flex: 1; }

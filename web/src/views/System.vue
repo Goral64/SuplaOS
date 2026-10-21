@@ -2,6 +2,7 @@
 import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { api } from '../api'
+import { ask } from '../components/dialog'
 
 const { t } = useI18n()
 const settings = ref({ timezone: '', hostname: '' })
@@ -45,13 +46,14 @@ const newAddress = computed(() => {
 
 const saveNetwork = () => call(async () => {
   const body = { ...net.value, dns: dns.value.split(/[\s,]+/).filter(Boolean) }
-  if (!confirm(t('system.networkWarn', { address: newAddress.value }))) return
+  if (!(await ask(t('system.networkWarn', { address: newAddress.value }), { ok: t('common.save') }))) return
   await api('PUT', '/network', body)
   message.value = t('system.networkWarn', { address: newAddress.value })
 })
 
 const power = (action) => call(async () => {
-  if (!confirm(t(action === 'reboot' ? 'system.rebootConfirm' : 'system.poweroffConfirm'))) return
+  if (!(await ask(t(action === 'reboot' ? 'system.rebootConfirm' : 'system.poweroffConfirm'),
+    { ok: t(action === 'reboot' ? 'system.reboot' : 'system.poweroff'), danger: action === 'poweroff' }))) return
   await api('POST', '/system/' + action)
   message.value = t(action === 'reboot' ? 'system.rebooting' : 'system.poweringOff')
 })

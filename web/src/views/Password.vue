@@ -54,7 +54,10 @@ async function submit() {
         <label for="repeat">{{ $t('password.repeat') }}</label>
         <input id="repeat" v-model="repeat" type="password" autocomplete="new-password" required>
       </div>
-      <button class="primary" :disabled="busy">{{ $t('common.save') }}</button>
+      <div class="row">
+        <button class="primary" :disabled="busy">{{ $t('common.save') }}</button>
+        <router-link v-if="!session.mustChange" to="/system" class="button">{{ $t(message ? 'common.back' : 'common.cancel') }}</router-link>
+      </div>
     </form>
   </div>
 </template>

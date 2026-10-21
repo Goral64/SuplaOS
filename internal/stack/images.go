@@ -20,6 +20,9 @@ type Image struct {
 	// Update: the registry has another image for the tag, of NewVersion.
 	Update     bool   `json:"update"`
 	NewVersion string `json:"newVersion"`
+	// Build times of the images, for new builds of the same version.
+	Created    string `json:"created"`
+	NewCreated string `json:"newCreated"`
 	Changelog  string `json:"changelog"`
 	// Checked: the registry answered.
 	Checked bool `json:"checked"`
@@ -73,7 +76,7 @@ func (s *Stack) Images(ctx context.Context) (map[string]Image, error) {
 			errs = append(errs, fmt.Errorf("%s: %w", svc, err))
 			continue
 		}
-		info := Image{Version: local.Config.version(m.versionEnv), Changelog: m.changelog}
+		info := Image{Version: local.Config.version(m.versionEnv), Created: local.Created, Changelog: m.changelog}
 		// Built locally or without a tag: nothing to compare with.
 		if len(local.RepoDigests) == 0 || img.Repository == "" || img.Tag == "" || img.Tag == "<none>" {
 			result[svc] = info
@@ -106,6 +109,7 @@ func (s *Stack) Images(ctx context.Context) (map[string]Image, error) {
 				}
 			}
 			info.NewVersion = r.config.version(m.versionEnv)
+			info.NewCreated = r.config.Created
 		}
 		result[svc] = info
 	}
@@ -127,6 +131,8 @@ type composeImage struct {
 type imageConfig struct {
 	Labels map[string]string `json:"Labels"`
 	Env    []string          `json:"Env"`
+	// Created is the build time, outside the configuration in the image.
+	Created string `json:"-"`
 }
 
 // version reads the version from the OCI label, or from the variable env
@@ -168,6 +174,7 @@ type localImage struct {
 	// RepoDigests are like supla/supla-cloud@sha256:...
 	RepoDigests []string    `json:"RepoDigests"`
 	Config      imageConfig `json:"Config"`
+	Created     string      `json:"Created"`
 }
 
 func inspectImage(ctx context.Context, id string) (*localImage, error) {
@@ -314,11 +321,13 @@ func RemoteConfig(ctx context.Context, ref, digest string) (*imageConfig, error)
 		return nil, errors.New("registry: manifest without config")
 	}
 	var c struct {
-		Config imageConfig `json:"config"`
+		Created string      `json:"created"`
+		Config  imageConfig `json:"config"`
 	}
 	if err := r.getJSON(ctx, "blobs/"+m.Config.Digest, &c); err != nil {
 		return nil, err
 	}
+	c.Config.Created = c.Created
 	return &c.Config, nil
 }
 

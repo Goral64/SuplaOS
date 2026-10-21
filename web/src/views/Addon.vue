@@ -2,8 +2,9 @@
 import { computed, onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { api, formatBytes, text } from '../api'
+import { api, formatBytes, imageVersions, text } from '../api'
 import { runJob } from '../components/jobs'
+import { ask } from '../components/dialog'
 import { active, formValues } from '../components/options'
 import OptionField from '../components/OptionField.vue'
 import StateBadge from '../components/StateBadge.vue'
@@ -80,7 +81,8 @@ const saveConfig = () => job('PUT', `/addons/${props.id}/config`, { values: acti
 const action = (a) => job('POST', `/addons/${props.id}/${a}`)
 
 async function remove() {
-  if (!confirm(t('addon.removeConfirm', { name: name.value }) + (purge.value ? '\n' + t('addon.purgeWarn') : ''))) return
+  const message = t('addon.removeConfirm', { name: name.value }) + (purge.value ? '\n' + t('addon.purgeWarn') : '')
+  if (!(await ask(message, { ok: t('addon.remove'), danger: true }))) return
   const result = await job('POST', `/addons/${props.id}/remove`, { purge: purge.value })
   if (result?.state === 'done') router.push('/addons')
 }
@@ -91,7 +93,7 @@ async function createAccount() {
 }
 
 async function deleteBackup(b) {
-  if (!confirm(`${t('common.delete')} ${b.name}?`)) return
+  if (!(await ask(`${t('common.delete')} ${b.name}?`, { ok: t('common.delete'), danger: true }))) return
   await api('DELETE', `/backups/${encodeURIComponent(b.name)}`)
   await load()
 }
@@ -137,7 +139,7 @@ function webURL(a) {
         <table v-if="Object.keys(addon.images).length" class="mt small">
           <tr v-for="(img, svc) in addon.images" :key="svc">
             <td>{{ svc }}</td>
-            <td>{{ img.version || '-' }}<template v-if="img.update"> → {{ img.newVersion || $t('addon.newImage') }}</template></td>
+            <td>{{ imageVersions(img, t, locale) }}</td>
             <td><a v-if="img.changelog" :href="img.changelog" target="_blank" rel="noopener">{{ $t('addon.changelog') }}</a></td>
           </tr>
         </table>

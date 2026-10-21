@@ -4,6 +4,7 @@ import { useRouter } from 'vue-router'
 import { api, session } from './api'
 import { languages, setLanguage } from './i18n'
 import JobDialog from './components/JobDialog.vue'
+import ConfirmDialog from './components/ConfirmDialog.vue'
 
 const router = useRouter()
 
@@ -48,4 +49,5 @@ async function logout() {
     <router-view />
   </main>
   <JobDialog />
+  <ConfirmDialog />
 </template>

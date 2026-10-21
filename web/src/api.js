@@ -79,3 +79,16 @@ export function text(t, lang) {
   if (!t) return ''
   return t[lang] || t.en || ''
 }
+
+// imageVersions describes the image of a service: its version, and the new
+// one when there is an update. A new build of the same version shows its
+// build time instead.
+export function imageVersions(img, t, lang) {
+  const version = img.version || '-'
+  if (!img.update) return version
+  if (img.newVersion && img.newVersion !== img.version) return `${version} → ${img.newVersion}`
+  const date = img.newCreated
+    ? new Date(img.newCreated).toLocaleString(lang, { dateStyle: 'short', timeStyle: 'short' })
+    : '-'
+  return t('addon.rebuild', { version, date })
+}

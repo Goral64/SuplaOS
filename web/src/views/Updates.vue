@@ -1,8 +1,9 @@
 <script setup>
-import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { api, text } from '../api'
-import { runJob } from '../components/jobs'
+import { api, imageVersions, text } from '../api'
+import { activeJob, runJob, showOutput } from '../components/jobs'
+import { ask, tell } from '../components/dialog'
 
 const { t, locale } = useI18n()
 const info = ref(null)
@@ -10,10 +11,7 @@ const addons = ref([])
 const images = ref([])
 const imagesChecked = ref(null)
 const error = ref('')
-const log = ref('')
 const following = ref(false)
-const pre = ref(null)
-let timer = null
 
 async function load() {
   const u = await api('GET', '/updates')
@@ -21,10 +19,9 @@ async function load() {
   addons.value = u.addons
   images.value = u.images
   imagesChecked.value = u.imagesChecked
-  if (u.system.state === 'running' && !following.value) follow()
+  if (u.system.state === 'running' && !activeJob.job) follow()
 }
 onMounted(load)
-onBeforeUnmount(() => clearTimeout(timer))
 
 const suplaos = computed(() => info.value?.packages.find((p) => p.name === 'suplaos'))
 // The changes of a SuplaOS version, in the language of the panel.
@@ -44,7 +41,7 @@ async function check() {
 }
 
 async function upgrade() {
-  if (!confirm(t('updates.confirm'))) return
+  if (!(await ask(t('updates.confirm'), { ok: t('updates.upgrade') }))) return
   error.value = ''
   try {
     await api('POST', '/updates/upgrade')
@@ -54,35 +51,46 @@ async function upgrade() {
   }
 }
 
-// The update may restart the panel: errors while following only mean
-// waiting a moment longer.
-function follow() {
-  following.value = true
-  log.value = ''
-  let offset = 0
-  let quiet = 0
-  const poll = async () => {
-    try {
-      const r = await api('GET', `/updates/log?offset=${offset}`)
-      if (r.offset < offset) log.value = ''
-      offset = r.offset
-      if (r.text) {
-        log.value += r.text
-        await nextTick()
-        if (pre.value) pre.value.scrollTop = pre.value.scrollHeight
+// The update runs apart from the panel, which it may restart, so its log
+// is read from a file: errors while following only mean waiting a moment
+// longer.
+function followUpgrade(onLine) {
+  return new Promise((resolve) => {
+    let offset = 0
+    let quiet = 0
+    let rest = ''
+    const poll = async () => {
+      try {
+        const r = await api('GET', `/updates/log?offset=${offset}`)
+        offset = r.offset
+        if (r.text) {
+          const lines = (rest + r.text).split('\n')
+          rest = lines.pop()
+          lines.forEach(onLine)
+        }
+        quiet = r.text ? 0 : quiet + 1
+        if (r.state !== 'running' && quiet > 1) {
+          if (rest) onLine(rest)
+          resolve(r.state === 'failed' ? { state: 'failed', error: t('updates.seeLog') } : { state: 'done' })
+          return
+        }
+      } catch {
+        // panel restarting
       }
-      quiet = r.text ? 0 : quiet + 1
-      if (r.state !== 'running' && quiet > 1) {
-        following.value = false
-        await load()
-        return
-      }
-    } catch {
-      // panel restarting
+      setTimeout(poll, 2000)
     }
-    timer = setTimeout(poll, 2000)
-  }
-  poll()
+    poll()
+  })
+}
+
+async function follow() {
+  // A new version of SuplaOS brings a new web interface.
+  const version = info.value?.version
+  following.value = true
+  await showOutput(t('updates.upgradeTitle'), t('updates.running'), followUpgrade)
+  following.value = false
+  await load()
+  if (version && info.value.version !== version) window.location.reload()
 }
 
 async function applyAddons() {
@@ -106,11 +114,11 @@ async function setAuto(e) {
 }
 
 async function reboot() {
-  if (!confirm(t('system.rebootConfirm'))) return
+  if (!(await ask(t('system.rebootConfirm'), { ok: t('system.reboot') }))) return
   await api('POST', '/system/reboot')
   error.value = ''
   info.value.rebootRequired = false
-  alert(t('system.rebooting'))
+  await tell(t('system.rebooting'))
 }
 </script>
 
@@ -152,10 +160,7 @@ async function reboot() {
         <button class="primary" :disabled="following || !info.packages.length" @click="upgrade">{{ $t('updates.upgrade') }}</button>
         <span v-if="info.state === 'failed' && !following" class="badge bad">{{ $t('updates.failed', { time: when(info.finished) }) }}</span>
         <span v-else-if="info.state === 'done' && !following" class="muted small">{{ $t('updates.done', { time: when(info.finished) }) }}</span>
-      </div>
-      <div v-if="following || log" class="mt">
-        <p v-if="following" class="muted small">{{ $t('updates.running') }}</p>
-        <pre ref="pre" class="log">{{ log || '...' }}</pre>
+        <button v-if="info.state && !following" class="link" @click="follow">{{ $t('updates.showLog') }}</button>
       </div>
     </div>
 
@@ -174,7 +179,7 @@ async function reboot() {
           <tr v-for="(img, svc) in a.images" v-show="img.update" :key="svc">
             <td><router-link :to="'/addons/' + a.id">{{ text(a.name, locale) }}</router-link></td>
             <td>{{ svc }}</td>
-            <td>{{ img.version || '-' }} → {{ img.newVersion || $t('addon.newImage') }}</td>
+            <td>{{ imageVersions(img, t, locale) }}</td>
             <td><a v-if="img.changelog" :href="img.changelog" target="_blank" rel="noopener">{{ $t('addon.changelog') }}</a></td>
           </tr>
         </template>

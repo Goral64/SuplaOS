@@ -121,7 +121,7 @@
     "updateAvailable": "Newer version available",
     "upToDate": "The images are up to date (checked every few hours and with the update check).",
     "changelog": "What's new",
-    "newImage": "new image"
+    "rebuild": "{version}, new build from {date}"
   },
   "state": {
     "running": "running",
@@ -180,7 +180,7 @@
     "confirm": "Update the system now? The panel restarts on the way, add-ons keep running.",
     "running": "Updating, the panel may disappear for a moment...",
     "done": "Last update: {time}",
-    "failed": "The last update failed ({time}), see the log",
+    "failed": "The last update failed ({time})",
     "rebootRequired": "A new kernel is installed, restart the device to use it.",
     "addonsTitle": "New versions of add-ons",
     "addonsText": "SuplaOS brought new versions of: {list}. Applying them recreates their containers (a backup is made first), so they are unavailable for a moment.",
@@ -191,6 +191,9 @@
     "autoLast": "Last run: {time}",
     "imagesTitle": "New add-on images",
     "imagesText": "There are newer container images of these add-ons. Update them on the add-on page with the Update button.",
-    "imagesChecked": "Add-on images checked: {time}"
+    "imagesChecked": "Add-on images checked: {time}",
+    "upgradeTitle": "System update",
+    "seeLog": "see the log above",
+    "showLog": "Show the log"
   }
 }

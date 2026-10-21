@@ -2,6 +2,17 @@
 
 [Po polsku](docs/pl/CHANGELOG.md)
 
+## 0.3.1
+
+- The system update log opens in the same window as other operations, with
+  its state and a Close button; Show the log opens it again later.
+- Confirmations look like the rest of the panel instead of browser pop-ups.
+- Cancel on the password change page.
+- A new build of the same image version shows its build time instead of
+  "26.05.01 → 26.05.01".
+- New supla-docker versions are checked every day and become a pull
+  request here after the tests pass with them.
+
 ## 0.3.0
 
 - The panel checks every few hours whether add-ons have newer images. The

@@ -2,6 +2,17 @@
 
 [In English](../../CHANGELOG.md)
 
+## 0.3.1
+
+- Log aktualizacji systemu otwiera się w tym samym oknie co inne operacje,
+  ze stanem i przyciskiem Zamknij; Pokaż log otwiera go później ponownie.
+- Potwierdzenia wyglądają jak reszta panelu, a nie jak okienka przeglądarki.
+- Anuluj na stronie zmiany hasła.
+- Nowa kompilacja tej samej wersji obrazu pokazuje datę zbudowania zamiast
+  „26.05.01 → 26.05.01”.
+- Nowe wersje supla-docker są sprawdzane codziennie i po przejściu testów
+  trafiają tu jako pull request.
+
 ## 0.3.0
 
 - Panel co kilka godzin sprawdza, czy dodatki mają nowsze obrazy. Na
