@@ -39,6 +39,11 @@ const mqttPorts = computed(() => {
 })
 const host = window.location.hostname
 
+// Start only when something is not running, stop and restart only when
+// something is.
+const allRunning = computed(() => addon.value?.containers.every((c) => c.State === 'running'))
+const anyRunning = computed(() => addon.value?.containers.some((c) => ['running', 'restarting', 'paused'].includes(c.State)))
+
 async function load() {
   all.value = await api('GET', '/addons')
   if (addon.value) values.value = formValues(addon.value)
@@ -129,9 +134,9 @@ function webURL(a) {
           <StateBadge v-for="c in addon.containers" :key="c.Service" :container="c" />
         </div>
         <div class="row mt">
-          <button @click="action('start')">{{ $t('addon.start') }}</button>
-          <button @click="action('stop')">{{ $t('addon.stop') }}</button>
-          <button @click="action('restart')">{{ $t('addon.restart') }}</button>
+          <button :disabled="allRunning" @click="action('start')">{{ $t('addon.start') }}</button>
+          <button :disabled="!anyRunning" @click="action('stop')">{{ $t('addon.stop') }}</button>
+          <button :disabled="!anyRunning" @click="action('restart')">{{ $t('addon.restart') }}</button>
           <button :title="$t('addon.updateHelp')" @click="action('update')">{{ $t('addon.update') }}</button>
           <span class="spacer"></span>
           <button class="link" @click="showLogs = !showLogs">{{ showLogs ? $t('addon.hideLogs') : $t('addon.showLogs') }}</button>
