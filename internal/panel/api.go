@@ -529,7 +529,7 @@ func (s *Server) addonAction(w http.ResponseWriter, r *http.Request) {
 			if err := st.Compose(append([]string{"pull"}, services...)...); err != nil {
 				return err
 			}
-			return st.Up()
+			return st.Compose(append([]string{"up", "-d"}, services...)...)
 		default: // backup
 			path, err := st.Backup(id)
 			if err != nil {

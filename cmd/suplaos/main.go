@@ -497,5 +497,7 @@ func update(s *stack.Stack, ids []string) error {
 	if err := s.Compose(append([]string{"pull"}, services...)...); err != nil {
 		return err
 	}
-	return s.Up()
+	// Only these services: up on the whole project would also recreate the
+	// ones depending on them (zigbee2supla on supla-server).
+	return s.Compose(append([]string{"up", "-d"}, services...)...)
 }
