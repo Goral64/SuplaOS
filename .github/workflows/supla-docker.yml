@@ -18,12 +18,11 @@ jobs:
     runs-on: ubuntu-24.04
     env:
       GH_TOKEN: ${{ github.token }}
-      FILES: ${{ runner.temp }}/supla-docker
     steps:
       - uses: actions/checkout@v7
       - name: Look for a newer supla-docker
         id: check
-        run: tools/supla-docker.sh "$FILES" >> "$GITHUB_OUTPUT"
+        run: tools/supla-docker.sh "$RUNNER_TEMP/supla-docker" >> "$GITHUB_OUTPUT"
       - name: Tests with the new files
         if: steps.check.outputs.commit
         run: |
@@ -31,7 +30,7 @@ jobs:
           tools/go.sh test ./...
           tools/go.sh test -c -o out/stack.test ./internal/stack
           cd internal/stack
-          SUPLAOS_SUPLA_DOCKER="$FILES/new" ../../out/stack.test -test.run TestSuplaDockerFiles -test.v
+          SUPLAOS_SUPLA_DOCKER="$RUNNER_TEMP/supla-docker/new" ../../out/stack.test -test.run TestSuplaDockerFiles -test.v
       - name: Pull request
         if: steps.check.outputs.commit
         env:
@@ -44,9 +43,9 @@ jobs:
           git commit -q -am "$title"
           git push -q -f origin supla-docker
           if [ "$(gh pr view supla-docker --json state -q .state 2>/dev/null)" = OPEN ]; then
-            gh pr edit supla-docker --title "$title" --body-file "$FILES/pr.md"
+            gh pr edit supla-docker --title "$title" --body-file "$RUNNER_TEMP/supla-docker/pr.md"
           else
-            gh pr create --head supla-docker --base main --title "$title" --body-file "$FILES/pr.md"
+            gh pr create --head supla-docker --base main --title "$title" --body-file "$RUNNER_TEMP/supla-docker/pr.md"
           fi
       - name: Report the failure
         if: failure() && steps.check.outputs.commit
