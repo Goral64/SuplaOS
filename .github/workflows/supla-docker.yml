@@ -1,0 +1,60 @@
+name: supla-docker
+
+# Once a day: a newer supla-docker on its master branch becomes a pull
+# request that points the supla add-on at it, after the tests pass with
+# its files. A failure opens an issue instead.
+on:
+  schedule:
+    - cron: "23 4 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+
+jobs:
+  update:
+    runs-on: ubuntu-24.04
+    env:
+      GH_TOKEN: ${{ github.token }}
+      FILES: ${{ runner.temp }}/supla-docker
+    steps:
+      - uses: actions/checkout@v7
+      - name: Look for a newer supla-docker
+        id: check
+        run: tools/supla-docker.sh "$FILES" >> "$GITHUB_OUTPUT"
+      - name: Tests with the new files
+        if: steps.check.outputs.commit
+        run: |
+          tools/go.sh vet ./...
+          tools/go.sh test ./...
+          tools/go.sh test -c -o out/stack.test ./internal/stack
+          cd internal/stack
+          SUPLAOS_SUPLA_DOCKER="$FILES/new" ../../out/stack.test -test.run TestSuplaDockerFiles -test.v
+      - name: Pull request
+        if: steps.check.outputs.commit
+        env:
+          COMMIT: ${{ steps.check.outputs.commit }}
+        run: |
+          title="Supla: supla-docker ${COMMIT:0:7}"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout -B supla-docker
+          git commit -q -am "$title"
+          git push -q -f origin supla-docker
+          if [ "$(gh pr view supla-docker --json state -q .state 2>/dev/null)" = OPEN ]; then
+            gh pr edit supla-docker --title "$title" --body-file "$FILES/pr.md"
+          else
+            gh pr create --head supla-docker --base main --title "$title" --body-file "$FILES/pr.md"
+          fi
+      - name: Report the failure
+        if: failure() && steps.check.outputs.commit
+        env:
+          COMMIT: ${{ steps.check.outputs.commit }}
+          RUN: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          title="supla-docker ${COMMIT:0:7}: tests failed"
+          if [ -z "$(gh issue list --state open --search "\"$title\" in:title" -q '.[0].number' --json number)" ]; then
+            gh issue create --title "$title" --body "The tests failed with supla-docker ${COMMIT:0:7}: $RUN"
+          fi

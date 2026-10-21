@@ -1,6 +1,7 @@
 package stack
 
 import (
+	"context"
 	"os"
 	"path/filepath"
 	"strings"
@@ -349,5 +350,39 @@ func TestImageVersion(t *testing.T) {
 	c.Labels = nil
 	if v := c.version("CLOUD_VERSION"); v != "26.05.01" {
 		t.Errorf("env: %q", v)
+	}
+}
+
+// TestSuplaDockerFiles checks the supla add-on with real supla-docker files
+// from the directory in SUPLAOS_SUPLA_DOCKER (the supla-docker workflow sets
+// it): docker compose has to accept the project without unset variables.
+func TestSuplaDockerFiles(t *testing.T) {
+	dir := os.Getenv("SUPLAOS_SUPLA_DOCKER")
+	if dir == "" {
+		t.Skip("SUPLAOS_SUPLA_DOCKER not set")
+	}
+	s := newStack(t)
+	for _, f := range s.Catalog["supla"].Fetch.Files {
+		data, err := os.ReadFile(filepath.Join(dir, f))
+		if err != nil {
+			t.Fatal(err)
+		}
+		os.WriteFile(filepath.Join(s.cacheDir("supla"), f), data, 0o644)
+	}
+	for _, step := range []struct {
+		id  string
+		set map[string]string
+	}{
+		{"mosquitto", nil},
+		{"supla", map[string]string{"SUPLA_MQTT_BROKER_ENABLED": "true"}},
+		{"zigbee2supla", map[string]string{"Z2S_SUPLA_EMAIL": "test@example.com"}},
+	} {
+		if err := s.Install(step.id, step.set); err != nil {
+			t.Fatalf("%s: %v", step.id, err)
+		}
+	}
+	out, err := s.Command(context.Background(), "config", "--quiet").CombinedOutput()
+	if err != nil || strings.Contains(string(out), "not set") {
+		t.Fatalf("docker compose config: %v\n%s", err, out)
 	}
 }
