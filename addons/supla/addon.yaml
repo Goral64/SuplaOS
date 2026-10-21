@@ -119,3 +119,9 @@ commands:
     service: supla-cloud
     user: www-data
     exec: [php, bin/console]
+  sql:
+    help:
+      en: MariaDB client on the Supla database, e.g. < script.sql or -e "select ..."
+      pl: Klient MariaDB na bazie Supli, np. < skrypt.sql albo -e "select ..."
+    service: supla-db
+    exec: [sh, -c, 'exec mariadb --user=supla --password="$MYSQL_PASSWORD" supla "$@"', sh]

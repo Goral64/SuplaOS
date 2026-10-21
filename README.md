@@ -46,6 +46,23 @@ Settings can be changed later with `suplaos config <add-on> KEY=VALUE`.
 Everything lives in `/srv/suplaos`: the generated compose project in
 `stack/`, database dumps in `backups/`.
 
+Supla Cloud instructions often use commands like
+`docker compose exec -u www-data supla-cloud php bin/console ...`, for
+example to change account limits. In SuplaOS the same goes through
+`suplaos run supla console`:
+
+    suplaos run supla console supla:user:change-limits you@example.com
+
+`suplaos run supla console list` shows all console commands. SQL goes to
+the database container with `suplaos run supla sql`, as a script or a
+single query, and without arguments it opens the MariaDB client:
+
+    suplaos run supla sql < script.sql
+    suplaos run supla sql -e "select email from supla_user"
+
+Other `docker compose` commands work as `suplaos compose ...` (e.g.
+`suplaos compose ps`), in the SuplaOS compose project.
+
 ## Updates
 
 The panel shows available updates under Updates and installs them with one
