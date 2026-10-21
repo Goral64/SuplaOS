@@ -312,3 +312,42 @@ func TestPending(t *testing.T) {
 		t.Errorf("pending after apply: %v", p)
 	}
 }
+
+func TestSplitRef(t *testing.T) {
+	for ref, want := range map[string][3]string{
+		"mariadb:12.2.2":                    {"registry-1.docker.io", "library/mariadb", "12.2.2"},
+		"supla/supla-cloud":                 {"registry-1.docker.io", "supla/supla-cloud", "latest"},
+		"docker.io/supla/supla-server:v1":   {"registry-1.docker.io", "supla/supla-server", "v1"},
+		"ghcr.io/koenkk/zigbee2mqtt:latest": {"ghcr.io", "koenkk/zigbee2mqtt", "latest"},
+		"localhost:5000/test":               {"localhost:5000", "test", "latest"},
+	} {
+		host, repo, tag := splitRef(ref)
+		if got := [3]string{host, repo, tag}; got != want {
+			t.Errorf("%s: %v, want %v", ref, got, want)
+		}
+	}
+}
+
+func TestParseChallenge(t *testing.T) {
+	p := parseChallenge(`realm="https://auth.docker.io/token",service="registry.docker.io",scope="repository:library/mariadb:pull"`)
+	if p["realm"] != "https://auth.docker.io/token" || p["service"] != "registry.docker.io" || p["scope"] != "repository:library/mariadb:pull" {
+		t.Errorf("%v", p)
+	}
+}
+
+func TestImageVersion(t *testing.T) {
+	c := &imageConfig{
+		Labels: map[string]string{"org.opencontainers.image.version": "2.1.2"},
+		Env:    []string{"PATH=/bin", "CLOUD_VERSION=26.05.01"},
+	}
+	if v := c.version(""); v != "2.1.2" {
+		t.Errorf("label: %q", v)
+	}
+	if v := c.version("CLOUD_VERSION"); v != "2.1.2" {
+		t.Errorf("label first: %q", v)
+	}
+	c.Labels = nil
+	if v := c.version("CLOUD_VERSION"); v != "26.05.01" {
+		t.Errorf("env: %q", v)
+	}
+}

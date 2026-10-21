@@ -88,6 +88,7 @@ function webURL(a) {
     <div class="row">
       <router-link :to="'/addons/' + a.id"><strong>{{ text(a.name, locale) }}</strong></router-link>
       <StateBadge v-for="c in a.containers" :key="c.Service" :container="c" />
+      <span v-if="a.update === 'available'" class="badge warn">{{ $t('addon.updateAvailable') }}</span>
       <span class="spacer"></span>
       <a v-if="a.web" class="button" :href="webURL(a)" target="_blank" rel="noopener">{{ $t('addons.open') }}</a>
     </div>

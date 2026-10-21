@@ -132,12 +132,20 @@ function webURL(a) {
         <h2>{{ $t('addon.status') }}</h2>
         <div class="row">
           <StateBadge v-for="c in addon.containers" :key="c.Service" :container="c" />
+          <span v-if="addon.update === 'available'" class="badge warn">{{ $t('addon.updateAvailable') }}</span>
         </div>
+        <table v-if="Object.keys(addon.images).length" class="mt small">
+          <tr v-for="(img, svc) in addon.images" :key="svc">
+            <td>{{ svc }}</td>
+            <td>{{ img.version || '-' }}<template v-if="img.update"> → {{ img.newVersion || $t('addon.newImage') }}</template></td>
+            <td><a v-if="img.changelog" :href="img.changelog" target="_blank" rel="noopener">{{ $t('addon.changelog') }}</a></td>
+          </tr>
+        </table>
         <div class="row mt">
           <button :disabled="allRunning" @click="action('start')">{{ $t('addon.start') }}</button>
           <button :disabled="!anyRunning" @click="action('stop')">{{ $t('addon.stop') }}</button>
           <button :disabled="!anyRunning" @click="action('restart')">{{ $t('addon.restart') }}</button>
-          <button :title="$t('addon.updateHelp')" @click="action('update')">{{ $t('addon.update') }}</button>
+          <button :disabled="addon.update === 'none'" :title="$t(addon.update === 'none' ? 'addon.upToDate' : 'addon.updateHelp')" @click="action('update')">{{ $t('addon.update') }}</button>
           <span class="spacer"></span>
           <button class="link" @click="showLogs = !showLogs">{{ showLogs ? $t('addon.hideLogs') : $t('addon.showLogs') }}</button>
         </div>

@@ -21,6 +21,13 @@ compose:
   - file: docker-compose.supla-mqtt-tls.yml
     when: {installed: mosquitto, option: "mosquitto:MOSQUITTO_LAN", in: [tls, both]}
 services: [supla-cloud, supla-db, supla-server]
+images:
+  supla-cloud:
+    version_env: CLOUD_VERSION
+    changelog: https://github.com/SUPLA/supla-cloud/releases
+  supla-server:
+    version_env: SERVER_VERSION
+    changelog: https://github.com/SUPLA/supla-core/releases
 dirs: [ssl/cloud, ssl/server, var]
 data: [ssl/cloud, ssl/server, var/mysql, var/cloud-local, var/cloud-logs]
 

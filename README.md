@@ -75,7 +75,9 @@ restart the device when a new kernel is waiting.
 When an update brings new versions of add-on files (e.g. a newer
 supla-docker), the panel lists them and applies them when you ask, after
 a backup, because their containers are recreated. Containers of add-ons
-get newer images with Update on the add-on page.
+get newer images with Update on the add-on page. Every few hours the panel
+checks the registries for them and shows the versions, the new ones and a
+link to their changes.
 
 The `suplaos` package from that repository is a part of the images. It
 isn't meant for installing on an existing Debian system: the panel expects

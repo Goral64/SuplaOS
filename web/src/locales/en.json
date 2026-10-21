@@ -117,7 +117,11 @@
     "noLan": "Not reachable from the local network, see the settings below.",
     "user": "User",
     "tlsHelp": "The certificate is self-signed: add it as trusted (CA) in the MQTT client or turn off certificate verification.",
-    "files": "Files"
+    "files": "Files",
+    "updateAvailable": "Newer version available",
+    "upToDate": "The images are up to date (checked every few hours and with the update check).",
+    "changelog": "What's new",
+    "newImage": "new image"
   },
   "state": {
     "running": "running",
@@ -184,6 +188,9 @@
     "autoTitle": "Automatic updates",
     "auto": "Install Debian security and stable updates every day",
     "autoHelp": "SuplaOS itself and the Raspberry Pi kernel are updated only from this page. The device is not restarted automatically.",
-    "autoLast": "Last run: {time}"
+    "autoLast": "Last run: {time}",
+    "imagesTitle": "New add-on images",
+    "imagesText": "There are newer container images of these add-ons. Update them on the add-on page with the Update button.",
+    "imagesChecked": "Add-on images checked: {time}"
   }
 }

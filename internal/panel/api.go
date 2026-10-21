@@ -256,6 +256,9 @@ type addonDTO struct {
 	Backup      bool              `json:"backup"`
 	Downloads   []addon.Download  `json:"downloads"`
 	Containers  []stack.Container `json:"containers"`
+	// Update: newer images in the registry, see addonImages.
+	Update string                 `json:"update"`
+	Images map[string]stack.Image `json:"images"`
 }
 
 type webDTO struct {
@@ -302,6 +305,7 @@ func (s *Server) getAddons(w http.ResponseWriter, r *http.Request) {
 			d.Options = append(d.Options, od)
 		}
 		if d.Installed {
+			d.Images, d.Update = s.addonImages(a.Services)
 			for _, svc := range a.Services {
 				if c, ok := byService[svc]; ok {
 					d.Containers = append(d.Containers, c)
@@ -431,6 +435,7 @@ func (s *Server) installAddon(w http.ResponseWriter, r *http.Request) {
 		if err := st.Up(); err != nil {
 			return err
 		}
+		s.checkImagesAfter(j)
 		summary(st, j, id, r.Host)
 		return nil
 	})
@@ -459,6 +464,7 @@ func (s *Server) configAddon(w http.ResponseWriter, r *http.Request) {
 		if err := st.Up(); err != nil {
 			return err
 		}
+		s.checkImagesAfter(j)
 		summary(st, j, id, r.Host)
 		return nil
 	})
@@ -529,7 +535,11 @@ func (s *Server) addonAction(w http.ResponseWriter, r *http.Request) {
 			if err := st.Compose(append([]string{"pull"}, services...)...); err != nil {
 				return err
 			}
-			return st.Compose(append([]string{"up", "-d"}, services...)...)
+			if err := st.Compose(append([]string{"up", "-d"}, services...)...); err != nil {
+				return err
+			}
+			s.checkImagesAfter(j)
+			return nil
 		default: // backup
 			path, err := st.Backup(id)
 			if err != nil {
@@ -659,18 +669,42 @@ func (s *Server) getUpdates(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	pending := []string{}
+	type imagesDTO struct {
+		ID     string                 `json:"id"`
+		Name   addon.Text             `json:"name"`
+		Images map[string]stack.Image `json:"images"`
+	}
+	images := []imagesDTO{}
 	if st, err := s.openStack(); err == nil {
 		if p, err := st.Pending(); err == nil && p != nil {
 			pending = p
 		}
+		for _, a := range st.Order() {
+			if imgs, update := s.addonImages(a.Services); update == "available" {
+				images = append(images, imagesDTO{a.ID, a.Name, imgs})
+			}
+		}
 	}
-	writeJSON(w, http.StatusOK, map[string]any{"system": u, "addons": pending})
+	s.images.mu.Lock()
+	var checked *time.Time
+	if !s.images.checked.IsZero() {
+		t := s.images.checked
+		checked = &t
+	}
+	s.images.mu.Unlock()
+	writeJSON(w, http.StatusOK, map[string]any{"system": u, "addons": pending,
+		"images": images, "imagesChecked": checked})
 }
 
 // checkUpdates downloads the package lists as a job.
 func (s *Server) checkUpdates(w http.ResponseWriter, r *http.Request) {
 	j, err := s.jobs.start("check for updates", func(j *Job) error {
-		return system.CheckUpdates(j)
+		if err := system.CheckUpdates(j); err != nil {
+			return err
+		}
+		j.Logf("Checking add-on images...")
+		s.checkImagesAfter(j)
+		return nil
 	})
 	if err != nil {
 		jsonError(w, http.StatusConflict, err)
@@ -744,7 +778,11 @@ func (s *Server) applyAddons(w http.ResponseWriter, r *http.Request) {
 		if err := st.Apply(); err != nil {
 			return err
 		}
-		return st.Up()
+		if err := st.Up(); err != nil {
+			return err
+		}
+		s.checkImagesAfter(j)
+		return nil
 	})
 }
 

@@ -12,6 +12,9 @@ compose:
   - file: docker-compose.zigbee2mqtt-network.yml
     when: {option: ZIGBEE2MQTT_COORDINATOR, equals: network}
 services: [zigbee2mqtt]
+images:
+  zigbee2mqtt:
+    changelog: https://github.com/Koenkk/zigbee2mqtt/releases
 dirs: [var/zigbee2mqtt]
 data: [var/zigbee2mqtt]
 

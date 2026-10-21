@@ -186,6 +186,14 @@ type Web struct {
 	Path   string `yaml:"path"`
 }
 
+// Image describes the image of a service. VersionEnv is the variable with
+// its version, for images without the org.opencontainers.image.version
+// label (also older ones); Changelog is a page with the changes.
+type Image struct {
+	VersionEnv string `yaml:"version_env"`
+	Changelog  string `yaml:"changelog"`
+}
+
 type Addon struct {
 	ID          string        `yaml:"id"`
 	Name        Text          `yaml:"name"`
@@ -210,6 +218,7 @@ type Addon struct {
 	Web          *Web               `yaml:"web"`
 	Backup       *Backup            `yaml:"backup"`
 	Commands     map[string]Command `yaml:"commands"`
+	Images       map[string]Image   `yaml:"images"`
 
 	// Dir is the catalog directory of the add-on.
 	Dir string `yaml:"-"`
@@ -265,6 +274,11 @@ func (a *Addon) validate() error {
 	}
 	if len(a.Services) == 0 {
 		return fmt.Errorf("%s: no services", a.ID)
+	}
+	for svc := range a.Images {
+		if !slices.Contains(a.Services, svc) {
+			return fmt.Errorf("%s: image of unknown service %s", a.ID, svc)
+		}
 	}
 	seen := map[string]bool{}
 	for _, kv := range a.FixedEnv {

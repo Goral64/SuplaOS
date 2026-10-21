@@ -21,7 +21,10 @@ const missing = (a) => a.requires.filter((r) => !installedIds.value.includes(r))
       <router-link v-for="a in installed" :key="a.id" :to="'/addons/' + a.id" class="card" style="color: inherit; text-decoration: none">
         <h2>{{ text(a.name, locale) }}</h2>
         <p class="muted">{{ text(a.description, locale) }}</p>
-        <div class="row"><StateBadge v-for="c in a.containers" :key="c.Service" :container="c" /></div>
+        <div class="row">
+          <StateBadge v-for="c in a.containers" :key="c.Service" :container="c" />
+          <span v-if="a.update === 'available'" class="badge warn">{{ $t('addon.updateAvailable') }}</span>
+        </div>
       </router-link>
     </div>
   </template>

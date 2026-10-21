@@ -11,6 +11,9 @@ compose:
   - file: docker-compose.zigbee2supla-mosquitto.yml
     when: {installed: mosquitto}
 services: [zigbee2supla]
+images:
+  zigbee2supla:
+    changelog: https://github.com/Goral64/ZigBee2Supla/releases
 dirs: [var/zigbee2supla]
 data: [var/zigbee2supla]
 

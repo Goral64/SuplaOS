@@ -117,7 +117,11 @@
     "noLan": "Niedostępny z sieci lokalnej, zobacz ustawienia niżej.",
     "user": "Użytkownik",
     "tlsHelp": "Certyfikat jest samopodpisany: dodaj go jako zaufany (CA) w kliencie MQTT albo wyłącz sprawdzanie certyfikatu.",
-    "files": "Pliki"
+    "files": "Pliki",
+    "updateAvailable": "Jest nowsza wersja",
+    "upToDate": "Obrazy są aktualne (sprawdzane co kilka godzin i przy sprawdzaniu aktualizacji).",
+    "changelog": "Co nowego",
+    "newImage": "nowy obraz"
   },
   "state": {
     "running": "działa",
@@ -184,6 +188,9 @@
     "autoTitle": "Aktualizacje automatyczne",
     "auto": "Codziennie instaluj poprawki bezpieczeństwa i aktualizacje stabilnego Debiana",
     "autoHelp": "Sam SuplaOS i jądro Raspberry Pi aktualizują się tylko z tej strony. Urządzenie nie jest restartowane automatycznie.",
-    "autoLast": "Ostatnie uruchomienie: {time}"
+    "autoLast": "Ostatnie uruchomienie: {time}",
+    "imagesTitle": "Nowe obrazy dodatków",
+    "imagesText": "Są nowsze obrazy kontenerów tych dodatków. Aktualizuje się je na stronie dodatku przyciskiem Aktualizuj.",
+    "imagesChecked": "Obrazy dodatków sprawdzone: {time}"
   }
 }

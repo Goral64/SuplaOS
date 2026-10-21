@@ -1,12 +1,14 @@
 <script setup>
 import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { api } from '../api'
+import { api, text } from '../api'
 import { runJob } from '../components/jobs'
 
 const { t, locale } = useI18n()
 const info = ref(null)
 const addons = ref([])
+const images = ref([])
+const imagesChecked = ref(null)
 const error = ref('')
 const log = ref('')
 const following = ref(false)
@@ -17,6 +19,8 @@ async function load() {
   const u = await api('GET', '/updates')
   info.value = u.system
   addons.value = u.addons
+  images.value = u.images
+  imagesChecked.value = u.imagesChecked
   if (u.system.state === 'running' && !following.value) follow()
 }
 onMounted(load)
@@ -125,6 +129,7 @@ async function reboot() {
         <button :disabled="following" @click="check">{{ $t('updates.check') }}</button>
       </div>
       <p class="muted small mt">{{ $t('updates.checked', { time: when(info.checked) }) }}</p>
+      <p class="muted small">{{ $t('updates.imagesChecked', { time: when(imagesChecked) }) }}</p>
 
       <p v-if="suplaos" class="alert ok">{{ $t('updates.newSuplaos', { version: suplaos.to }) }}</p>
       <p v-if="!info.packages.length" class="mt">{{ $t('updates.upToDate') }}</p>
@@ -153,6 +158,21 @@ async function reboot() {
       <label class="check"><input type="checkbox" :checked="info.auto" @change="setAuto"> {{ $t('updates.auto') }}</label>
       <p class="muted small mt">{{ $t('updates.autoHelp') }}</p>
       <p v-if="info.auto" class="muted small">{{ $t('updates.autoLast', { time: when(info.autoLast) }) }}</p>
+    </div>
+
+    <div v-if="images.length" class="card">
+      <h2>{{ $t('updates.imagesTitle') }}</h2>
+      <p>{{ $t('updates.imagesText') }}</p>
+      <table class="small">
+        <template v-for="a in images" :key="a.id">
+          <tr v-for="(img, svc) in a.images" v-show="img.update" :key="svc">
+            <td><router-link :to="'/addons/' + a.id">{{ text(a.name, locale) }}</router-link></td>
+            <td>{{ svc }}</td>
+            <td>{{ img.version || '-' }} → {{ img.newVersion || $t('addon.newImage') }}</td>
+            <td><a v-if="img.changelog" :href="img.changelog" target="_blank" rel="noopener">{{ $t('addon.changelog') }}</a></td>
+          </tr>
+        </template>
+      </table>
     </div>
 
     <div v-if="addons.length" class="card">

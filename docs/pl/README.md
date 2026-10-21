@@ -75,7 +75,9 @@ o restarcie, gdy czeka nowe jądro.
 Gdy aktualizacja przynosi nowe wersje plików dodatków (np. nowszy
 supla-docker), panel je pokazuje i stosuje na żądanie, po zrobieniu kopii,
 bo kontenery tych dodatków powstają od nowa. Nowsze obrazy kontenerów
-dodatków pobiera przycisk Aktualizuj na stronie dodatku.
+dodatków pobiera przycisk Aktualizuj na stronie dodatku. Panel co kilka
+godzin sprawdza, czy są, i pokazuje wersje, nowe wersje i link do listy
+zmian.
 
 Pakiet `suplaos` z tego repozytorium jest częścią obrazów. Nie służy do
 instalowania na istniejącym Debianie: panel oczekuje konta `supla` i portu

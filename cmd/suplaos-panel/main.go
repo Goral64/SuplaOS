@@ -33,6 +33,7 @@ func main() {
 		Sessions: *sessions,
 		Web:      web.Files(),
 	})
+	go s.WatchImages()
 	srv := &http.Server{
 		Addr:              *listen,
 		Handler:           s.Handler(),

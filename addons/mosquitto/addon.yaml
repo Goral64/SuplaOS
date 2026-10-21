@@ -11,6 +11,10 @@ compose:
   - file: docker-compose.mosquitto-tls.yml
     when: {option: MOSQUITTO_LAN, in: [tls, both]}
 services: [mosquitto]
+images:
+  mosquitto:
+    version_env: VERSION
+    changelog: https://github.com/eclipse-mosquitto/mosquitto/blob/master/ChangeLog.txt
 dirs: [var/mosquitto]
 data: [var/mosquitto, ssl/mosquitto]
 certificates: [ssl/mosquitto]

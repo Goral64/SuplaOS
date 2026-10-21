@@ -39,6 +39,7 @@ type Server struct {
 	cfg      Config
 	sessions sessions
 	jobs     jobs
+	images   imageState
 
 	mu       sync.Mutex
 	settings Settings
