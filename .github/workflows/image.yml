@@ -83,6 +83,7 @@ jobs:
     permissions:
       contents: write
     steps:
+      - uses: actions/checkout@v7
       - uses: actions/download-artifact@v8
         with:
           path: out
@@ -91,5 +92,15 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
+          # Notes: the section of this version in CHANGELOG.md.
+          version="${GITHUB_REF_NAME#v}"
+          awk -v h="## $version" '$0 == h { f = 1; next } /^## / { f = 0 } f' CHANGELOG.md > notes.md
+          if grep -q . notes.md; then
+            printf '\n[Po polsku](https://github.com/%s/blob/main/docs/pl/CHANGELOG.md#%s)\n' \
+              "$GITHUB_REPOSITORY" "${version//./}" >> notes.md
+            notes=(--notes-file notes.md)
+          else
+            notes=(--generate-notes)
+          fi
           gh release create "$GITHUB_REF_NAME" out/* --repo "$GITHUB_REPOSITORY" \
-            --prerelease --title "SuplaOS ${GITHUB_REF_NAME#v}" --generate-notes
+            --prerelease --title "SuplaOS $version" "${notes[@]}"

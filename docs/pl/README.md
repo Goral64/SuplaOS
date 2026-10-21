@@ -79,6 +79,8 @@ dodatków pobiera przycisk Aktualizuj na stronie dodatku. Panel co kilka
 godzin sprawdza, czy są, i pokazuje wersje, nowe wersje i link do listy
 zmian.
 
+Co się zmieniło w kolejnych wersjach, jest w [CHANGELOG.md](CHANGELOG.md).
+
 Pakiet `suplaos` z tego repozytorium jest częścią obrazów. Nie służy do
 instalowania na istniejącym Debianie: panel oczekuje konta `supla` i portu
 80, a pakiet ciągnie Dockera z Debiana.

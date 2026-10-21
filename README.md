@@ -79,6 +79,8 @@ get newer images with Update on the add-on page. Every few hours the panel
 checks the registries for them and shows the versions, the new ones and a
 link to their changes.
 
+What changed in each version is in [CHANGELOG.md](CHANGELOG.md).
+
 The `suplaos` package from that repository is a part of the images. It
 isn't meant for installing on an existing Debian system: the panel expects
 the `supla` account and port 80, and the package brings Docker from Debian.

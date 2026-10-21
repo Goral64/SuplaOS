@@ -27,6 +27,9 @@ onMounted(load)
 onBeforeUnmount(() => clearTimeout(timer))
 
 const suplaos = computed(() => info.value?.packages.find((p) => p.name === 'suplaos'))
+// The changes of a SuplaOS version, in the language of the panel.
+const changesURL = (version) => 'https://github.com/Goral64/SuplaOS/blob/main/' +
+  (locale.value === 'pl' ? 'docs/pl/' : '') + 'CHANGELOG.md#' + version.replace(/\./g, '')
 const others = computed(() => info.value?.packages.filter((p) => p.name !== 'suplaos') || [])
 const when = (d) => (d ? new Date(d).toLocaleString(locale.value) : '-')
 
@@ -131,7 +134,10 @@ async function reboot() {
       <p class="muted small mt">{{ $t('updates.checked', { time: when(info.checked) }) }}</p>
       <p class="muted small">{{ $t('updates.imagesChecked', { time: when(imagesChecked) }) }}</p>
 
-      <p v-if="suplaos" class="alert ok">{{ $t('updates.newSuplaos', { version: suplaos.to }) }}</p>
+      <p v-if="suplaos" class="alert ok">
+        {{ $t('updates.newSuplaos', { version: suplaos.to }) }}
+        <a :href="changesURL(suplaos.to)" target="_blank" rel="noopener">{{ $t('addon.changelog') }}</a>
+      </p>
       <p v-if="!info.packages.length" class="mt">{{ $t('updates.upToDate') }}</p>
       <template v-else>
         <p class="mt">{{ $t('updates.available', { n: info.packages.length }) }}</p>
