@@ -25,7 +25,11 @@ const uptime = computed(() => {
   const d = Math.floor(s / 86400)
   const h = Math.floor((s % 86400) / 3600)
   const m = Math.floor((s % 3600) / 60)
-  return (d ? t('dashboard.days', { n: d }) + ' ' : '') + `${h}:${String(m).padStart(2, '0')}`
+  const parts = []
+  if (d) parts.push(t('dashboard.days', { n: d }))
+  if (d || h) parts.push(t('dashboard.hours', { n: h }))
+  parts.push(t('dashboard.minutes', { n: m }))
+  return parts.join(' ')
 })
 const memUsed = computed(() => info.value && (1 - info.value.memFree / info.value.memTotal) * 100)
 const diskUsed = computed(() => info.value && (1 - info.value.diskFree / info.value.diskTotal) * 100)
@@ -49,7 +53,8 @@ function webURL(a) {
     <div class="card">
       <div class="stat-label">{{ $t('dashboard.uptime') }}</div>
       <div class="stat-value">{{ uptime }}</div>
-      <div class="muted small">{{ $t('dashboard.load') }}: {{ (info.load || []).join(' ') }} ({{ info.cpus }} CPU)</div>
+      <div class="muted small">{{ $t('dashboard.load') }}: {{ (info.load || []).join(' ') }}</div>
+      <div class="muted small">CPU: {{ info.cpus }}</div>
     </div>
     <div class="card">
       <div class="stat-label">{{ $t('dashboard.memory') }}</div>

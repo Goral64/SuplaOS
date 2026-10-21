@@ -62,7 +62,9 @@
     "noAddons": "Nie ma jeszcze zainstalowanych dodatków.",
     "goAddons": "Przeglądaj dodatki",
     "free": "{free} wolne z {total}",
-    "days": "{n} dni"
+    "days": "{n}d",
+    "hours": "{n}g",
+    "minutes": "{n}m"
   },
   "addons": {
     "title": "Dodatki",

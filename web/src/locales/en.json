@@ -62,7 +62,9 @@
     "noAddons": "No add-ons installed yet.",
     "goAddons": "Browse add-ons",
     "free": "{free} free of {total}",
-    "days": "{n} d"
+    "days": "{n}d",
+    "hours": "{n}h",
+    "minutes": "{n}m"
   },
   "addons": {
     "title": "Add-ons",
