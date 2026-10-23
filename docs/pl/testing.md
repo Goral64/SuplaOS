@@ -28,7 +28,8 @@ Urządzenie potrzebuje kabla sieciowego, Wi-Fi nie jest jeszcze ustawiane.
 1. Włącz urządzenie i poczekaj 2-3 minuty. Przy pierwszym starcie system
    powiększa się na cały dysk i generuje klucze.
 2. Znajdź jego adres: na ekranie podłączonym do urządzenia, na liście
-   urządzeń w routerze albo spróbuj http://suplaos.local.
+   urządzeń w routerze albo spróbuj http://suplaos.local (przekieruje na
+   https://suplaos.local:8443).
 3. Otwórz panel w przeglądarce i zaloguj się hasłem `supla`. Panel poprosi
    o jego zmianę. Nowe hasło działa też przy SSH (`ssh supla@suplaos.local`).
 4. Przejdź kreator: język, strefa czasowa, nazwa urządzenia i, jeśli chcesz,
@@ -43,8 +44,10 @@ Urządzenie potrzebuje kabla sieciowego, Wi-Fi nie jest jeszcze ustawiane.
 - Supla: zainstaluj ją, załóż konto na stronie dodatku Supla, zaloguj się do
   Supla Cloud pod https://<adres urządzenia> i podłącz jakieś urządzenie Supla.
 - ZigBee (jeśli masz koordynator): zainstaluj Mosquitto, Zigbee2MQTT
-  i zigbee2supla. Koordynator USB powinien być na liście urządzeń
+  i Zigbee2Supla. Koordynator USB powinien być na liście urządzeń
   w ustawieniach Zigbee2MQTT.
+- Certyfikat: zainstaluj CA ze strony System ([jak](certificate.md)), czy
+  panel, Supla Cloud i Zigbee2MQTT otwierają się bez ostrzeżeń?
 - Uruchom urządzenie ponownie z panelu (System), wszystko powinno wstać samo.
 - Gdy wyjdzie nowa wersja: zaktualizuj system z panelu (Aktualizacje)
   i sprawdź, czy wszystko dalej działa.

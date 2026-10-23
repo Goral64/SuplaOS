@@ -7,7 +7,7 @@ System na Raspberry Pi 4/5, komputery x86-64 i maszyny wirtualne
 [supla-docker](https://github.com/SUPLA/supla-docker), czyli własny serwer
 Supli w domu. Wgrywasz obraz na kartę albo dysk, włączasz urządzenie
 i resztę robisz z przeglądarki. Oprócz Supli można dołożyć dodatki:
-brokera MQTT, Zigbee2MQTT, zigbee2supla.
+brokera MQTT, Zigbee2MQTT, Zigbee2Supla.
 
 Projekt jest na wczesnym etapie. Obraz dla Raspberry Pi nie był jeszcze
 sprawdzony na sprzęcie, jeśli możesz pomóc, zobacz [testowanie](testing.md).
@@ -16,18 +16,24 @@ Obrazy są w [Releases](https://github.com/Goral64/SuplaOS/releases).
 ## Pierwsze uruchomienie
 
 Urządzenie pobiera adres z routera (DHCP). Otwórz w przeglądarce
-http://suplaos.local (adres IP widać też na ekranie podłączonym do
-urządzenia) i zaloguj się hasłem `supla`. Panel najpierw poprosi o jego
-zmianę, nowe hasło działa też przy SSH (`ssh supla@suplaos.local`, które
-też poprosi o nowe hasło, jeśli zalogujesz się tam najpierw). Potem
-wybierasz język, strefę czasową i nazwę urządzenia, i od razu możesz
-zainstalować Suplę.
+https://suplaos.local:8443 (http://suplaos.local przekieruje tam, adres IP
+widać też na ekranie podłączonym do urządzenia) i zaloguj się hasłem
+`supla`. Panel najpierw poprosi o jego zmianę, nowe hasło działa też przy
+SSH (`ssh supla@suplaos.local`, które też poprosi o nowe hasło, jeśli
+zalogujesz się tam najpierw). Potem wybierasz język, strefę czasową i nazwę
+urządzenia, i od razu możesz zainstalować Suplę.
+
+Przeglądarka na początku ostrzeże przed certyfikatem, bo urządzenie tworzy
+własny. Zaakceptuj go albo lepiej raz zainstaluj certyfikat CA urządzenia
+(strona System w panelu, [jak](certificate.md)). Zwykłe HTTP nie jest
+używane, także w sieci lokalnej.
 
 ## Dodatki
 
 Dodatki instaluje się, konfiguruje i aktualizuje w panelu, w zakładce Dodatki.
-Po instalacji Supli Supla Cloud jest pod https://<adres urządzenia> (port 80
-zajmuje panel), a konto zakłada się na stronie dodatku Supla.
+Po instalacji Supli Supla Cloud jest pod https://<adres urządzenia>, a konto
+zakłada się na stronie dodatku Supla. Interfejs Zigbee2MQTT jest pod
+https://<adres urządzenia>:8080, udostępnia go panel po zalogowaniu.
 
 To samo można zrobić przez SSH poleceniem `suplaos`:
 
@@ -73,17 +79,17 @@ codziennie (można to wyłączyć na tej samej stronie), a panel przypomina
 o restarcie, gdy czeka nowe jądro.
 
 Gdy aktualizacja przynosi nowe wersje plików dodatków (np. nowszy
-supla-docker), panel je pokazuje i stosuje na żądanie, po zrobieniu kopii,
-bo kontenery tych dodatków powstają od nowa. Nowsze obrazy kontenerów
-dodatków pobiera przycisk Aktualizuj na stronie dodatku. Panel co kilka
-godzin sprawdza, czy są, i pokazuje wersje, nowe wersje i link do listy
-zmian.
+supla-docker), panel sam je stosuje po aktualizacji, najpierw robiąc kopię,
+a kontenery tych dodatków powstają od nowa. Do wersji 1.0 dzieje się to bez
+pytania. Nowsze obrazy kontenerów dodatków pobiera przycisk Aktualizuj na
+stronie dodatku. Panel co kilka godzin sprawdza, czy są, i pokazuje wersje,
+nowe wersje i link do listy zmian.
 
 Co się zmieniło w kolejnych wersjach, jest w [CHANGELOG.md](CHANGELOG.md).
 
 Pakiet `suplaos` z tego repozytorium jest częścią obrazów. Nie służy do
-instalowania na istniejącym Debianie: panel oczekuje konta `supla` i portu
-80, a pakiet ciągnie Dockera z Debiana.
+instalowania na istniejącym Debianie: panel oczekuje konta `supla` i portów
+80 i 8443, a pakiet ciągnie Dockera z Debiana.
 
 ## Budowanie obrazu
 
@@ -104,10 +110,11 @@ Na Windowsie z WSL obraz można uruchomić w Hyper-V:
     tools/hyperv.sh
 
 Skrypt konwertuje obraz do VHDX w `F:\Hyper-V\SuplaOS` (inny katalog:
-`SUPLAOS_HYPERV_DIR`), tworzy maszynę `SuplaOS-dev` na pierwszym przełączniku
-zewnętrznym i ją uruchamia. Windows poprosi o uprawnienia administratora.
-Maszyna dostaje adres z routera, więc `http://suplaos.local` działa jak
-z prawdziwym urządzeniem. Każde uruchomienie zastępuje dysk maszyny świeżym
+`SUPLAOS_HYPERV_DIR`), tworzy maszynę `SuplaOS-dev` (inna nazwa:
+`SUPLAOS_HYPERV_VM`) na pierwszym przełączniku zewnętrznym i ją uruchamia.
+Windows poprosi o uprawnienia administratora. Maszyna dostaje adres
+z routera, więc `https://suplaos.local:8443` działa jak z prawdziwym
+urządzeniem. Każde uruchomienie zastępuje dysk maszyny świeżym
 obrazem.
 
 ## Licencja

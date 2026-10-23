@@ -2,10 +2,18 @@ package stack
 
 import (
 	"context"
+	"crypto/ecdsa"
+	"crypto/elliptic"
+	"crypto/rand"
+	"crypto/x509"
+	"crypto/x509/pkix"
+	"encoding/pem"
+	"net"
 	"os"
 	"path/filepath"
 	"strings"
 	"testing"
+	"time"
 )
 
 // newStack opens a stack in a temporary directory with the repository
@@ -18,6 +26,11 @@ func newStack(t *testing.T) *Stack {
 		t.Fatal(err)
 	}
 	s.TZ = "Europe/Warsaw"
+	names := deviceNames
+	deviceNames = func() ([]string, []net.IP) {
+		return []string{"suplaos.local", "localhost"}, []net.IP{net.ParseIP("192.168.1.20"), net.ParseIP("127.0.0.1")}
+	}
+	t.Cleanup(func() { deviceNames = names })
 	cache := s.cacheDir("supla")
 	if err := os.MkdirAll(cache, 0o755); err != nil {
 		t.Fatal(err)
@@ -60,7 +73,6 @@ func TestInstallSupla(t *testing.T) {
 		"COMPOSE_PROJECT_NAME": "supla",
 		"COMPOSE_FILE":         "docker-compose.yml:docker-compose.standalone.yml:docker-compose.supla-suplaos.yml",
 		"VOLUME_DATA":          "./var",
-		"PORT_HTTP":            "8081",
 		"PORT_HTTPS":           "443",
 		"SUPLA_HOST_ADDRESS":   "192.168.1.5",
 		"DATABASE_IMAGE":       "mariadb:12.2.2",
@@ -161,17 +173,17 @@ func TestPortConflict(t *testing.T) {
 	s := newStack(t)
 	must(t, s.Install("supla", nil))
 	must(t, s.Install("mosquitto", nil))
-	err := s.Install("zigbee2mqtt", map[string]string{"ZIGBEE_ADAPTER": "/dev/ttyUSB0", "ZIGBEE2MQTT_PORT": "8081"})
-	if err == nil || !strings.Contains(err.Error(), "port 8081 is already used by supla") {
+	err := s.Install("zigbee2mqtt", map[string]string{"ZIGBEE_ADAPTER": "/dev/ttyUSB0", "ZIGBEE2MQTT_PORT": "443"})
+	if err == nil || !strings.Contains(err.Error(), "port 443 is already used by supla") {
 		t.Fatalf("conflict not found: %v", err)
 	}
 	if s.IsInstalled("zigbee2mqtt") {
 		t.Error("failed install left in state")
 	}
-	if err := s.Configure("supla", map[string]string{"PORT_HTTP": "80"}); err == nil {
+	if err := s.Configure("supla", map[string]string{"PORT_HTTPS": "8443"}); err == nil {
 		t.Error("panel port accepted")
 	}
-	if s.Values(s.Catalog["supla"])["PORT_HTTP"] != "8081" {
+	if s.Values(s.Catalog["supla"])["PORT_HTTPS"] != "443" {
 		t.Error("failed config changed the state")
 	}
 }
@@ -236,6 +248,121 @@ func TestMosquitto(t *testing.T) {
 	}
 }
 
+// verify checks server.crt in dir against the CA of the device.
+func verify(t *testing.T, s *Stack, dir, name string) error {
+	t.Helper()
+	roots := x509.NewCertPool()
+	ca, err := os.ReadFile(s.CACertFile())
+	if err != nil || !roots.AppendCertsFromPEM(ca) {
+		t.Fatalf("CA: %v", err)
+	}
+	data, err := os.ReadFile(filepath.Join(dir, "server.crt"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	block, _ := pem.Decode(data)
+	crt, err := x509.ParseCertificate(block.Bytes)
+	if err != nil {
+		t.Fatal(err)
+	}
+	_, err = crt.Verify(x509.VerifyOptions{Roots: roots, DNSName: name})
+	return err
+}
+
+func TestCertificate(t *testing.T) {
+	s := newStack(t)
+	must(t, s.Install("mosquitto", nil))
+	dir := filepath.Join(s.Dir(), "ssl/mosquitto")
+	for _, name := range []string{"suplaos.local", "192.168.1.20", "localhost"} {
+		if err := verify(t, s, dir, name); err != nil {
+			t.Errorf("%s: %v", name, err)
+		}
+	}
+	if verify(t, s, dir, "suplaos") == nil {
+		t.Error("certificate valid for a name it was not made for")
+	}
+	if st, _ := os.Stat(filepath.Join(s.CADir(), "ca.key")); st.Mode().Perm() != 0o600 {
+		t.Errorf("CA key mode %v", st.Mode())
+	}
+	if len(s.after) != 0 {
+		t.Errorf("restart queued for a new certificate: %v", s.after)
+	}
+
+	// A new address renews the certificate and restarts the add-on.
+	deviceNames = func() ([]string, []net.IP) {
+		return []string{"suplaos.local", "localhost"}, []net.IP{net.ParseIP("192.168.1.30"), net.ParseIP("127.0.0.1")}
+	}
+	must(t, s.Apply())
+	if err := verify(t, s, dir, "192.168.1.30"); err != nil {
+		t.Error(err)
+	}
+	if len(s.after) != 1 || s.after[0].Restart[0] != "mosquitto" || len(s.after[0].Command) != 0 {
+		t.Errorf("after = %v", s.after)
+	}
+	s.after = nil
+	crt, _ := os.ReadFile(filepath.Join(dir, "server.crt"))
+	must(t, s.Apply())
+	if again, _ := os.ReadFile(filepath.Join(dir, "server.crt")); string(again) != string(crt) || len(s.after) != 0 {
+		t.Error("valid certificate replaced")
+	}
+
+	// A public address is left out, the CA cannot sign for it.
+	deviceNames = func() ([]string, []net.IP) {
+		return []string{"suplaos.local"}, []net.IP{net.ParseIP("203.0.113.5")}
+	}
+	must(t, s.Apply())
+	if verify(t, s, dir, "suplaos.local") != nil {
+		t.Error("certificate with a public address")
+	}
+}
+
+func TestCAConstraints(t *testing.T) {
+	s := newStack(t)
+	ca, caKey, err := s.loadCA()
+	if err != nil {
+		t.Fatal(err)
+	}
+	key, _ := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+	tmpl := &x509.Certificate{
+		SerialNumber: serialNumber(),
+		Subject:      pkix.Name{CommonName: "example.com"},
+		NotBefore:    ca.NotBefore,
+		NotAfter:     ca.NotBefore.Add(leafValidity),
+		ExtKeyUsage:  []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth},
+		DNSNames:     []string{"example.com"},
+	}
+	der, err := x509.CreateCertificate(rand.Reader, tmpl, ca, &key.PublicKey, caKey)
+	if err != nil {
+		t.Fatal(err)
+	}
+	crt, _ := x509.ParseCertificate(der)
+	roots := x509.NewCertPool()
+	roots.AddCert(ca)
+	if _, err := crt.Verify(x509.VerifyOptions{Roots: roots, DNSName: "example.com"}); err == nil {
+		t.Error("CA accepted for example.com")
+	}
+}
+
+// An existing self-signed certificate (older SuplaOS, the Cloud image) is
+// replaced by one from the CA.
+func TestCertificateReplaced(t *testing.T) {
+	s := newStack(t)
+	dir := filepath.Join(s.Dir(), "ssl/test")
+	key, _ := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+	tmpl := &x509.Certificate{SerialNumber: serialNumber(), Subject: pkix.Name{CommonName: "SUPLA"},
+		NotBefore: time.Now(), NotAfter: time.Now().Add(leafValidity), DNSNames: []string{"suplaos.local"}}
+	der, _ := x509.CreateCertificate(rand.Reader, tmpl, tmpl, &key.PublicKey, key)
+	os.MkdirAll(dir, 0o755)
+	os.WriteFile(filepath.Join(dir, "server.crt"), pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: der}), 0o644)
+	replaced, err := s.Certificate(dir)
+	if err != nil || !replaced {
+		t.Fatalf("replaced %v, %v", replaced, err)
+	}
+	if err := verify(t, s, dir, "suplaos.local"); err != nil {
+		t.Error(err)
+	}
+}
+
 func TestSuplaMQTT(t *testing.T) {
 	s := newStack(t)
 	must(t, s.Install("supla", nil))
@@ -273,7 +400,7 @@ func TestAfterQueue(t *testing.T) {
 		t.Fatalf("after = %v", s.after)
 	}
 	s.after = nil
-	must(t, s.Configure("supla", map[string]string{"PORT_HTTP": "8082"}))
+	must(t, s.Configure("supla", map[string]string{"MAILER_DSN": "smtp://localhost:25"}))
 	if len(s.after) != 0 {
 		t.Errorf("after without a change of the option: %v", s.after)
 	}

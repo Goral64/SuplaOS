@@ -2,6 +2,26 @@
 
 [Po polsku](docs/pl/CHANGELOG.md)
 
+## 0.4.0
+
+- HTTPS only. The panel moved to https://<name>.local:8443, port 80 only
+  redirects there. Supla Cloud stays on 443 and no longer listens on 8081.
+  The Zigbee2MQTT interface is still on port 8080, but over HTTPS and only
+  after logging in to the panel.
+- The device has its own certificate authority. Install its certificate
+  once (System page, [how](docs/certificate.md)) and the panel, Supla Cloud,
+  Zigbee2MQTT and MQTT on port 8883 work without warnings. The certificates
+  are renewed on their own when the name or the address of the device
+  changes. The Cloud certificate no longer expires after a year.
+- MQTT clients using the old `server.crt` of Mosquitto need the CA
+  certificate instead (Mosquitto add-on page or System page).
+- New add-on files brought by an update are applied on its own right after
+  it (with a backup first), no need to click Apply.
+
+After updating from an older version reload the panel page, it's now at the
+new address and the browser warns about the certificate until the CA is
+installed.
+
 ## 0.3.1
 
 - The system update log opens in the same window as other operations, with

@@ -5,9 +5,9 @@ services:
     restart: unless-stopped
     depends_on:
       - mosquitto
-    ports:
-      # Web interface: first start setup, pairing, device list.
-      - "${ZIGBEE2MQTT_PORT:-8080}:8080"
+    # The web interface (first start setup, pairing, device list) is served
+    # by the SuplaOS panel on ZIGBEE2MQTT_PORT, over HTTPS and after
+    # logging in; no port is published.
     volumes:
       # Network key and paired devices. Back it up!
       - ${VOLUME_DATA}/zigbee2mqtt:/app/data

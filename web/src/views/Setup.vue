@@ -2,7 +2,7 @@
 import { onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { api, session } from '../api'
+import { api, panelUrl, session } from '../api'
 import { languages, setLanguage } from '../i18n'
 import { runJob } from '../components/jobs'
 
@@ -47,7 +47,7 @@ async function saveSystem() {
   // Opened by the old .local name: move to the new one (log in again there).
   const here = window.location.hostname
   if (!error.value && here.endsWith('.local') && here !== hostname.value + '.local') {
-    window.location.href = `http://${hostname.value}.local/setup`
+    window.location.href = `${panelUrl(hostname.value + '.local')}/setup`
   }
 }
 

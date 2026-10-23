@@ -3,6 +3,7 @@
 package panel
 
 import (
+	"crypto/tls"
 	"encoding/json"
 	"errors"
 	"io/fs"
@@ -12,6 +13,7 @@ import (
 	"path"
 	"strings"
 	"sync"
+	"sync/atomic"
 
 	"gopkg.in/yaml.v3"
 
@@ -40,6 +42,8 @@ type Server struct {
 	sessions sessions
 	jobs     jobs
 	images   imageState
+	cert     atomic.Pointer[tls.Certificate]
+	proxies  proxies
 
 	mu       sync.Mutex
 	settings Settings
@@ -95,6 +99,8 @@ func (s *Server) Handler() http.Handler {
 	mux.HandleFunc("GET /api/session", s.getSession)
 	mux.HandleFunc("POST /api/login", s.login)
 	mux.HandleFunc("POST /api/logout", s.logout)
+	mux.HandleFunc("GET /api/ca.crt", s.getCA)
+	api("GET /api/ca", s.getCAInfo)
 	api("POST /api/password", s.changePassword)
 
 	api("GET /api/system", s.getSystem)

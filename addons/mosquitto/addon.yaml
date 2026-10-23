@@ -1,8 +1,8 @@
 id: mosquitto
 name: Mosquitto
 description:
-  en: MQTT broker for Zigbee2MQTT and zigbee2supla, optionally for other devices in your network
-  pl: Broker MQTT dla Zigbee2MQTT i zigbee2supla, opcjonalnie też dla innych urządzeń w sieci
+  en: MQTT broker for Zigbee2MQTT and Zigbee2Supla, optionally for other devices in your network
+  pl: Broker MQTT dla Zigbee2MQTT i Zigbee2Supla, opcjonalnie też dla innych urządzeń w sieci
 files: [mosquitto-start.sh]
 compose:
   - docker-compose.mosquitto.yml
@@ -19,8 +19,8 @@ dirs: [var/mosquitto]
 data: [var/mosquitto, ssl/mosquitto]
 certificates: [ssl/mosquitto]
 downloads:
-  - file: ssl/mosquitto/server.crt
-    label: {en: TLS certificate (port 8883), pl: Certyfikat TLS (port 8883)}
+  - file: ssl/mosquitto/ca.crt
+    label: {en: CA certificate (port 8883), pl: Certyfikat CA (port 8883)}
 
 options:
   - key: MOSQUITTO_USERNAME
@@ -30,16 +30,16 @@ options:
   - key: MOSQUITTO_PASSWORD
     label: {en: Password, pl: Hasło}
     help:
-      en: Generated on install. Zigbee2MQTT and zigbee2supla get it automatically.
-      pl: Generowane przy instalacji. Zigbee2MQTT i zigbee2supla dostają je automatycznie.
+      en: Generated on install. Zigbee2MQTT and Zigbee2Supla get it automatically.
+      pl: Generowane przy instalacji. Zigbee2MQTT i Zigbee2Supla dostają je automatycznie.
     type: password
     generate: 16
     required: true
   - key: MOSQUITTO_LAN
     label: {en: Access from the local network, pl: Dostęp z sieci lokalnej}
     help:
-      en: "Encrypted port 8883 uses a self-signed certificate (ssl/mosquitto/server.crt in /srv/suplaos/stack)."
-      pl: "Szyfrowany port 8883 używa certyfikatu samopodpisanego (ssl/mosquitto/server.crt w /srv/suplaos/stack)."
+      en: "Encrypted port 8883 uses a certificate of this device. Clients check it with the CA certificate of the device (download below or on the System page)."
+      pl: "Szyfrowany port 8883 używa certyfikatu tego urządzenia. Klienci sprawdzają go certyfikatem CA urządzenia (do pobrania niżej albo na stronie System)."
     type: select
     choices: [off, plain, tls, both]
     choice_labels:

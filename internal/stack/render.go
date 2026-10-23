@@ -269,7 +269,7 @@ func (s *Stack) Write(p *Plan) error {
 }
 
 // reservedPorts are used by the system itself.
-var reservedPorts = map[int]string{22: "SSH", 80: "the SuplaOS panel"}
+var reservedPorts = map[int]string{22: "SSH", 80: "the SuplaOS panel", 8443: "the SuplaOS panel"}
 
 // CheckPorts makes sure no two add-ons publish the same host port.
 func (s *Stack) CheckPorts(p *Plan) error {

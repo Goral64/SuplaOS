@@ -52,6 +52,9 @@ options:
     when: {option: ZIGBEE2MQTT_COORDINATOR, equals: network}
   - key: ZIGBEE2MQTT_PORT
     label: {en: Web interface port, pl: Port interfejsu WWW}
+    help:
+      en: HTTPS through the SuplaOS panel, after logging in to the panel.
+      pl: HTTPS przez panel SuplaOS, po zalogowaniu do panelu.
     type: port
     default: "8080"
     required: true
@@ -60,3 +63,4 @@ ports: ["${ZIGBEE2MQTT_PORT}"]
 
 web:
   port: "${ZIGBEE2MQTT_PORT}"
+  proxy: zigbee2mqtt:8080

@@ -156,6 +156,10 @@ func (s *Server) putSettings(w http.ResponseWriter, r *http.Request) {
 				jsonError(w, http.StatusBadRequest, err)
 				return
 			}
+			// The browser moves to the new name right away.
+			if err := s.renewCertificates(false); err != nil {
+				log.Printf("certificates: %v", err)
+			}
 		}
 	}
 	err := s.saveSettings(func(st *Settings) {
@@ -319,11 +323,7 @@ func (s *Server) getAddons(w http.ResponseWriter, r *http.Request) {
 				}
 			}
 			if a.Web != nil {
-				scheme := a.Web.Scheme
-				if scheme == "" {
-					scheme = "http"
-				}
-				d.Web = &webDTO{Scheme: scheme, Port: st.Expand(a.Web.Port), Path: a.Web.Path}
+				d.Web = &webDTO{Scheme: a.Web.URLScheme(), Port: st.Expand(a.Web.Port), Path: a.Web.Path}
 			}
 		}
 		list = append(list, d)
@@ -341,22 +341,7 @@ func nonNil(s []string) []string {
 // stackJob runs fn on a freshly opened, locked stack as a job, with the
 // docker compose output in the job log.
 func (s *Server) stackJob(w http.ResponseWriter, title string, fn func(st *stack.Stack, j *Job) error) {
-	j, err := s.jobs.start(title, func(j *Job) error {
-		st, err := s.openStack()
-		if err != nil {
-			return err
-		}
-		st.Stdout, st.Stderr, st.Stdin = j, j, strings.NewReader("")
-		if err := st.Lock(); err != nil {
-			return err
-		}
-		defer st.Unlock()
-		if err := fn(st, j); err != nil {
-			j.Logf("Error: %v", err)
-			return err
-		}
-		return nil
-	})
+	j, err := s.startStackJob(title, fn)
 	if err != nil {
 		var busy errBusy
 		if errors.As(err, &busy) {
@@ -367,6 +352,27 @@ func (s *Server) stackJob(w http.ResponseWriter, title string, fn func(st *stack
 		return
 	}
 	writeJSON(w, http.StatusAccepted, j.snapshot())
+}
+
+func (s *Server) startStackJob(title string, fn func(st *stack.Stack, j *Job) error) (*Job, error) {
+	return s.jobs.start(title, func(j *Job) error {
+		st, err := s.openStack()
+		if err != nil {
+			return err
+		}
+		st.Stdout, st.Stderr, st.Stdin = j, j, strings.NewReader("")
+		if err := st.Lock(); err != nil {
+			return err
+		}
+		defer st.Unlock()
+		// Add-ons may have been installed, removed or got another port.
+		defer func() { go s.updateProxies() }()
+		if err := fn(st, j); err != nil {
+			j.Logf("Error: %v", err)
+			return err
+		}
+		return nil
+	})
 }
 
 // readValues reads option values from the request.
@@ -404,14 +410,10 @@ func summary(st *stack.Stack, j *Job, id, host string) {
 	j.Logf("")
 	j.Logf("%s is running.", a.Name.In("en"))
 	if a.Web != nil {
-		scheme := a.Web.Scheme
-		if scheme == "" {
-			scheme = "http"
-		}
 		if h, _, err := net.SplitHostPort(host); err == nil {
 			host = h
 		}
-		j.Logf("Open: %s://%s:%s%s", scheme, host, st.Expand(a.Web.Port), a.Web.Path)
+		j.Logf("Open: %s://%s:%s%s", a.Web.URLScheme(), host, st.Expand(a.Web.Port), a.Web.Path)
 	}
 }
 
@@ -757,33 +759,68 @@ func (s *Server) upgradeLog(w http.ResponseWriter, r *http.Request) {
 // applyAddons puts new versions of add-on files in place, after a backup
 // of the add-ons that have one.
 func (s *Server) applyAddons(w http.ResponseWriter, r *http.Request) {
-	s.stackJob(w, "apply add-on updates", func(st *stack.Stack, j *Job) error {
-		pending, err := st.Pending()
-		if err != nil {
-			return err
-		}
-		for _, id := range pending {
-			if st.Catalog[id].Backup != nil {
-				path, err := st.Backup(id)
-				if err != nil {
-					return err
-				}
-				j.Logf("Backup saved to %s", path)
+	s.stackJob(w, "apply add-on updates", s.applyPending)
+}
+
+// applyPending puts new add-on files in place, after backups: their
+// containers are recreated.
+func (s *Server) applyPending(st *stack.Stack, j *Job) error {
+	pending, err := st.Pending()
+	if err != nil {
+		return err
+	}
+	for _, id := range pending {
+		if st.Catalog[id].Backup != nil {
+			path, err := st.Backup(id)
+			if err != nil {
+				return err
 			}
+			j.Logf("Backup saved to %s", path)
 		}
-		j.Logf("Applying: %s", strings.Join(pending, ", "))
-		if err := st.Refetch(); err != nil {
-			return err
+	}
+	j.Logf("Applying: %s", strings.Join(pending, ", "))
+	if err := st.Refetch(); err != nil {
+		return err
+	}
+	if err := st.Apply(); err != nil {
+		return err
+	}
+	if err := st.Up(); err != nil {
+		return err
+	}
+	s.checkImagesAfter(j)
+	return nil
+}
+
+// ApplyPending applies new add-on files brought by an update of SuplaOS,
+// once apt is done with it (the panel restarts in the middle of the update,
+// Docker may still be updated after it). While SuplaOS is 0.x this happens
+// on its own instead of waiting for Apply on the Updates page.
+func (s *Server) ApplyPending() {
+	for system.PackagesBusy() {
+		time.Sleep(10 * time.Second)
+	}
+	st, err := s.openStack()
+	if err != nil {
+		log.Printf("apply: %v", err)
+		return
+	}
+	pending, err := st.Pending()
+	if err != nil || len(pending) == 0 {
+		return
+	}
+	log.Printf("applying new files of %s", strings.Join(pending, ", "))
+	for {
+		_, err := s.startStackJob("apply add-on updates", s.applyPending)
+		var busy errBusy
+		if !errors.As(err, &busy) {
+			if err != nil {
+				log.Printf("apply: %v", err)
+			}
+			return
 		}
-		if err := st.Apply(); err != nil {
-			return err
-		}
-		if err := st.Up(); err != nil {
-			return err
-		}
-		s.checkImagesAfter(j)
-		return nil
-	})
+		time.Sleep(10 * time.Second)
+	}
 }
 
 // --- Backups ---------------------------------------------------------------

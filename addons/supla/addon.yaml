@@ -29,6 +29,9 @@ images:
     version_env: SERVER_VERSION
     changelog: https://github.com/SUPLA/supla-core/releases
 dirs: [ssl/cloud, ssl/server, var]
+# The Cloud uses an existing certificate; ssl/server stays the one made by
+# supla-server, zigbee2supla trusts exactly that one.
+certificates: [ssl/cloud]
 data: [ssl/cloud, ssl/server, var/mysql, var/cloud-local, var/cloud-logs]
 
 options:
@@ -45,14 +48,6 @@ options:
     label: {en: HTTPS port, pl: Port HTTPS}
     type: port
     default: "443"
-    required: true
-  - key: PORT_HTTP
-    label: {en: HTTP port (redirects to HTTPS), pl: Port HTTP (przekierowanie na HTTPS)}
-    help:
-      en: Port 80 belongs to the SuplaOS panel.
-      pl: Port 80 zajmuje panel SuplaOS.
-    type: port
-    default: "8081"
     required: true
   - key: MAILER_DSN
     label: {en: E-mail sending, pl: Wysyłanie e-maili}
@@ -107,7 +102,7 @@ options:
     type: secret
     generate: 64
 
-ports: ["${PORT_HTTP}", "${PORT_HTTPS}", "2015", "2016"]
+ports: ["${PORT_HTTPS}", "2015", "2016"]
 
 web:
   scheme: https

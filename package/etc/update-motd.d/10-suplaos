@@ -3,6 +3,6 @@ version=$(cat /usr/share/suplaos/version 2>/dev/null)
 ip=$(hostname -I 2>/dev/null | cut -d' ' -f1)
 echo
 echo "  SuplaOS $version"
-echo "  Panel: http://$(hostname).local   (http://${ip:-?})"
+echo "  Panel: https://$(hostname).local:8443   (https://${ip:-?}:8443)"
 echo "  Add-ons: suplaos list   (suplaos help)"
 echo

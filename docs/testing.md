@@ -28,7 +28,8 @@ The device needs a network cable, Wi-Fi isn't set up yet.
 1. Power the device on and wait 2-3 minutes. On the first start the system
    grows to the whole disk and generates its keys.
 2. Find its address: on a screen connected to the device, in the list of
-   devices in your router, or try http://suplaos.local.
+   devices in your router, or try http://suplaos.local (it takes you to
+   https://suplaos.local:8443).
 3. Open the panel in a browser and log in with the password `supla`. It asks
    you to change it. The new password is also the SSH password
    (`ssh supla@suplaos.local`).
@@ -44,8 +45,11 @@ The device needs a network cable, Wi-Fi isn't set up yet.
 - Supla: install it, create an account on the Supla add-on page, log in to
   Supla Cloud at https://<device address> and connect a Supla device.
 - ZigBee (if you have a coordinator): install Mosquitto, Zigbee2MQTT and
-  zigbee2supla. A USB coordinator should show up in the list of devices in
+  Zigbee2Supla. A USB coordinator should show up in the list of devices in
   the Zigbee2MQTT settings.
+- The certificate: install the CA from the System page
+  ([how](certificate.md)), do the panel, Supla Cloud and Zigbee2MQTT open
+  without warnings?
 - Restart the device from the panel (System), everything should come back
   on its own.
 - When a new version comes out: update from the panel (Updates) and check

@@ -179,11 +179,25 @@ type Command struct {
 	Exec    []string `yaml:"exec"`
 }
 
-// Web is the add-on's own web interface, linked from the panel.
+// Web is the add-on's own web interface, linked from the panel. With Proxy
+// (service:port in the compose network) the panel serves it on Port over
+// HTTPS to logged-in users only; the service itself publishes no port.
 type Web struct {
 	Scheme string `yaml:"scheme"`
 	Port   string `yaml:"port"`
 	Path   string `yaml:"path"`
+	Proxy  string `yaml:"proxy"`
+}
+
+// URLScheme is the scheme the web interface is opened with.
+func (w *Web) URLScheme() string {
+	switch {
+	case w.Proxy != "":
+		return "https"
+	case w.Scheme != "":
+		return w.Scheme
+	}
+	return "http"
 }
 
 // Image describes the image of a service. VersionEnv is the variable with
@@ -209,8 +223,8 @@ type Addon struct {
 	Env         yaml.Node     `yaml:"env"`
 	Options     []Option      `yaml:"options"`
 	Ports       []Port        `yaml:"ports"`
-	// Certificates are directories that get a self-signed certificate
-	// (server.crt, server.key) for the device on install.
+	// Certificates are directories that get a certificate for the device
+	// (server.crt, server.key) signed by its CA, renewed when needed.
 	Certificates []string           `yaml:"certificates"`
 	Downloads    []Download         `yaml:"downloads"`
 	Dirs         []string           `yaml:"dirs"`
@@ -337,6 +351,12 @@ func (a *Addon) validate() error {
 	for _, c := range a.Compose {
 		if c.File != filepath.Base(c.File) {
 			return fmt.Errorf("%s: compose file must be a plain name: %q", a.ID, c.File)
+		}
+	}
+	if a.Web != nil && a.Web.Proxy != "" {
+		svc, port, ok := strings.Cut(a.Web.Proxy, ":")
+		if !ok || !slices.Contains(a.Services, svc) || port == "" {
+			return fmt.Errorf("%s: web proxy must be service:port of the add-on", a.ID)
 		}
 	}
 	if a.Backup != nil && (a.Backup.Service == "" || len(a.Backup.Command) == 0 || a.Backup.File == "") {

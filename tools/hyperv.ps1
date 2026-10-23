@@ -65,7 +65,7 @@ try {
     }
 
     Start-VM -Name $VMName
-    Write-Host "$VMName started. Panel: http://suplaos.local"
+    Write-Host "$VMName started. Panel: https://suplaos.local:8443"
     # The console shows the IP address too.
     Start-Process vmconnect.exe -ArgumentList "localhost", "`"$VMName`""
 }

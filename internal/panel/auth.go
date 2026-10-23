@@ -165,6 +165,6 @@ func (s *sessions) result(ok bool) {
 func setCookie(w http.ResponseWriter, token string, maxAge int) {
 	http.SetCookie(w, &http.Cookie{
 		Name: cookieName, Value: token, Path: "/", MaxAge: maxAge,
-		HttpOnly: true, SameSite: http.SameSiteStrictMode,
+		HttpOnly: true, Secure: true, SameSite: http.SameSiteStrictMode,
 	})
 }

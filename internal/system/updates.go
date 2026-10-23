@@ -10,6 +10,7 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"syscall"
 	"time"
 )
 
@@ -263,4 +264,22 @@ func UpgradeLog(offset int64) (string, int64, error) {
 	}
 	data, err := io.ReadAll(io.LimitReader(f, 1<<20))
 	return string(data), offset + int64(len(data)), err
+}
+
+// dpkgLock is a variable for the tests.
+var dpkgLock = "/var/lib/dpkg/lock-frontend"
+
+// PackagesBusy tells whether apt or dpkg is installing packages now: they
+// hold a lock on the frontend lock file while they work.
+func PackagesBusy() bool {
+	f, err := os.Open(dpkgLock)
+	if err != nil {
+		return false
+	}
+	defer f.Close()
+	lk := syscall.Flock_t{Type: syscall.F_WRLCK}
+	if err := syscall.FcntlFlock(f.Fd(), syscall.F_GETLK, &lk); err != nil {
+		return false
+	}
+	return lk.Type != syscall.F_UNLCK
 }

@@ -2,14 +2,16 @@
 # Run an amd64 SuplaOS image in Hyper-V (from WSL).
 #   tools/hyperv.sh [out/suplaos-dev-amd64.img]
 # The image is converted to VHDX in $SUPLAOS_HYPERV_DIR (Windows path,
-# default F:\Hyper-V\SuplaOS) and the SuplaOS-dev VM is created or gets
-# the new disk. The VM disk is replaced every time, so its data is lost.
+# default F:\Hyper-V\SuplaOS) and the VM ($SUPLAOS_HYPERV_VM, default
+# SuplaOS-dev) is created or gets the new disk. The VM disk is replaced
+# every time, so its data is lost.
 set -euo pipefail
 
 cd "$(dirname "$0")/.."
 
 image="${1:-out/suplaos-dev-amd64.img}"
 win_dir="${SUPLAOS_HYPERV_DIR:-F:\\Hyper-V\\SuplaOS}"
+vm="${SUPLAOS_HYPERV_VM:-SuplaOS-dev}"
 powershell=/mnt/c/Windows/System32/WindowsPowerShell/v1.0/powershell.exe
 
 [ -f "$image" ] || { echo "No image: $image" >&2; exit 1; }
@@ -17,7 +19,7 @@ powershell=/mnt/c/Windows/System32/WindowsPowerShell/v1.0/powershell.exe
 dir="$(wslpath -u "$win_dir")"
 mkdir -p "$dir"
 
-new_disk=suplaos-dev.new.vhdx
+new_disk="$vm.new.vhdx"
 echo "Converting $image to $win_dir\\$new_disk"
 if command -v qemu-img >/dev/null; then
   qemu-img convert -p -O vhdx -o subformat=dynamic "$image" "$dir/$new_disk"
@@ -37,4 +39,4 @@ fi
 # the \\wsl$ share.
 cp tools/hyperv.ps1 "$dir/hyperv.ps1"
 "$powershell" -NoProfile -ExecutionPolicy Bypass -File "$win_dir\\hyperv.ps1" \
-  -Dir "$win_dir" -NewDisk "$new_disk"
+  -Dir "$win_dir" -NewDisk "$new_disk" -VMName "$vm"

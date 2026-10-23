@@ -1,13 +1,17 @@
 <script setup>
 import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { api } from '../api'
+import { api, panelUrl } from '../api'
 import { ask } from '../components/dialog'
 
-const { t } = useI18n()
+const { t, locale } = useI18n()
 const settings = ref({ timezone: '', hostname: '' })
 const timezones = ref([])
 const net = ref(null)
+const ca = ref(null)
+// How to install the CA certificate, in the language of the panel.
+const certificateHelp = computed(() => 'https://github.com/Goral64/SuplaOS/blob/main/docs/' +
+  (locale.value === 'pl' ? 'pl/' : '') + 'certificate.md')
 const dns = ref('')
 const message = ref('')
 const error = ref('')
@@ -18,6 +22,7 @@ onMounted(async () => {
   timezones.value = await api('GET', '/timezones')
   net.value = await api('GET', '/network')
   dns.value = (net.value.dns || []).join(', ')
+  ca.value = await api('GET', '/ca')
 })
 
 async function call(fn) {
@@ -40,8 +45,8 @@ const saveGeneral = () => call(async () => {
 // Address the panel will have after the network change.
 const newAddress = computed(() => {
   if (!net.value) return ''
-  if (net.value.method === 'manual') return 'http://' + net.value.address.split('/')[0]
-  return `http://${settings.value.hostname}.local`
+  if (net.value.method === 'manual') return panelUrl(net.value.address.split('/')[0])
+  return panelUrl(`${settings.value.hostname}.local`)
 })
 
 const saveNetwork = () => call(async () => {
@@ -108,6 +113,16 @@ const power = (action) => call(async () => {
       </template>
       <button class="primary" :disabled="busy">{{ $t('system.apply') }}</button>
     </form>
+  </div>
+
+  <div v-if="ca" class="card">
+    <h2>{{ $t('system.certificate') }}</h2>
+    <p>{{ $t('system.certificateIntro') }}</p>
+    <p class="muted small">{{ $t('system.fingerprint') }}<br><code class="fingerprint">{{ ca.sha256 }}</code></p>
+    <div class="row">
+      <a class="button" href="/api/ca.crt" download>{{ $t('system.downloadCA') }}</a>
+      <a :href="certificateHelp" target="_blank" rel="noopener">{{ $t('system.certificateHow') }}</a>
+    </div>
   </div>
 
   <div class="card">

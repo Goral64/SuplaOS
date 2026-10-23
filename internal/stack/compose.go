@@ -86,13 +86,14 @@ func (s *Stack) Up() error {
 }
 
 // RunAfter runs the queued option actions. The service may still be
-// starting (e.g. a database), so the command is retried for a while.
+// starting (e.g. a database), so the command is retried for a while. An
+// action without a command only restarts services (a new certificate).
 func (s *Stack) RunAfter() error {
 	acts := s.after
 	s.after = nil
 	for _, act := range acts {
 		var err error
-		for try := 0; try < 10; try++ {
+		for try := 0; try < 10 && len(act.Command) > 0; try++ {
 			if try > 0 {
 				time.Sleep(3 * time.Second)
 			}
@@ -249,4 +250,26 @@ func (s *Stack) Containers(ctx context.Context) ([]Container, error) {
 		list = append(list, c)
 	}
 	return list, nil
+}
+
+// ServiceAddress returns the address of the container of a service in the
+// network of the project, as the host reaches it.
+func (s *Stack) ServiceAddress(ctx context.Context, service string) (string, error) {
+	out, err := s.Command(ctx, "ps", "-q", service).Output()
+	if err != nil {
+		return "", fmt.Errorf("docker compose ps: %w", err)
+	}
+	id := strings.TrimSpace(string(out))
+	if id == "" {
+		return "", fmt.Errorf("%s is not running", service)
+	}
+	out, err = exec.CommandContext(ctx, "docker", "inspect", "--format",
+		`{{range .NetworkSettings.Networks}}{{.IPAddress}} {{end}}`, id).Output()
+	if err != nil {
+		return "", fmt.Errorf("docker inspect: %w", err)
+	}
+	if f := strings.Fields(string(out)); len(f) > 0 {
+		return f[0], nil
+	}
+	return "", fmt.Errorf("%s has no address", service)
 }

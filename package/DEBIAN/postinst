@@ -6,6 +6,24 @@ if [ "$1" = configure ]; then
   # suplaos-firstboot is enabled by the image build only: on another system
   # it would regenerate the SSH host keys and grow the root partition.
   systemctl enable suplaos-panel.service >/dev/null 2>&1 || true
+  # The panel is on HTTPS port 8443, port 80 only redirects. The avahi
+  # service is written here so that older devices get the new port too;
+  # /etc/issue belongs to base-files, SuplaOS changes it in the image.
+  mkdir -p /etc/avahi/services
+  cat > /etc/avahi/services/suplaos-panel.service <<'EOS'
+<?xml version="1.0" standalone='no'?>
+<!DOCTYPE service-group SYSTEM "avahi-service.dtd">
+<service-group>
+  <name replace-wildcards="yes">SuplaOS on %h</name>
+  <service>
+    <type>_https._tcp</type>
+    <port>8443</port>
+  </service>
+</service-group>
+EOS
+  if [ -f /etc/issue ]; then
+    sed -i 's|^  Panel: http://.*|  Panel: https://\\n.local:8443   (https://\\4:8443)|' /etc/issue
+  fi
   # On a running system (not while the image is built) use the new panel.
   if [ -d /run/systemd/system ]; then
     systemctl try-restart suplaos-panel.service || true

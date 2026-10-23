@@ -2,8 +2,12 @@ package panel
 
 import (
 	"context"
+	"crypto/tls"
+	"crypto/x509"
+	"io"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"os"
 	"strings"
 	"testing"
@@ -123,5 +127,101 @@ func TestJobs(t *testing.T) {
 		}
 	case <-time.After(5 * time.Second):
 		t.Fatal("follow did not end")
+	}
+}
+
+func TestTLS(t *testing.T) {
+	s := newServer(t)
+	cfg, err := s.TLSConfig()
+	if err != nil {
+		t.Fatal(err)
+	}
+	srv := httptest.NewUnstartedServer(s.Handler())
+	srv.TLS = cfg
+	srv.StartTLS()
+	defer srv.Close()
+
+	ca, err := os.ReadFile(s.caFile())
+	if err != nil {
+		t.Fatal(err)
+	}
+	roots := x509.NewCertPool()
+	roots.AppendCertsFromPEM(ca)
+	client := &http.Client{Transport: &http.Transport{TLSClientConfig: &tls.Config{RootCAs: roots, ServerName: "localhost"}}}
+	resp, err := client.Get(srv.URL + "/api/ca.crt")
+	if err != nil {
+		t.Fatal(err)
+	}
+	body, _ := io.ReadAll(resp.Body)
+	resp.Body.Close()
+	if resp.StatusCode != http.StatusOK || string(body) != string(ca) {
+		t.Errorf("ca.crt: %d", resp.StatusCode)
+	}
+	token := s.sessions.create(false)
+	if w := do(t, s.Handler(), "GET", "/api/ca", token, false); !strings.Contains(w.Body.String(), `"sha256"`) {
+		t.Errorf("ca info: %s", w.Body)
+	}
+}
+
+func TestRedirect(t *testing.T) {
+	for host, want := range map[string]string{
+		"suplaos.local":   "https://suplaos.local:8443/setup?a=1",
+		"192.168.1.20:80": "https://192.168.1.20:8443/setup?a=1",
+		"[fe80::1]":       "https://[fe80::1]:8443/setup?a=1",
+	} {
+		r := httptest.NewRequest("GET", "/setup?a=1", nil)
+		r.Host = host
+		w := httptest.NewRecorder()
+		Redirect().ServeHTTP(w, r)
+		if w.Code != http.StatusMovedPermanently || w.Header().Get("Location") != want || w.Body.Len() != 0 {
+			t.Errorf("%s: %d %s %q", host, w.Code, w.Header().Get("Location"), w.Body)
+		}
+	}
+}
+
+func TestProxy(t *testing.T) {
+	s := newServer(t)
+	backend := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Write([]byte("z2m " + r.URL.Path + " cookie=" + r.Header.Get("Cookie")))
+	}))
+	defer backend.Close()
+	ps := &proxyServer{addon: "zigbee2mqtt", service: "zigbee2mqtt", port: "8080", addr: backend.Listener.Addr().String()}
+	h := s.proxyHandler(ps, "8080")
+
+	r := httptest.NewRequest("GET", "https://suplaos.local:8080/devices?x=1", nil)
+	w := httptest.NewRecorder()
+	h.ServeHTTP(w, r)
+	want := "https://suplaos.local:8443/login?next=" + url.QueryEscape("https://suplaos.local:8080/devices?x=1")
+	if w.Code != http.StatusFound || w.Header().Get("Location") != want {
+		t.Errorf("no session: %d %s", w.Code, w.Header().Get("Location"))
+	}
+	r = httptest.NewRequest("GET", "https://suplaos.local:8080/api", nil)
+	r.Header.Set("Upgrade", "websocket")
+	w = httptest.NewRecorder()
+	h.ServeHTTP(w, r)
+	if w.Code != http.StatusUnauthorized {
+		t.Errorf("websocket without session: %d", w.Code)
+	}
+	if w := do(t, h, "GET", "/", s.sessions.create(true), false); w.Code != http.StatusFound {
+		t.Errorf("default password session: %d", w.Code)
+	}
+
+	r = httptest.NewRequest("GET", "https://suplaos.local:8080/devices", nil)
+	r.AddCookie(&http.Cookie{Name: "other", Value: "1"})
+	r.AddCookie(&http.Cookie{Name: cookieName, Value: s.sessions.create(false)})
+	w = httptest.NewRecorder()
+	h.ServeHTTP(w, r)
+	if w.Code != http.StatusOK || w.Body.String() != "z2m /devices cookie=other=1" {
+		t.Errorf("proxied: %d %q", w.Code, w.Body)
+	}
+
+	// A gone container is looked up again.
+	backend.Close()
+	r = httptest.NewRequest("GET", "https://suplaos.local:8080/", nil)
+	r.AddCookie(&http.Cookie{Name: cookieName, Value: s.sessions.create(false)})
+	w = httptest.NewRecorder()
+	h.ServeHTTP(w, r)
+	if w.Code != http.StatusBadGateway || ps.addr != "" {
+		t.Errorf("gone: %d %q", w.Code, ps.addr)
 	}
 }

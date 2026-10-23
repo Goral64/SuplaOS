@@ -92,3 +92,7 @@ export function imageVersions(img, t, lang) {
     : '-'
   return t('addon.rebuild', { version, date })
 }
+
+// Address of the panel at the given host: HTTPS on its own port, 443 is
+// the Supla Cloud's.
+export const panelUrl = (host) => `https://${host}:8443`

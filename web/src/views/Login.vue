@@ -8,13 +8,27 @@ const password = ref('')
 const error = ref('')
 const busy = ref(false)
 
+// Web interface of an add-on served by the panel on another port of this
+// host, which sent here to log in first.
+function backTo() {
+  try {
+    const u = new URL(router.currentRoute.value.query.next || '')
+    if (u.protocol === 'https:' && u.hostname === window.location.hostname) return u.href
+  } catch {
+    // no or bad address
+  }
+  return ''
+}
+
 async function submit() {
   busy.value = true
   error.value = ''
   try {
     await api('POST', '/login', { password: password.value })
     await loadSession()
-    router.push(session.mustChange ? '/password' : '/')
+    const next = backTo()
+    if (next && !session.mustChange) window.location.assign(next)
+    else router.push(session.mustChange ? '/password' : '/')
   } catch (e) {
     error.value = e.message
   } finally {
