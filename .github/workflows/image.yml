@@ -95,6 +95,8 @@ jobs:
           # Notes: the section of this version in CHANGELOG.md.
           version="${GITHUB_REF_NAME#v}"
           awk -v h="## $version" '$0 == h { f = 1; next } /^## / { f = 0 } f' CHANGELOG.md > notes.md
+          # Links to the docs are relative to the repository, not to the release.
+          sed -i "s#](docs/#](https://github.com/$GITHUB_REPOSITORY/blob/main/docs/#g" notes.md
           if grep -q . notes.md; then
             printf '\n[Po polsku](https://github.com/%s/blob/main/docs/pl/CHANGELOG.md#%s)\n' \
               "$GITHUB_REPOSITORY" "${version//./}" >> notes.md
