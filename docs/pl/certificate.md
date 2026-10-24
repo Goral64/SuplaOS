@@ -15,6 +15,9 @@ CA może podpisywać certyfikaty tylko dla nazw `.local` i adresów z sieci
 lokalnych, więc jego instalacja nie pozwala nikomu podszyć się pod inne
 strony.
 
+Z własną domeną można to pominąć i zamiast tego dostać certyfikat Let's
+Encrypt, zobacz [własna domena](domain.md).
+
 ## Pobranie
 
 W panelu wejdź w System, Certyfikat i kliknij Pobierz certyfikat CA. Plik

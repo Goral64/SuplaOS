@@ -13,6 +13,9 @@ without warnings, also when the device gets another IP address.
 The CA can only sign certificates for `.local` names and addresses in local
 networks, so installing it doesn't let anyone pretend to be other websites.
 
+With your own domain you can skip this and get a Let's Encrypt certificate
+instead, see [own domain](domain.md).
+
 ## Download
 
 In the panel go to System, Certificate and click Download CA certificate.

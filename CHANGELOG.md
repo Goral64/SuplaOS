@@ -2,6 +2,20 @@
 
 [Po polsku](docs/pl/CHANGELOG.md)
 
+## 0.6.0
+
+- Own domain with a Let's Encrypt certificate (System, Own domain): the
+  certificate is got through the API of the DNS provider (DNS-01), so the
+  device doesn't have to be reachable from the internet. 16 DNS providers,
+  a domain at a registrar without an API works through a CNAME to DuckDNS or
+  deSEC. The certificate is renewed on its own. See
+  [own domain](docs/domain.md).
+- With the domain set, Supla Cloud, SUPLA Scripts and the encrypted MQTT
+  port use its certificate, the panel answers with it at the domain and with
+  the certificate of the device at the .local name and the IP address. The
+  addresses of Supla Cloud and SUPLA Scripts can be set to the domain with
+  one button.
+
 ## 0.5.2
 
 - A new certificate (e.g. after the address of the device changed) restarts

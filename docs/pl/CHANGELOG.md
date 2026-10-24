@@ -2,6 +2,18 @@
 
 [In English](../../CHANGELOG.md)
 
+## 0.6.0
+
+- Własna domena z certyfikatem Let's Encrypt (System, Własna domena):
+  certyfikat pobierany przez API dostawcy DNS (DNS-01), więc urządzenie nie
+  musi być widoczne z internetu. 16 dostawców DNS, domena u rejestratora bez
+  API działa przez CNAME do DuckDNS albo deSEC. Certyfikat odnawia się sam.
+  Zobacz [własna domena](domain.md).
+- Z ustawioną domeną Supla Cloud, SUPLA Scripts i szyfrowany port MQTT
+  używają jej certyfikatu, a panel odpowiada nim pod domeną, a certyfikatem
+  urządzenia pod nazwą .local i adresem IP. Adresy Supla Cloud i SUPLA
+  Scripts można jednym przyciskiem ustawić na domenę.
+
 ## 0.5.2
 
 - Nowy certyfikat (np. po zmianie adresu urządzenia) uruchamia ponownie

@@ -30,6 +30,10 @@ własny. Zaakceptuj go albo lepiej raz zainstaluj certyfikat CA urządzenia
 (strona System w panelu, [jak](certificate.md)). Zwykłe HTTP nie jest
 używane, także w sieci lokalnej.
 
+Z własną domeną (albo darmową z DuckDNS lub deSEC) urządzenie może zamiast
+tego dostać certyfikat Let's Encrypt, zaufany bez instalowania czegokolwiek,
+zobacz [własna domena](domain.md).
+
 ## Dodatki
 
 Dodatki instaluje się, konfiguruje i aktualizuje w panelu, w zakładce Dodatki.

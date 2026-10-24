@@ -30,6 +30,10 @@ its own. Accept it, or better install the CA certificate of the device once
 (System page in the panel, [how](docs/certificate.md)). Plain HTTP isn't
 used, also not in the local network.
 
+With your own domain (or a free one from DuckDNS or deSEC) the device can
+get a Let's Encrypt certificate instead, trusted without installing
+anything, see [own domain](docs/domain.md).
+
 ## Add-ons
 
 Add-ons are installed, configured and updated in the panel, under Add-ons.
