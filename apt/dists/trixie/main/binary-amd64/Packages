@@ -1,26 +1,5 @@
 Package: suplaos
 Architecture: amd64
-Version: 0.3.0
-Priority: optional
-Section: admin
-Maintainer: Goral64 <goral64@gmail.com>
-Depends: docker.io, docker-cli, docker-compose, network-manager, avahi-daemon, cloud-guest-utils, e2fsprogs
-Filename: pool/main/s/suplaos/suplaos_0.3.0_amd64.deb
-Size: 3324884
-MD5sum: a8a3b6684fa4ba9d11eee928def19bd4
-SHA1: 6bdc02ae1328030edaab068e85c879f39fa741f6
-SHA256: 16ce7cb0647a3ce7dc9b92e01e0fb8299a21ea09e6497c347e3408ba82b43662
-SHA512: 90ccdcd3ef24402af271d90572526aad1277e50824a8607846693b07450da60bd9a007fc2cffb754908032f9d8485ceea8c3534f72630c6dac1430c448ee71a7
-Homepage: https://github.com/Goral64/SuplaOS
-Description: SuplaOS panel and add-ons
- Web panel and suplaos command of SuplaOS: your own Supla server with
- add-ons (Mosquitto, Zigbee2MQTT, zigbee2supla) on one device.
- .
- Part of the SuplaOS images, not meant for installing on an existing
- Debian system.
-
-Package: suplaos
-Architecture: amd64
 Version: 0.3.1
 Priority: optional
 Section: admin
@@ -95,6 +74,27 @@ MD5sum: bf5cfbd156955b13bc7a56751e7b5700
 SHA1: 3d207068ef9021f635d8b09adae480f39d2f779b
 SHA256: 75530409fd3101d9ddc3711a6117dcfb49f27e94ae8b25e5ae8db4727f37c573
 SHA512: 4c80e50e373ffee7e5e485b4f668381b751295672c91db897db6ed2e2a50d1a17265c13f81627e2b74286a3ca153c000b0faa733191e1b2d479981594814b2fc
+Homepage: https://github.com/Goral64/SuplaOS
+Description: SuplaOS panel and add-ons
+ Web panel and suplaos command of SuplaOS: your own Supla server with
+ add-ons (Mosquitto, Zigbee2MQTT, zigbee2supla) on one device.
+ .
+ Part of the SuplaOS images, not meant for installing on an existing
+ Debian system.
+
+Package: suplaos
+Architecture: amd64
+Version: 0.5.0
+Priority: optional
+Section: admin
+Maintainer: Goral64 <goral64@gmail.com>
+Depends: docker.io, docker-cli, docker-compose, network-manager, avahi-daemon, cloud-guest-utils, e2fsprogs
+Filename: pool/main/s/suplaos/suplaos_0.5.0_amd64.deb
+Size: 3794932
+MD5sum: 574ea137f038b66fd6ee492cf9edea98
+SHA1: d9948662200fc577792a56cc74a18b7ef2965a24
+SHA256: 0f3d647f089eaaf84d6a8f3ac4fa8f49b2c426f083e49b955feee81020605424
+SHA512: 9b2f9ce394c7803f244e2d22dfe8480b4b95e81f2acbe104aa7e4e55a644967893131bc0d402df6837f68e5323e93fc11305d77397f911ba3bd2723745a8330e
 Homepage: https://github.com/Goral64/SuplaOS
 Description: SuplaOS panel and add-ons
  Web panel and suplaos command of SuplaOS: your own Supla server with
