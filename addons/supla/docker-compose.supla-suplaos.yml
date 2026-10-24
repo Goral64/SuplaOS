@@ -27,6 +27,9 @@ services:
     env_file: !override [.env.default, supla.env]
     volumes:
       - ./ssl/trust/ca-certificates.crt:/etc/ssl/certs/ca-certificates.crt:ro
+    # Webhooks may go to <name>.local, e.g. SUPLA Scripts on this device.
+    extra_hosts:
+      - "${SUPLAOS_HOSTNAME}.local:host-gateway"
     depends_on:
       supla-cloud:
         condition: service_healthy

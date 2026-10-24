@@ -2,6 +2,17 @@
 
 [Po polsku](docs/pl/CHANGELOG.md)
 
+## 0.5.2
+
+- A new certificate (e.g. after the address of the device changed) restarts
+  only the services that use it: Supla Cloud, not the database and
+  supla-server.
+- Containers find the device by its name (<name>.local), e.g. SUPLA Scripts
+  reaches the Cloud when its address is suplaos.local.
+- After the address or the name of the device changes, the containers that
+  use them get the new values on their own (e.g. the MQTT broker address in
+  Supla Cloud).
+
 ## 0.5.1
 
 - SUPLA Scripts can log in with Supla Cloud (OAuth) and gets changes of the

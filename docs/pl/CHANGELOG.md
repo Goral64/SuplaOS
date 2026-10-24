@@ -2,6 +2,16 @@
 
 [In English](../../CHANGELOG.md)
 
+## 0.5.2
+
+- Nowy certyfikat (np. po zmianie adresu urządzenia) uruchamia ponownie
+  tylko usługi, które z niego korzystają: Supla Cloud, a nie bazę danych
+  i supla-server.
+- Kontenery znajdują urządzenie po nazwie (<nazwa>.local), np. SUPLA Scripts
+  dociera do Cloud, gdy jego adres to suplaos.local.
+- Po zmianie adresu albo nazwy urządzenia kontenery, które z nich korzystają,
+  same dostają nowe wartości (np. adres brokera MQTT w Supla Cloud).
+
 ## 0.5.1
 
 - SUPLA Scripts pozwala logować się przez Supla Cloud (OAuth) i dostaje od

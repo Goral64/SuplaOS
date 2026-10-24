@@ -17,6 +17,9 @@ services:
       SUPLA_SCRIPTS_OAUTH_SECRET: ${SUPLA_SCRIPTS_OAUTH_SECRET}
     ports:
       - "${SUPLA_SCRIPTS_PORT}:443"
+    # The address of the Cloud in the tokens may be <name>.local.
+    extra_hosts:
+      - "${SUPLAOS_HOSTNAME}.local:host-gateway"
     volumes:
       - ./supla-scripts-start.sh:/supla-scripts-start.sh:ro
       - ./supla-scripts-apache.conf:/etc/apache2/sites-available/default-ssl.conf:ro

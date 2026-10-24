@@ -107,6 +107,10 @@ func (s *Stack) Plan() (*Plan, error) {
 	// Address of the device for settings shown to clients, e.g. the MQTT
 	// broker in Supla Cloud.
 	env.set("SUPLAOS_IP", PrimaryIP())
+	// Containers resolve <name>.local to the device with it (extra_hosts),
+	// there is no mDNS inside them.
+	host, _ := os.Hostname()
+	env.set("SUPLAOS_HOSTNAME", host)
 	globals := map[string]bool{}
 	for _, kv := range env.list {
 		globals[kv.Key] = true
