@@ -21,6 +21,7 @@ import (
 	"time"
 
 	"github.com/Goral64/SuplaOS/internal/addon"
+	"github.com/Goral64/SuplaOS/internal/domaincert"
 )
 
 const (
@@ -130,13 +131,50 @@ func (s *Stack) trustBundle(dir string) (replaced bool, err error) {
 	return err == nil, s.writeFile(file, data, 0o644)
 }
 
-// Certificate makes server.crt (with the CA certificate after it) and
-// server.key in dir, signed by the CA of the device, and puts ca.crt next
-// to them for the clients. An existing one is kept while it is signed by
-// the CA, covers the current names and addresses of the device and does
+// Certificate makes server.crt and server.key of an add-on in dir: the
+// Let's Encrypt certificate of the domain set in the panel when there is
+// one, else one signed by the CA of the device (DeviceCertificate).
+// replaced tells that an existing certificate was replaced.
+func (s *Stack) Certificate(dir string) (replaced bool, err error) {
+	domain, err := domaincert.Load(s.Root, time.Now())
+	if err != nil {
+		// The certificate of the device does until then.
+		fmt.Fprintf(s.stderr(), "certificate of the domain: %v\n", err)
+	}
+	if domain == nil {
+		return s.DeviceCertificate(dir)
+	}
+	ca, _, err := s.loadCA()
+	if err != nil {
+		return false, err
+	}
+	crtFile, keyFile := filepath.Join(dir, "server.crt"), filepath.Join(dir, "server.key")
+	old, err := os.ReadFile(crtFile)
+	if bytes.Equal(old, domain.Chain) {
+		if key, _ := os.ReadFile(keyFile); bytes.Equal(key, domain.Key) {
+			return false, nil
+		}
+	}
+	replaced = err == nil
+	if err := s.writeFile(keyFile, domain.Key, 0o600); err != nil {
+		return false, err
+	}
+	// ca.crt stays the CA of the device, e.g. for the clients of
+	// Mosquitto set up before.
+	if err := s.writeFile(filepath.Join(dir, "ca.crt"),
+		pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: ca.Raw}), 0o644); err != nil {
+		return false, err
+	}
+	return replaced, s.writeFile(crtFile, domain.Chain, 0o644)
+}
+
+// DeviceCertificate makes server.crt (with the CA certificate after it)
+// and server.key in dir, signed by the CA of the device, and puts ca.crt
+// next to them for the clients. An existing one is kept while it is signed
+// by the CA, covers the current names and addresses of the device and does
 // not expire soon. replaced tells that an existing certificate was
 // replaced.
-func (s *Stack) Certificate(dir string) (replaced bool, err error) {
+func (s *Stack) DeviceCertificate(dir string) (replaced bool, err error) {
 	ca, caKey, err := s.loadCA()
 	if err != nil {
 		return false, err

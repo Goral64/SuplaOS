@@ -4,13 +4,19 @@ import (
 	"bytes"
 	"compress/gzip"
 	"context"
+	"crypto/ecdsa"
+	"crypto/elliptic"
+	"crypto/rand"
 	"crypto/tls"
 	"crypto/x509"
+	"encoding/pem"
+	"math/big"
 	"io"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
 	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 	"testing/fstest"
@@ -227,6 +233,33 @@ func TestTLS(t *testing.T) {
 	token := s.sessions.create(false)
 	if w := do(t, s.Handler(), "GET", "/api/ca", token, false); !strings.Contains(w.Body.String(), `"sha256"`) {
 		t.Errorf("ca info: %s", w.Body)
+	}
+
+	// The certificate of a domain set in the panel is served for that
+	// name only.
+	key, _ := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+	tmpl := &x509.Certificate{SerialNumber: big.NewInt(1), NotBefore: time.Now(), NotAfter: time.Now().Add(time.Hour),
+		DNSNames: []string{"supla.example.com"}}
+	der, _ := x509.CreateCertificate(rand.Reader, tmpl, tmpl, &key.PublicKey, key)
+	keyDER, _ := x509.MarshalECPrivateKey(key)
+	dir := filepath.Join(s.cfg.Root, "ca", "acme")
+	os.MkdirAll(dir, 0o700)
+	os.WriteFile(filepath.Join(dir, "settings.yaml"), []byte("domain: supla.example.com\n"), 0o600)
+	os.WriteFile(filepath.Join(dir, "cert.crt"), pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: der}), 0o644)
+	os.WriteFile(filepath.Join(dir, "cert.key"), pem.EncodeToMemory(&pem.Block{Type: "EC PRIVATE KEY", Bytes: keyDER}), 0o600)
+	if err := s.renewCertificates(false); err != nil {
+		t.Fatal(err)
+	}
+	for name, want := range map[string][]byte{"supla.example.com": der, "localhost": nil} {
+		conn, err := tls.Dial("tcp", srv.Listener.Addr().String(), &tls.Config{ServerName: name, InsecureSkipVerify: true})
+		if err != nil {
+			t.Fatal(err)
+		}
+		got := conn.ConnectionState().PeerCertificates[0].Raw
+		conn.Close()
+		if (want != nil) != bytes.Equal(got, der) {
+			t.Errorf("%s: certificate of the domain served %v", name, bytes.Equal(got, der))
+		}
 	}
 }
 

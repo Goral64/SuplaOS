@@ -37,6 +37,8 @@ import (
 	"github.com/miekg/dns"
 	"golang.org/x/net/publicsuffix"
 	"gopkg.in/yaml.v3"
+
+	"github.com/Goral64/SuplaOS/internal/domaincert"
 )
 
 const (
@@ -119,7 +121,7 @@ func New(root string) *Manager {
 // the environment: one certificate at a time.
 var mu sync.Mutex
 
-func (m *Manager) Dir() string      { return filepath.Join(m.Root, "ca", "acme") }
+func (m *Manager) Dir() string      { return domaincert.Dir(m.Root) }
 func (m *Manager) CertFile() string { return filepath.Join(m.Dir(), "cert.crt") }
 func (m *Manager) KeyFile() string  { return filepath.Join(m.Dir(), "cert.key") }
 
@@ -218,21 +220,11 @@ func (s *Settings) directory(m *Manager) string {
 // Current returns the certificate when there is one for the domain set and
 // it has not expired.
 func (m *Manager) Current() (*tls.Certificate, error) {
-	s, err := m.Settings()
-	if err != nil || s == nil {
+	c, err := domaincert.Load(m.Root, m.now())
+	if err != nil || c == nil {
 		return nil, err
 	}
-	pair, err := tls.LoadX509KeyPair(m.CertFile(), m.KeyFile())
-	if errors.Is(err, os.ErrNotExist) {
-		return nil, nil
-	}
-	if err != nil {
-		return nil, err
-	}
-	if leaf := pair.Leaf; leaf.VerifyHostname(s.Domain) != nil || m.now().After(leaf.NotAfter) {
-		return nil, nil
-	}
-	return &pair, nil
+	return &c.Pair, nil
 }
 
 // Status returns the state of the certificate, nil when no domain is set.

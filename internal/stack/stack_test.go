@@ -382,6 +382,57 @@ func TestCAName(t *testing.T) {
 	}
 }
 
+// domainCertificate writes a certificate for domain where package acme
+// keeps the one from Let's Encrypt.
+func domainCertificate(t *testing.T, s *Stack, domain string) []byte {
+	t.Helper()
+	key, _ := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+	tmpl := &x509.Certificate{SerialNumber: serialNumber(), Subject: pkix.Name{CommonName: domain},
+		NotBefore: time.Now(), NotAfter: time.Now().Add(90 * 24 * time.Hour), DNSNames: []string{domain}}
+	der, _ := x509.CreateCertificate(rand.Reader, tmpl, tmpl, &key.PublicKey, key)
+	keyDER, _ := x509.MarshalECPrivateKey(key)
+	dir := filepath.Join(s.Root, "ca", "acme")
+	must(t, os.MkdirAll(dir, 0o700))
+	chain := pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: der})
+	must(t, os.WriteFile(filepath.Join(dir, "settings.yaml"), []byte("domain: "+domain+"\nprovider: duckdns\n"), 0o600))
+	must(t, os.WriteFile(filepath.Join(dir, "cert.crt"), chain, 0o644))
+	must(t, os.WriteFile(filepath.Join(dir, "cert.key"), pem.EncodeToMemory(&pem.Block{Type: "EC PRIVATE KEY", Bytes: keyDER}), 0o600))
+	return chain
+}
+
+// With a domain set, the add-ons get its certificate; without it again
+// one from the CA of the device.
+func TestDomainCertificate(t *testing.T) {
+	s := newStack(t)
+	must(t, s.Install("mosquitto", nil))
+	dir := filepath.Join(s.Dir(), "ssl/mosquitto")
+	chain := domainCertificate(t, s, "supla.example.com")
+
+	if replaced, err := s.Certificate(dir); err != nil || !replaced {
+		t.Fatalf("certificate of the device not replaced: %v %v", replaced, err)
+	}
+	if data, _ := os.ReadFile(filepath.Join(dir, "server.crt")); string(data) != string(chain) {
+		t.Error("server.crt is not the certificate of the domain")
+	}
+	if replaced, err := s.Certificate(dir); err != nil || replaced {
+		t.Errorf("same certificate replaced: %v %v", replaced, err)
+	}
+	ca, _ := os.ReadFile(filepath.Join(dir, "ca.crt"))
+	if device, _ := os.ReadFile(s.CACertFile()); string(ca) != string(device) {
+		t.Error("ca.crt is not the CA of the device")
+	}
+
+	// A certificate for another name than the domain set is not used.
+	domainCertificate(t, s, "other.example.com")
+	must(t, os.WriteFile(filepath.Join(s.Root, "ca", "acme", "settings.yaml"), []byte("domain: supla.example.com\n"), 0o600))
+	if replaced, err := s.Certificate(dir); err != nil || !replaced {
+		t.Fatalf("certificate of the domain kept: %v %v", replaced, err)
+	}
+	if err := verify(t, s, dir, "suplaos.local"); err != nil {
+		t.Error(err)
+	}
+}
+
 // An existing self-signed certificate (older SuplaOS, the Cloud image) is
 // replaced by one from the CA.
 func TestCertificateReplaced(t *testing.T) {

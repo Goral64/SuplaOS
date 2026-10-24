@@ -17,6 +17,7 @@ import (
 
 	"gopkg.in/yaml.v3"
 
+	"github.com/Goral64/SuplaOS/internal/acme"
 	"github.com/Goral64/SuplaOS/internal/stack"
 )
 
@@ -43,14 +44,18 @@ type Server struct {
 	jobs     jobs
 	images   imageState
 	cert     atomic.Pointer[tls.Certificate]
-	proxies  proxies
+	// domainCert is the Let's Encrypt certificate of the domain set in
+	// the panel, served when a browser asks for that name.
+	domainCert atomic.Pointer[tls.Certificate]
+	acme       *acme.Manager
+	proxies    proxies
 
 	mu       sync.Mutex
 	settings Settings
 }
 
 func New(cfg Config) *Server {
-	s := &Server{cfg: cfg}
+	s := &Server{cfg: cfg, acme: acme.New(cfg.Root)}
 	s.sessions.load(cfg.Sessions)
 	if data, err := os.ReadFile(cfg.Settings); err == nil {
 		if err := yaml.Unmarshal(data, &s.settings); err != nil {
