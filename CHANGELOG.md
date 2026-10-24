@@ -2,6 +2,15 @@
 
 [Po polsku](docs/pl/CHANGELOG.md)
 
+## 0.5.0
+
+- New add-on: SUPLA Scripts (scenes, thermostats, voice commands,
+  notifications), on port 8444, with its own database and backups.
+- After an update the add-ons whose start scripts changed are restarted, so
+  the new scripts are used right away.
+- Two backups made in the same second no longer clash (e.g. a restore right
+  after a backup).
+
 ## 0.4.2
 
 - The CA of every device has its own name. The CAs of 0.4.0 and 0.4.1 all had

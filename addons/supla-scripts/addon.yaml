@@ -1,0 +1,61 @@
+id: supla-scripts
+name: SUPLA Scripts
+description:
+  en: Scenes, thermostats, voice commands and notifications for your Supla account (fracz/supla-scripts)
+  pl: Sceny, termostaty, polecenia głosowe i powiadomienia dla twojego konta Supla (fracz/supla-scripts)
+recommends: [supla]
+files: [supla-scripts-start.sh, supla-scripts-apache.conf]
+compose: [docker-compose.supla-scripts.yml]
+services: [supla-scripts, supla-scripts-db]
+images:
+  supla-scripts:
+    changelog: https://github.com/fracz/supla-scripts/releases
+dirs: [ssl/supla-scripts, var/supla-scripts, var/supla-scripts-db]
+data: [ssl/supla-scripts, var/supla-scripts, var/supla-scripts-db]
+certificates: [ssl/supla-scripts]
+
+options:
+  - key: SUPLA_SCRIPTS_PORT
+    label: {en: HTTPS port, pl: Port HTTPS}
+    help:
+      en: Log in with a personal access token from Supla Cloud (Account, Security), with access to the account, devices and channels.
+      pl: Logowanie tokenem osobistym z Supla Cloud (Konto, Bezpieczeństwo) z dostępem do konta, urządzeń i kanałów.
+    type: port
+    default: "8444"
+    required: true
+  - key: SUPLA_SCRIPTS_DB_PASSWORD
+    type: secret
+    generate: 32
+  - key: SUPLA_SCRIPTS_JWT_KEY
+    type: secret
+    generate: 64
+
+ports: ["${SUPLA_SCRIPTS_PORT}"]
+
+web:
+  scheme: https
+  port: "${SUPLA_SCRIPTS_PORT}"
+
+backup:
+  service: supla-scripts-db
+  command: [sh, -c, 'exec mariadb-dump --routines --user=suplascripts --password="$MYSQL_PASSWORD" suplascripts']
+  file: supla-scripts-{time}.sql
+  # As for Supla: tables and views go first, so none of a newer version is
+  # left behind.
+  restore:
+    - sh
+    - -c
+    - |
+      set -e
+      m() { mariadb --user=suplascripts --password="$MYSQL_PASSWORD" suplascripts "$@"; }
+      drop=$(m -N -e "select concat('drop ', if(table_type = 'VIEW', 'view', 'table'), ' if exists \`', table_name, '\`;') from information_schema.tables where table_schema = 'suplascripts'")
+      { echo 'set foreign_key_checks = 0;'; echo "$drop"; cat; } | m
+
+commands:
+  console:
+    help:
+      en: SUPLA Scripts console, e.g. list
+      pl: Konsola SUPLA Scripts, np. list
+    service: supla-scripts
+    user: www-data
+    exec: [php, /var/www/supla-scripts]

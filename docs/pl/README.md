@@ -7,7 +7,7 @@ System na Raspberry Pi 4/5, komputery x86-64 i maszyny wirtualne
 [supla-docker](https://github.com/SUPLA/supla-docker), czyli własny serwer
 Supli w domu. Wgrywasz obraz na kartę albo dysk, włączasz urządzenie
 i resztę robisz z przeglądarki. Oprócz Supli można dołożyć dodatki:
-brokera MQTT, Zigbee2MQTT, Zigbee2Supla.
+brokera MQTT, Zigbee2MQTT, Zigbee2Supla, SUPLA Scripts.
 
 Projekt jest na wczesnym etapie. Obraz dla Raspberry Pi nie był jeszcze
 sprawdzony na sprzęcie, jeśli możesz pomóc, zobacz [testowanie](testing.md).
@@ -36,6 +36,13 @@ Pierwsze konto można podać już przy instalacji Supli (także w kreatorze
 pierwszego uruchomienia) albo założyć później na stronie dodatku Supla.
 Interfejs Zigbee2MQTT jest pod https://<adres urządzenia>:8080, udostępnia
 go panel po zalogowaniu.
+
+[SUPLA Scripts](https://github.com/fracz/supla-scripts) jest pod
+https://<adres urządzenia>:8444. Loguje się tam tokenem osobistym z Supla
+Cloud (Konto, Bezpieczeństwo, Osobiste tokeny dostępowe) z dostępem do
+konta, urządzeń i kanałów, a potem zakłada login i hasło do samego SUPLA
+Scripts. Działa z Cloud na tym urządzeniu i z cloud.supla.org. Obraz buduje
+SuplaOS z wydań supla-scripts.
 
 To samo można zrobić przez SSH poleceniem `suplaos`:
 

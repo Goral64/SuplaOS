@@ -1,0 +1,83 @@
+name: supla-scripts
+
+# fracz/supla-scripts has no image of its own. Once a day a new release is
+# built from its Dockerfile into ghcr.io/goral64/supla-scripts (amd64 and
+# arm64) and becomes a pull request that points the supla-scripts add-on
+# at it.
+on:
+  schedule:
+    - cron: "41 4 * * *"
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Version to build, e.g. 4.6.3 (default the latest release)
+        required: false
+
+permissions:
+  contents: write
+  pull-requests: write
+  packages: write
+
+jobs:
+  update:
+    runs-on: ubuntu-24.04
+    env:
+      GH_TOKEN: ${{ github.token }}
+      IMAGE: ghcr.io/goral64/supla-scripts
+      COMPOSE: addons/supla-scripts/docker-compose.supla-scripts.yml
+    steps:
+      - uses: actions/checkout@v7
+      - name: Look for a new release
+        id: check
+        env:
+          VERSION: ${{ inputs.version }}
+        run: |
+          version="${VERSION:-$(gh api repos/fracz/supla-scripts/releases/latest -q .tag_name)}"
+          version="${version#v}"
+          current=$(sed -n "s|.*$IMAGE:\([0-9.]*\)}.*|\1|p" "$COMPOSE")
+          built=false
+          docker manifest inspect "$IMAGE:$version" >/dev/null 2>&1 && built=true
+          echo "supla-scripts $version (add-on: $current, image built: $built)"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "built=$built" >> "$GITHUB_OUTPUT"
+          [ "$version" = "$current" ] || echo "update=true" >> "$GITHUB_OUTPUT"
+      - name: Build the image
+        if: steps.check.outputs.built == 'false'
+        env:
+          VERSION: ${{ steps.check.outputs.version }}
+          ACTOR: ${{ github.actor }}
+        run: |
+          mkdir -p "$RUNNER_TEMP/src"
+          gh api "repos/fracz/supla-scripts/tarball/v$VERSION" | tar xz -C "$RUNNER_TEMP/src" --strip-components=1
+          echo "$GH_TOKEN" | docker login ghcr.io -u "$ACTOR" --password-stdin
+          docker run --privileged --rm tonistiigi/binfmt --install arm64
+          docker buildx create --use
+          docker buildx build "$RUNNER_TEMP/src/docker" \
+            --platform linux/amd64,linux/arm64 \
+            --target release \
+            --build-arg "SUPLA_SCRIPTS_VERSION=$VERSION" \
+            --label "org.opencontainers.image.version=$VERSION" \
+            --label "org.opencontainers.image.source=https://github.com/${{ github.repository }}" \
+            --label "org.opencontainers.image.description=fracz/supla-scripts $VERSION for SuplaOS" \
+            --label "org.opencontainers.image.licenses=MIT" \
+            -t "$IMAGE:$VERSION" \
+            --push
+      - name: Pull request
+        if: steps.check.outputs.update == 'true'
+        env:
+          VERSION: ${{ steps.check.outputs.version }}
+        run: |
+          sed -i "s|$IMAGE:[0-9.]*}|$IMAGE:$VERSION}|" "$COMPOSE"
+          title="SUPLA Scripts $VERSION"
+          printf 'New release of supla-scripts: https://github.com/fracz/supla-scripts/releases/tag/v%s\n\nImage: %s:%s\n' \
+            "$VERSION" "$IMAGE" "$VERSION" > "$RUNNER_TEMP/pr.md"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout -B supla-scripts
+          git commit -q -am "$title"
+          git push -q -f origin supla-scripts
+          if [ "$(gh pr view supla-scripts --json state -q .state 2>/dev/null)" = OPEN ]; then
+            gh pr edit supla-scripts --title "$title" --body-file "$RUNNER_TEMP/pr.md"
+          else
+            gh pr create --head supla-scripts --base main --title "$title" --body-file "$RUNNER_TEMP/pr.md"
+          fi

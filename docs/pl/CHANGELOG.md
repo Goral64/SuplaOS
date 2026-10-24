@@ -2,6 +2,15 @@
 
 [In English](../../CHANGELOG.md)
 
+## 0.5.0
+
+- Nowy dodatek: SUPLA Scripts (sceny, termostaty, polecenia głosowe,
+  powiadomienia), na porcie 8444, z własną bazą i kopiami.
+- Po aktualizacji dodatki, których skrypty startowe się zmieniły, są
+  uruchamiane ponownie, więc nowe skrypty działają od razu.
+- Dwie kopie zrobione w tej samej sekundzie już się nie gryzą (np.
+  przywrócenie zaraz po zrobieniu kopii).
+
 ## 0.4.2
 
 - CA każdego urządzenia ma własną nazwę. CA z 0.4.0 i 0.4.1 miały wszystkie

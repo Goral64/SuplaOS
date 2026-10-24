@@ -7,7 +7,7 @@ machines ([Proxmox, VirtualBox, VMware, Hyper-V](docs/virtual-machines.md)), bui
 [supla-docker](https://github.com/SUPLA/supla-docker), i.e. your own Supla
 server at home. Write the image to an SD card or a disk, power the device on
 and do the rest from a web browser. Besides Supla you can add extras: an MQTT
-broker, Zigbee2MQTT, Zigbee2Supla.
+broker, Zigbee2MQTT, Zigbee2Supla, SUPLA Scripts.
 
 The project is at an early stage. The Raspberry Pi image hasn't been tested
 on real hardware yet, if you can help, see [testing](docs/testing.md).
@@ -36,6 +36,14 @@ first account can be given already when installing Supla (also in the first
 run wizard), or created later on the Supla add-on page. The Zigbee2MQTT
 interface is at https://<device address>:8080, served by the panel after
 logging in to it.
+
+[SUPLA Scripts](https://github.com/fracz/supla-scripts) is at
+https://<device address>:8444. You log in there with a personal access
+token from Supla Cloud (Account, Security, Personal access tokens) with
+access to the account, devices and channels, and then make a login and a
+password for SUPLA Scripts itself. It works with the Cloud on this device and
+with cloud.supla.org. The image is built by SuplaOS from the releases of
+supla-scripts.
 
 The same can be done from SSH with `suplaos`:
 

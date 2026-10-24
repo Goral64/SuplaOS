@@ -1,0 +1,51 @@
+services:
+  supla-scripts:
+    container_name: ${COMPOSE_PROJECT_NAME}-scripts
+    # Built from fracz/supla-scripts releases, there is no image of its own.
+    image: ${SUPLA_SCRIPTS_IMAGE:-ghcr.io/goral64/supla-scripts:4.6.3}
+    restart: unless-stopped
+    # config.json is written on start from the add-on settings.
+    entrypoint: ["/bin/sh", "/supla-scripts-start.sh"]
+    command: ["/usr/bin/supervisord", "--nodaemon", "--configuration", "/etc/supervisor/conf.d/supervisord.conf"]
+    environment:
+      TZ: ${TZ}
+      SUPLA_SCRIPTS_DB_PASSWORD: ${SUPLA_SCRIPTS_DB_PASSWORD}
+      SUPLA_SCRIPTS_JWT_KEY: ${SUPLA_SCRIPTS_JWT_KEY}
+    ports:
+      - "${SUPLA_SCRIPTS_PORT}:443"
+    volumes:
+      - ./supla-scripts-start.sh:/supla-scripts-start.sh:ro
+      - ./supla-scripts-apache.conf:/etc/apache2/sites-available/default-ssl.conf:ro
+      - ./ssl/supla-scripts:/etc/apache2/ssl:ro
+      - ${VOLUME_DATA}/supla-scripts:/var/www/var
+    depends_on:
+      supla-scripts-db:
+        condition: service_healthy
+    logging:
+      driver: "json-file"
+      options:
+        max-size: 50m
+
+  supla-scripts-db:
+    container_name: ${COMPOSE_PROJECT_NAME}-scripts-db
+    image: mariadb:12.2.2
+    restart: unless-stopped
+    environment:
+      TZ: ${TZ}
+      MARIADB_RANDOM_ROOT_PASSWORD: "1"
+      MYSQL_DATABASE: suplascripts
+      MYSQL_USER: suplascripts
+      MYSQL_PASSWORD: ${SUPLA_SCRIPTS_DB_PASSWORD}
+    volumes:
+      - ${VOLUME_DATA}/supla-scripts-db:/var/lib/mysql
+    # supla-scripts migrates the database on start.
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 30s
+      timeout: 5s
+      start_period: 2m
+      start_interval: 5s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: 10m
