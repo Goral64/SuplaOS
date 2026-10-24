@@ -83,4 +83,9 @@ pobrać na stronie dodatku Mosquitto.
 ## Nowe urządzenie, nowe CA
 
 Po zmianie nazwy albo adresu urządzenia CA zostaje to samo. Świeżo wgrany
-obraz tworzy nowe: zainstaluj je ponownie, a stare usuń.
+obraz tworzy nowe: zainstaluj je ponownie, a stare usuń. Każde CA ma własną
+nazwę, np. `SuplaOS suplaos 3fa2c1d0`, więc CA kilku urządzeń można mieć
+zainstalowane obok siebie. CA z SuplaOS 0.4.0 i 0.4.1 nazywały się wszystkie
+`SuplaOS suplaos` i przeglądarki je myliły (Firefox nie chciał otworzyć
+strony). Od 0.4.2 wymieniają się same, więc zainstaluj CA jeszcze raz,
+a stare usuń.

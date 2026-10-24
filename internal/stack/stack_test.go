@@ -343,6 +343,45 @@ func TestCAConstraints(t *testing.T) {
 	}
 }
 
+// Every CA has its own name, also on devices with the same name, and a CA
+// of an older SuplaOS (without the ID) is made anew, with its certificates.
+func TestCAName(t *testing.T) {
+	a, b := newStack(t), newStack(t)
+	caA, _, err := a.loadCA()
+	must(t, err)
+	caB, _, err := b.loadCA()
+	must(t, err)
+	if caA.Subject.String() == caB.Subject.String() || caA.Subject.SerialNumber == "" {
+		t.Errorf("CA names %q and %q", caA.Subject, caB.Subject)
+	}
+
+	key, _ := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+	tmpl := &x509.Certificate{SerialNumber: serialNumber(), Subject: pkix.Name{CommonName: "SuplaOS suplaos", Organization: []string{"SuplaOS"}},
+		NotBefore: time.Now(), NotAfter: time.Now().Add(caValidity), IsCA: true, BasicConstraintsValid: true,
+		KeyUsage: x509.KeyUsageCertSign}
+	der, _ := x509.CreateCertificate(rand.Reader, tmpl, tmpl, &key.PublicKey, key)
+	keyDER, _ := x509.MarshalECPrivateKey(key)
+	s := newStack(t)
+	os.MkdirAll(s.CADir(), 0o755)
+	os.WriteFile(s.CACertFile(), pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: der}), 0o644)
+	os.WriteFile(filepath.Join(s.CADir(), "ca.key"), pem.EncodeToMemory(&pem.Block{Type: "EC PRIVATE KEY", Bytes: keyDER}), 0o600)
+	dir := filepath.Join(s.Dir(), "ssl/test")
+	if _, err := s.Certificate(dir); err != nil {
+		t.Fatal(err)
+	}
+	ca, _, err := s.loadCA()
+	must(t, err)
+	if ca.Subject.SerialNumber == "" {
+		t.Errorf("old CA kept: %q", ca.Subject)
+	}
+	if replaced, err := s.Certificate(dir); err != nil || replaced {
+		t.Errorf("certificate of the new CA replaced: %v %v", replaced, err)
+	}
+	if err := verify(t, s, dir, "suplaos.local"); err != nil {
+		t.Error(err)
+	}
+}
+
 // An existing self-signed certificate (older SuplaOS, the Cloud image) is
 // replaced by one from the CA.
 func TestCertificateReplaced(t *testing.T) {

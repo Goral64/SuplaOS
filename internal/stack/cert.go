@@ -4,9 +4,11 @@ import (
 	"crypto/ecdsa"
 	"crypto/elliptic"
 	"crypto/rand"
+	"crypto/sha256"
 	"crypto/tls"
 	"crypto/x509"
 	"crypto/x509/pkix"
+	"encoding/hex"
 	"encoding/pem"
 	"errors"
 	"fmt"
@@ -174,9 +176,12 @@ func (s *Stack) loadCA() (*x509.Certificate, *ecdsa.PrivateKey, error) {
 			return nil, nil, fmt.Errorf("%s: not an ECDSA key", keyFile)
 		}
 		crt, err := x509.ParseCertificate(pair.Certificate[0])
-		return crt, key, err
-	}
-	if _, statErr := os.Stat(crtFile); !errors.Is(statErr, os.ErrNotExist) {
+		// CAs made before 0.4.2 had the same name on every device, and
+		// browsers mix up such CAs: they are made anew, with an ID.
+		if err != nil || crt.Subject.SerialNumber != "" {
+			return crt, key, err
+		}
+	} else if _, statErr := os.Stat(crtFile); !errors.Is(statErr, os.ErrNotExist) {
 		return nil, nil, fmt.Errorf("CA of the device: %w", err)
 	}
 
@@ -185,6 +190,14 @@ func (s *Stack) loadCA() (*x509.Certificate, *ecdsa.PrivateKey, error) {
 		return nil, nil, err
 	}
 	host, _ := os.Hostname()
+	// The ID tells apart the CAs of devices with the same name, also of the
+	// same device installed again.
+	pub, err := x509.MarshalPKIXPublicKey(&key.PublicKey)
+	if err != nil {
+		return nil, nil, err
+	}
+	sum := sha256.Sum256(pub)
+	id := hex.EncodeToString(sum[:4])
 	var ranges []*net.IPNet
 	for _, r := range caIPRanges {
 		_, n, _ := net.ParseCIDR(r)
@@ -192,7 +205,11 @@ func (s *Stack) loadCA() (*x509.Certificate, *ecdsa.PrivateKey, error) {
 	}
 	tmpl := &x509.Certificate{
 		SerialNumber:          serialNumber(),
-		Subject:               pkix.Name{CommonName: "SuplaOS " + host, Organization: []string{"SuplaOS"}},
+		Subject: pkix.Name{
+			CommonName:   "SuplaOS " + host + " " + id,
+			Organization: []string{"SuplaOS"},
+			SerialNumber: id,
+		},
 		NotBefore:             time.Now().Add(-time.Hour),
 		NotAfter:              time.Now().Add(caValidity),
 		KeyUsage:              x509.KeyUsageCertSign | x509.KeyUsageCRLSign,

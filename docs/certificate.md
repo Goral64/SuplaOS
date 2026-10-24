@@ -80,4 +80,8 @@ add-on page also offers the file.
 
 The CA stays the same after changing the name or the address of the device.
 A freshly written image makes a new one: install it again and remove the old
-one.
+one. Each CA has its own name, e.g. `SuplaOS suplaos 3fa2c1d0`, so CAs of
+several devices can be installed side by side. CAs made by SuplaOS 0.4.0 and
+0.4.1 were all called `SuplaOS suplaos` and browsers mixed them up (Firefox
+refused to open the page); from 0.4.2 they are replaced on their own, so
+install the CA once more and remove the old one.
