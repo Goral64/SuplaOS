@@ -54,7 +54,9 @@ function pickDevice(v) {
       <div v-if="!devices.length" class="help">{{ $t('addon.noDevices') }}</div>
     </template>
     <div v-else-if="option.type === 'password'" class="row">
-      <input :id="option.key" v-model="model" :type="inputType" :required="option.required && !option.generate" autocomplete="off" style="flex: 1">
+      <!-- new-password: browsers ignore off next to a password and would put a
+           saved login into this and the field before it. -->
+      <input :id="option.key" v-model="model" :type="inputType" :required="option.required && !option.generate" autocomplete="new-password" style="flex: 1">
       <button type="button" @click="reveal = !reveal">{{ reveal ? $t('addon.hide') : $t('addon.show') }}</button>
     </div>
     <input v-else :id="option.key" v-model="model" :type="inputType" :required="option.required" autocomplete="off">
