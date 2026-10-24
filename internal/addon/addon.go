@@ -49,6 +49,8 @@ type Condition struct {
 	Equals       string `yaml:"equals" json:"equals,omitempty"`
 	// In is an alternative to Equals: the option has one of these values.
 	In []string `yaml:"in" json:"in,omitempty"`
+	// NotEmpty is another one: the option has any value.
+	NotEmpty bool `yaml:"not_empty" json:"notEmpty,omitempty"`
 }
 
 // Match tells whether the condition holds for the installed add-ons and the
@@ -65,7 +67,11 @@ func (c *Condition) Match(installed func(id string) bool, options map[string]str
 	}
 	if c.Option != "" {
 		v := options[c.Option]
-		if len(c.In) > 0 {
+		if c.NotEmpty {
+			if v == "" {
+				return false
+			}
+		} else if len(c.In) > 0 {
 			if !slices.Contains(c.In, v) {
 				return false
 			}

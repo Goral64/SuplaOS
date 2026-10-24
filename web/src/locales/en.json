@@ -249,6 +249,14 @@
     "renew": "Get again",
     "change": "Change",
     "disable": "Turn off",
-    "disableConfirm": "Turn off the domain? The add-ons go back to the certificate of the device and the keys of the DNS provider are removed."
+    "disableConfirm": "Turn off the domain? The add-ons go back to the certificate of the device and the keys of the DNS provider are removed.",
+    "addresses": "These addresses could be the domain now, then they also work without warnings:",
+    "address": {
+      "SUPLA_HOST_ADDRESS": "Address of Supla Cloud",
+      "SUPLA_SCRIPTS_URL": "Address of SUPLA Scripts"
+    },
+    "addressesOAuth": "SUPLA Scripts logs in with Supla Cloud: after the change connect them again.",
+    "useDomain": "Use the domain",
+    "reconnect": "Done. Now connect SUPLA Scripts with Supla Cloud again: Add-ons, SUPLA Scripts, Connect with Supla Cloud."
   }
 }

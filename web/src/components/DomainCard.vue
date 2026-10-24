@@ -9,6 +9,7 @@ const { t, locale } = useI18n()
 const view = ref(null)
 const form = ref(null)
 const error = ref('')
+const message = ref('')
 const busy = ref(false)
 
 const help = computed(() => 'https://github.com/Goral64/SuplaOS/blob/main/docs/' +
@@ -59,6 +60,12 @@ async function save() {
 
 const renew = () => job('POST', '/domain/renew')
 
+async function useDomain() {
+  const oauth = view.value.scriptsOAuth
+  const result = await job('POST', '/domain/addresses')
+  if (result && result.state === 'done' && oauth) message.value = t('domain.reconnect')
+}
+
 async function disable() {
   if (!(await ask(t('domain.disableConfirm'), { ok: t('domain.disable'), danger: true }))) return
   await job('DELETE', '/domain')
@@ -70,6 +77,7 @@ async function disable() {
   <div v-if="view" class="card">
     <h2>{{ $t('domain.title') }}</h2>
     <div v-if="error" class="alert error">{{ error }}</div>
+    <div v-if="message" class="alert ok">{{ message }}</div>
 
     <template v-if="!form">
       <template v-if="view.status">
@@ -82,6 +90,16 @@ async function disable() {
           {{ $t('domain.failed', { date: when(view.status.lastAttempt) }) }}<br>
           <code>{{ view.status.lastError }}</code>
           <template v-if="view.status.nextAttempt"><br>{{ $t('domain.next', { date: when(view.status.nextAttempt) }) }}</template>
+        </div>
+        <div v-if="view.addresses.length" class="alert warn">
+          {{ $t('domain.addresses') }}
+          <ul>
+            <li v-for="a in view.addresses" :key="a.key">
+              {{ $t('domain.address.' + a.key) }}: <code>{{ a.from }}</code> → <code>{{ a.to }}</code>
+            </li>
+          </ul>
+          <template v-if="view.scriptsOAuth">{{ $t('domain.addressesOAuth') }}<br></template>
+          <button class="primary" :disabled="busy" @click="useDomain">{{ $t('domain.useDomain') }}</button>
         </div>
         <div class="row">
           <button :disabled="busy" @click="renew">{{ $t('domain.renew') }}</button>

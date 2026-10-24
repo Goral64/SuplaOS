@@ -1,0 +1,6 @@
+# With a domain set in the panel the Cloud may be at it: the requests stay
+# on the device, without the router.
+services:
+  supla-scripts:
+    extra_hosts:
+      - "${SUPLAOS_DOMAIN}:host-gateway"

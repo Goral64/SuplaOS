@@ -681,3 +681,32 @@ func TestEnvChanged(t *testing.T) {
 		t.Error("changed .env not noticed")
 	}
 }
+
+// The containers resolve the domain set in the panel to the device, the
+// .local name without one.
+func TestDomainEnv(t *testing.T) {
+	s := newStack(t)
+	must(t, s.Install("supla-scripts", nil))
+	must(t, s.Apply())
+	domainFile := filepath.Join(s.Dir(), "docker-compose.supla-scripts-domain.yml")
+	if got := readEnv(t, s, ".env")["SUPLAOS_DOMAIN"]; got != "" {
+		t.Errorf("without a domain: %q", got)
+	}
+	if _, err := os.Stat(domainFile); err == nil {
+		t.Error("compose file of the domain without a domain")
+	}
+	domainCertificate(t, s, "supla.example.com")
+	if !s.envChanged() {
+		t.Error("new domain does not change .env")
+	}
+	must(t, s.Apply())
+	if got := readEnv(t, s, ".env")["SUPLAOS_DOMAIN"]; got != "supla.example.com" {
+		t.Errorf("with a domain: %q", got)
+	}
+	if got := readEnv(t, s, ".env")["SUPLAOS_TLS_HOST"]; got != "supla.example.com" {
+		t.Errorf("TLS host with a domain: %q", got)
+	}
+	if !strings.Contains(readEnv(t, s, ".env")["COMPOSE_FILE"], "docker-compose.supla-scripts-domain.yml") {
+		t.Error("compose file of the domain not used")
+	}
+}

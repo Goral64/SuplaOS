@@ -14,6 +14,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/Goral64/SuplaOS/internal/domaincert"
 	"github.com/Goral64/SuplaOS/internal/stack"
 )
 
@@ -74,16 +75,25 @@ type cloudAPI struct {
 	token  string
 }
 
+// cloudClient talks to the Cloud at url, an address of this device. The
+// Cloud has the certificate of the domain set in the panel or one from the
+// CA of the device.
 func (s *Server) cloudClient(url string) (*cloudAPI, error) {
 	pem, err := os.ReadFile(s.caFile())
 	if err != nil {
 		return nil, err
 	}
-	roots := x509.NewCertPool()
-	roots.AppendCertsFromPEM(pem)
+	cfg := &tls.Config{RootCAs: x509.NewCertPool()}
+	if c, _ := domaincert.Load(s.cfg.Root, time.Now()); c != nil {
+		if cfg.RootCAs, err = x509.SystemCertPool(); err != nil {
+			return nil, err
+		}
+		cfg.ServerName = c.Domain
+	}
+	cfg.RootCAs.AppendCertsFromPEM(pem)
 	return &cloudAPI{url: url, client: &http.Client{
 		Timeout:   30 * time.Second,
-		Transport: &http.Transport{TLSClientConfig: &tls.Config{RootCAs: roots}},
+		Transport: &http.Transport{TLSClientConfig: cfg},
 	}}, nil
 }
 

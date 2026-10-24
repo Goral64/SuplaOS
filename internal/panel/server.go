@@ -109,6 +109,7 @@ func (s *Server) Handler() http.Handler {
 	api("GET /api/domain", s.getDomain)
 	api("PUT /api/domain", s.putDomain)
 	api("POST /api/domain/renew", s.renewDomainNow)
+	api("POST /api/domain/addresses", s.useDomain)
 	api("DELETE /api/domain", s.deleteDomain)
 	api("POST /api/password", s.changePassword)
 

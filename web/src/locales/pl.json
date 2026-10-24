@@ -249,6 +249,14 @@
     "renew": "Pobierz ponownie",
     "change": "Zmień",
     "disable": "Wyłącz",
-    "disableConfirm": "Wyłączyć domenę? Dodatki wrócą do certyfikatu urządzenia, a klucze dostawcy DNS zostaną usunięte."
+    "disableConfirm": "Wyłączyć domenę? Dodatki wrócą do certyfikatu urządzenia, a klucze dostawcy DNS zostaną usunięte.",
+    "addresses": "Te adresy mogą teraz być domeną, wtedy też będą działać bez ostrzeżeń:",
+    "address": {
+      "SUPLA_HOST_ADDRESS": "Adres Supla Cloud",
+      "SUPLA_SCRIPTS_URL": "Adres SUPLA Scripts"
+    },
+    "addressesOAuth": "SUPLA Scripts loguje się przez Supla Cloud: po zmianie połącz je ponownie.",
+    "useDomain": "Użyj domeny",
+    "reconnect": "Gotowe. Teraz połącz ponownie SUPLA Scripts z Supla Cloud: Dodatki, SUPLA Scripts, Połącz z Supla Cloud."
   }
 }

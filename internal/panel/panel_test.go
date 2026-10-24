@@ -10,8 +10,8 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"encoding/pem"
-	"math/big"
 	"io"
+	"math/big"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -205,6 +205,22 @@ func TestInstallAccount(t *testing.T) {
 	}
 }
 
+// domainCertificate writes a certificate for domain where package acme
+// keeps the one from Let's Encrypt.
+func domainCertificate(s *Server, domain string) []byte {
+	key, _ := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+	tmpl := &x509.Certificate{SerialNumber: big.NewInt(1), NotBefore: time.Now(), NotAfter: time.Now().Add(time.Hour),
+		DNSNames: []string{domain}}
+	der, _ := x509.CreateCertificate(rand.Reader, tmpl, tmpl, &key.PublicKey, key)
+	keyDER, _ := x509.MarshalECPrivateKey(key)
+	dir := filepath.Join(s.cfg.Root, "ca", "acme")
+	os.MkdirAll(dir, 0o700)
+	os.WriteFile(filepath.Join(dir, "settings.yaml"), []byte("domain: "+domain+"\n"), 0o600)
+	os.WriteFile(filepath.Join(dir, "cert.crt"), pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: der}), 0o644)
+	os.WriteFile(filepath.Join(dir, "cert.key"), pem.EncodeToMemory(&pem.Block{Type: "EC PRIVATE KEY", Bytes: keyDER}), 0o600)
+	return der
+}
+
 func TestTLS(t *testing.T) {
 	s := newServer(t)
 	cfg, err := s.TLSConfig()
@@ -239,16 +255,7 @@ func TestTLS(t *testing.T) {
 
 	// The certificate of a domain set in the panel is served for that
 	// name only.
-	key, _ := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
-	tmpl := &x509.Certificate{SerialNumber: big.NewInt(1), NotBefore: time.Now(), NotAfter: time.Now().Add(time.Hour),
-		DNSNames: []string{"supla.example.com"}}
-	der, _ := x509.CreateCertificate(rand.Reader, tmpl, tmpl, &key.PublicKey, key)
-	keyDER, _ := x509.MarshalECPrivateKey(key)
-	dir := filepath.Join(s.cfg.Root, "ca", "acme")
-	os.MkdirAll(dir, 0o700)
-	os.WriteFile(filepath.Join(dir, "settings.yaml"), []byte("domain: supla.example.com\n"), 0o600)
-	os.WriteFile(filepath.Join(dir, "cert.crt"), pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: der}), 0o644)
-	os.WriteFile(filepath.Join(dir, "cert.key"), pem.EncodeToMemory(&pem.Block{Type: "EC PRIVATE KEY", Bytes: keyDER}), 0o600)
+	der := domainCertificate(s, "supla.example.com")
 	if err := s.renewCertificates(false); err != nil {
 		t.Fatal(err)
 	}
@@ -370,5 +377,22 @@ func TestDomainAPI(t *testing.T) {
 	}
 	if set, _ := s.acme.Settings(); set != nil {
 		t.Errorf("settings kept: %+v", set)
+	}
+
+	// With a certificate for the domain, the addresses are offered.
+	st, err := s.openStack()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := st.Install("supla-scripts", nil); err != nil {
+		t.Fatal(err)
+	}
+	if w := send("GET", "/api/domain", ""); !strings.Contains(w.Body.String(), `"addresses":[]`) {
+		t.Errorf("addresses without a certificate: %s", w.Body)
+	}
+	domainCertificate(s, "supla.example.com")
+	w = send("GET", "/api/domain", "")
+	if !strings.Contains(w.Body.String(), `"key":"SUPLA_SCRIPTS_URL"`) || !strings.Contains(w.Body.String(), `"to":"https://supla.example.com:8444"`) {
+		t.Errorf("addresses: %s", w.Body)
 	}
 }

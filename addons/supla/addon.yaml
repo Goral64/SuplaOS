@@ -20,6 +20,8 @@ compose:
     when: {installed: mosquitto, option: SUPLA_MQTT_BROKER_ENABLED, equals: "true"}
   - file: docker-compose.supla-mqtt-tls.yml
     when: {installed: mosquitto, option: "mosquitto:MOSQUITTO_LAN", in: [tls, both]}
+  - file: docker-compose.supla-domain.yml
+    when: {option: "suplaos:DOMAIN", not_empty: true}
 services: [supla-cloud, supla-db, supla-server]
 images:
   supla-cloud:

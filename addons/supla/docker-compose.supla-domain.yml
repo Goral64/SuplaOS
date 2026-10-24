@@ -1,0 +1,6 @@
+# With a domain set in the panel: webhooks to it (e.g. SUPLA Scripts on
+# this device) stay on the device, without the router.
+services:
+  supla-server:
+    extra_hosts:
+      - "${SUPLAOS_DOMAIN}:host-gateway"

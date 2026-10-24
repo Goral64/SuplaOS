@@ -91,3 +91,14 @@ func TestBackupOwner(t *testing.T) {
 		}
 	}
 }
+
+func TestConditionNotEmpty(t *testing.T) {
+	c := &Condition{Option: "suplaos:DOMAIN", NotEmpty: true}
+	none := func(string) bool { return false }
+	if c.Match(none, map[string]string{"suplaos:DOMAIN": ""}) {
+		t.Error("empty value matches")
+	}
+	if !c.Match(none, map[string]string{"suplaos:DOMAIN": "supla.example.com"}) {
+		t.Error("value does not match")
+	}
+}

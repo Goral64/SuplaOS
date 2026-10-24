@@ -5,7 +5,10 @@ description:
   pl: Sceny, termostaty, polecenia głosowe i powiadomienia dla twojego konta Supla (fracz/supla-scripts)
 recommends: [supla]
 files: [supla-scripts-start.sh, supla-scripts-apache.conf]
-compose: [docker-compose.supla-scripts.yml]
+compose:
+  - docker-compose.supla-scripts.yml
+  - file: docker-compose.supla-scripts-domain.yml
+    when: {option: "suplaos:DOMAIN", not_empty: true}
 services: [supla-scripts, supla-scripts-db]
 images:
   supla-scripts:

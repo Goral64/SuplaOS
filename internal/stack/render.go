@@ -11,8 +11,10 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/Goral64/SuplaOS/internal/addon"
+	"github.com/Goral64/SuplaOS/internal/domaincert"
 )
 
 const generatedList = ".suplaos-files"
@@ -84,7 +86,8 @@ func (s *Stack) Active(o *addon.Option, values map[string]string) bool {
 // withOthers adds the option values of the other installed add-ons as
 // "<add-on>:<KEY>", for conditions on them.
 func (s *Stack) withOthers(values map[string]string) map[string]string {
-	all := map[string]string{}
+	// The domain set in the panel, for files used only with one.
+	all := map[string]string{"suplaos:DOMAIN": domaincert.Domain(s.Root)}
 	for _, a := range s.Order() {
 		for k, v := range s.Values(a) {
 			all[a.ID+":"+k] = v
@@ -111,6 +114,16 @@ func (s *Stack) Plan() (*Plan, error) {
 	// there is no mDNS inside them.
 	host, _ := os.Hostname()
 	env.set("SUPLAOS_HOSTNAME", host)
+	// The same for the domain set in the panel, so that the containers
+	// reach the device by it without the router (hairpin NAT).
+	env.set("SUPLAOS_DOMAIN", domaincert.Domain(s.Root))
+	// The address shown to clients that check the certificate, e.g. of
+	// MQTT over TLS: the domain when its certificate is there.
+	tlsHost := PrimaryIP()
+	if c, _ := domaincert.Load(s.Root, time.Now()); c != nil {
+		tlsHost = c.Domain
+	}
+	env.set("SUPLAOS_TLS_HOST", tlsHost)
 	globals := map[string]bool{}
 	for _, kv := range env.list {
 		globals[kv.Key] = true

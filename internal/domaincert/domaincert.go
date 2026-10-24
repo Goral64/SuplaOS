@@ -23,21 +23,33 @@ type Cert struct {
 	Pair   tls.Certificate
 }
 
-// Load returns the certificate when a domain is set and the certificate
-// covers it and has not expired; nil otherwise.
-func Load(root string, now time.Time) (*Cert, error) {
-	dir := Dir(root)
-	data, err := os.ReadFile(filepath.Join(dir, "settings.yaml"))
+// Domain returns the domain set in the panel, "" when there is none.
+func Domain(root string) string {
+	d, _ := domain(root)
+	return d
+}
+
+func domain(root string) (string, error) {
+	data, err := os.ReadFile(filepath.Join(Dir(root), "settings.yaml"))
 	if errors.Is(err, os.ErrNotExist) {
-		return nil, nil
+		return "", nil
 	}
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 	var s struct {
 		Domain string `yaml:"domain"`
 	}
-	if err := yaml.Unmarshal(data, &s); err != nil || s.Domain == "" {
+	err = yaml.Unmarshal(data, &s)
+	return s.Domain, err
+}
+
+// Load returns the certificate when a domain is set and the certificate
+// covers it and has not expired; nil otherwise.
+func Load(root string, now time.Time) (*Cert, error) {
+	dir := Dir(root)
+	name, err := domain(root)
+	if err != nil || name == "" {
 		return nil, err
 	}
 	chain, err := os.ReadFile(filepath.Join(dir, "cert.crt"))
@@ -56,8 +68,8 @@ func Load(root string, now time.Time) (*Cert, error) {
 	if err != nil {
 		return nil, err
 	}
-	if pair.Leaf.VerifyHostname(s.Domain) != nil || now.After(pair.Leaf.NotAfter) {
+	if pair.Leaf.VerifyHostname(name) != nil || now.After(pair.Leaf.NotAfter) {
 		return nil, nil
 	}
-	return &Cert{Domain: s.Domain, Chain: chain, Key: key, Pair: pair}, nil
+	return &Cert{Domain: name, Chain: chain, Key: key, Pair: pair}, nil
 }

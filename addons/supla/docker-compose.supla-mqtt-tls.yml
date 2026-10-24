@@ -1,7 +1,8 @@
 # Mosquitto reachable over TLS in the local network: the Cloud shows that
-# port to users.
+# port to users, with the name in the certificate.
 services:
   supla-cloud:
     environment:
+      SUPLA_MQTT_BROKER_HOST: ${SUPLAOS_TLS_HOST}
       SUPLA_MQTT_BROKER_PORT: "8883"
       SUPLA_MQTT_BROKER_TLS: "true"
