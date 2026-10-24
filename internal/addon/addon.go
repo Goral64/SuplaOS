@@ -422,3 +422,16 @@ func (c Catalog) IDs() []string {
 	sort.Strings(ids)
 	return ids
 }
+
+// BackupOwner returns the add-on a backup file belongs to by its name, the
+// add-on id and a dash: the longest such id, so that supla-scripts-… does
+// not count as a backup of supla. Empty when none matches.
+func (c Catalog) BackupOwner(name string) string {
+	owner := ""
+	for id := range c {
+		if strings.HasPrefix(name, id+"-") && len(id) > len(owner) {
+			owner = id
+		}
+	}
+	return owner
+}

@@ -53,7 +53,7 @@ async function load() {
     suplaUsers.value = await api('GET', '/supla/users').then((r) => r.count, () => null)
   }
   if (addon.value?.backup) {
-    backups.value = (await api('GET', '/backups')).filter((b) => b.name.startsWith(props.id + '-'))
+    backups.value = (await api('GET', '/backups')).filter((b) => b.addon === props.id)
   }
 }
 onMounted(load)

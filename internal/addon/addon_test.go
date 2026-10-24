@@ -73,3 +73,19 @@ func TestConditionIn(t *testing.T) {
 		t.Error("in")
 	}
 }
+
+func TestBackupOwner(t *testing.T) {
+	c, err := Load("../../addons")
+	if err != nil {
+		t.Fatal(err)
+	}
+	for name, want := range map[string]string{
+		"supla-20261024141359.sql.gz":         "supla",
+		"supla-scripts-20261024141359.sql.gz": "supla-scripts",
+		"suplaos.gz":                          "",
+	} {
+		if got := c.BackupOwner(name); got != want {
+			t.Errorf("BackupOwner(%s) = %q, want %q", name, got, want)
+		}
+	}
+}

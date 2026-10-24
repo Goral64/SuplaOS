@@ -552,3 +552,20 @@ func TestSuplaDockerFiles(t *testing.T) {
 		t.Fatalf("docker compose config: %v\n%s", err, out)
 	}
 }
+
+// A new version of a script the container mounts restarts the add-on,
+// compose would not recreate it.
+func TestFileChangeRestarts(t *testing.T) {
+	s := newStack(t)
+	must(t, s.Install("mosquitto", nil))
+	s.after = nil
+	must(t, s.Apply())
+	if len(s.after) != 0 {
+		t.Errorf("restart without a change: %v", s.after)
+	}
+	must(t, os.WriteFile(filepath.Join(s.Dir(), "mosquitto-start.sh"), []byte("old"), 0o644))
+	must(t, s.Apply())
+	if len(s.after) != 1 || s.after[0].Restart[0] != "mosquitto" {
+		t.Errorf("after = %v", s.after)
+	}
+}

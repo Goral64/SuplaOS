@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"slices"
 	"sort"
 	"strconv"
 	"strings"
@@ -364,6 +365,7 @@ func (s *Stack) Apply() error {
 	if err := s.CheckPorts(p); err != nil {
 		return err
 	}
+	s.restartChanged(p)
 	if err := s.Write(p); err != nil {
 		return err
 	}
@@ -374,6 +376,24 @@ func (s *Stack) Apply() error {
 		return s.Save()
 	}
 	return nil
+}
+
+// restartChanged queues a restart of add-ons whose own files (scripts,
+// configuration mounted into the containers) are about to change: compose
+// does not see such a change. .env files are left out, compose does.
+func (s *Stack) restartChanged(p *Plan) {
+	for _, a := range s.Order() {
+		for _, f := range a.Files {
+			if f == a.EnvBase || len(a.Services) == 0 {
+				continue
+			}
+			disk, err := os.ReadFile(filepath.Join(s.Dir(), f))
+			if err == nil && !bytes.Equal(disk, p.Files[f]) {
+				s.after = append(s.after, addon.After{Restart: slices.Clone(a.Services)})
+				break
+			}
+		}
+	}
 }
 
 // fillGenerated generates values of installed add-ons that have none yet,

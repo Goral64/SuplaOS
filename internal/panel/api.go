@@ -875,9 +875,15 @@ func (s *Server) backupPath(name string) (string, error) {
 
 func (s *Server) getBackups(w http.ResponseWriter, r *http.Request) {
 	type entry struct {
-		Name string    `json:"name"`
-		Size int64     `json:"size"`
-		Time time.Time `json:"time"`
+		Name  string    `json:"name"`
+		Addon string    `json:"addon"`
+		Size  int64     `json:"size"`
+		Time  time.Time `json:"time"`
+	}
+	st, err := s.openStack()
+	if err != nil {
+		jsonError(w, http.StatusInternalServerError, err)
+		return
 	}
 	list := []entry{}
 	entries, _ := os.ReadDir(filepath.Join(s.cfg.Root, "backups"))
@@ -886,7 +892,7 @@ func (s *Server) getBackups(w http.ResponseWriter, r *http.Request) {
 			continue // upload in progress
 		}
 		if info, err := e.Info(); err == nil && info.Mode().IsRegular() {
-			list = append(list, entry{e.Name(), info.Size(), info.ModTime()})
+			list = append(list, entry{e.Name(), st.Catalog.BackupOwner(e.Name()), info.Size(), info.ModTime()})
 		}
 	}
 	sort.Slice(list, func(i, j int) bool { return list[i].Time.After(list[j].Time) })
@@ -937,7 +943,7 @@ func (s *Server) uploadBackup(w http.ResponseWriter, r *http.Request) {
 		jsonError(w, http.StatusBadRequest, errors.New("a backup is a .gz file"))
 		return
 	}
-	if !strings.HasPrefix(name, id+"-") {
+	if st.Catalog.BackupOwner(name) != id {
 		name = id + "-" + name
 	}
 	p, err := s.backupPath(name)
@@ -966,11 +972,17 @@ func (s *Server) restoreAddon(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	p, err := s.backupPath(req.Name)
-	if err == nil && !strings.HasPrefix(req.Name, id+"-") {
-		err = errors.New("not a backup of " + id)
-	}
 	if err != nil {
 		jsonError(w, http.StatusBadRequest, err)
+		return
+	}
+	st, err := s.openStack()
+	if err != nil {
+		jsonError(w, http.StatusInternalServerError, err)
+		return
+	}
+	if st.Catalog.BackupOwner(req.Name) != id {
+		jsonError(w, http.StatusBadRequest, errors.New("not a backup of "+id))
 		return
 	}
 	s.stackJob(w, "restore "+id, func(st *stack.Stack, j *Job) error {

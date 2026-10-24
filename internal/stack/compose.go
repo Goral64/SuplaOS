@@ -150,17 +150,32 @@ func (s *Stack) Backup(id string) (string, error) {
 	if a.Backup == nil {
 		return "", fmt.Errorf("%s has no backup", id)
 	}
-	name := strings.ReplaceAll(a.Backup.File, "{time}", time.Now().Format("20060102150405"))
-	if !strings.HasSuffix(name, ".gz") {
-		name += ".gz"
-	}
 	if err := s.mkdir(s.BackupDir()); err != nil {
 		return "", err
 	}
-	path := filepath.Join(s.BackupDir(), name)
-	f, err := os.OpenFile(path, os.O_CREATE|os.O_EXCL|os.O_WRONLY, 0o600)
-	if err != nil {
-		return "", err
+	// Two backups in the same second (a restore right after a backup) get
+	// a number after the time.
+	stamp := time.Now().Format("20060102150405")
+	var path string
+	var f *os.File
+	var err error
+	for n := 0; ; n++ {
+		t := stamp
+		if n > 0 {
+			t = fmt.Sprintf("%s-%d", stamp, n)
+		}
+		name := strings.ReplaceAll(a.Backup.File, "{time}", t)
+		if !strings.HasSuffix(name, ".gz") {
+			name += ".gz"
+		}
+		path = filepath.Join(s.BackupDir(), name)
+		f, err = os.OpenFile(path, os.O_CREATE|os.O_EXCL|os.O_WRONLY, 0o600)
+		if err == nil {
+			break
+		}
+		if !errors.Is(err, os.ErrExist) || n > 100 {
+			return "", err
+		}
 	}
 	s.chown(path)
 	gz := gzip.NewWriter(f)
