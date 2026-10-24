@@ -27,13 +27,18 @@ opened on the router. The certificate is renewed on its own.
 ## The name has to point to the device
 
 The certificate alone isn't enough, browsers have to find the device by
-that name. Add an A record of the domain with the address of the device,
-e.g. `supla.example.com A 192.168.1.20`. A private address in public DNS is
-fine, the name then works only at home.
+that name. The DNS record isn't needed for the certificate, so pick what
+suits you:
 
-Some routers (e.g. Fritz!Box, OpenWrt) block names in public DNS that point
-to private addresses (DNS rebinding protection). If the name doesn't open at
-home, add the domain as an exception in the router.
+- A local DNS entry for the name in the router, Pi-hole or AdGuard Home,
+  pointing to the device. Nothing about your network ends up in public DNS.
+- The hosts file on a computer (e.g. `192.168.1.20 supla.example.com`), good
+  for a try, but phones usually can't do that.
+- An A record in public DNS with the address of the device, e.g.
+  `supla.example.com A 192.168.1.20`. Works everywhere at home without
+  setting anything else. Some routers (e.g. Fritz!Box, OpenWrt) block names
+  in public DNS that point to private addresses (DNS rebinding protection),
+  then add the domain as an exception there.
 
 Access from outside needs an A record with your public address and ports
 forwarded on the router. That's up to you, SuplaOS doesn't need it for the
@@ -94,9 +99,9 @@ A wildcard record in the zone (`*.example.com`) doesn't get in the way.
 
 ## What changes
 
-- The panel answers with the certificate of the domain at the domain name
-  and with the certificate of the device at `<name>.local` and the IP
-  address, so both work without warnings.
+- The panel answers with the certificate of the domain at the domain name,
+  and at `<name>.local` and the IP address with the certificate of the
+  device, as before.
 - Supla Cloud, SUPLA Scripts and the encrypted MQTT port have one
   certificate each: the one of the domain. Opened by the IP address or
   `<name>.local` they show a warning, use the domain for them.
@@ -107,6 +112,6 @@ A wildcard record in the zone (`*.example.com`) doesn't get in the way.
 
 ## Turning it off
 
-Turn off on the card brings back the certificate of the device everywhere
-and removes the keys of the DNS provider. Set the addresses of Supla Cloud
+The Turn off button on the card brings back the certificate of the device
+everywhere and removes the keys of the DNS provider. Set the addresses of Supla Cloud
 and SUPLA Scripts back on their add-on pages if you changed them.

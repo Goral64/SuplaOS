@@ -27,13 +27,18 @@ odnawia się sam.
 ## Nazwa musi wskazywać na urządzenie
 
 Sam certyfikat nie wystarczy, przeglądarka musi znaleźć urządzenie pod tą
-nazwą. Dodaj rekord A domeny z adresem urządzenia, np.
-`supla.example.pl A 192.168.1.20`. Prywatny adres w publicznym DNS jest
-w porządku, nazwa działa wtedy tylko w domu.
+nazwą. Do certyfikatu rekord DNS nie jest potrzebny, więc wybierz, co ci
+pasuje:
 
-Niektóre routery (np. Fritz!Box, OpenWrt) blokują nazwy z publicznego DNS,
-które wskazują na adresy prywatne (ochrona przed DNS rebinding). Jeśli nazwa
-nie otwiera się w domu, dodaj domenę jako wyjątek w routerze.
+- Lokalny wpis DNS dla tej nazwy w routerze, Pi-hole albo AdGuard Home,
+  wskazujący na urządzenie. Nic o twojej sieci nie trafia do publicznego DNS.
+- Plik hosts na komputerze (np. `192.168.1.20 supla.example.pl`), dobry na
+  próbę, ale na telefonach zwykle się tego nie da zrobić.
+- Rekord A w publicznym DNS z adresem urządzenia, np.
+  `supla.example.pl A 192.168.1.20`. Działa w całym domu bez żadnych innych
+  ustawień. Niektóre routery (np. Fritz!Box, OpenWrt) blokują nazwy
+  z publicznego DNS wskazujące na adresy prywatne (ochrona przed DNS
+  rebinding), wtedy dodaj tam domenę jako wyjątek.
 
 Dostęp z zewnątrz wymaga rekordu A z twoim publicznym adresem
 i przekierowania portów na routerze. To twoja decyzja, do certyfikatu
@@ -92,8 +97,7 @@ Rekord wildcard w strefie (`*.example.pl`) nie przeszkadza.
 ## Co się zmienia
 
 - Panel pod nazwą domeny odpowiada certyfikatem domeny, a pod `<nazwa>.local`
-  i adresem IP certyfikatem urządzenia, więc obie drogi działają bez
-  ostrzeżeń.
+  i adresem IP jak dotąd certyfikatem urządzenia.
 - Supla Cloud, SUPLA Scripts i szyfrowany port MQTT mają po jednym
   certyfikacie: certyfikat domeny. Otwarte przez adres IP albo
   `<nazwa>.local` pokażą ostrzeżenie, używaj dla nich domeny.
@@ -104,6 +108,6 @@ Rekord wildcard w strefie (`*.example.pl`) nie przeszkadza.
 
 ## Wyłączenie
 
-Wyłącz na karcie przywraca wszędzie certyfikat urządzenia i usuwa klucze
-dostawcy DNS. Adresy Supla Cloud i SUPLA Scripts, jeśli były zmienione na
+Przycisk Wyłącz na karcie przywraca wszędzie certyfikat urządzenia i usuwa
+klucze dostawcy DNS. Adresy Supla Cloud i SUPLA Scripts, jeśli były zmienione na
 domenę, ustaw z powrotem na stronach tych dodatków.
