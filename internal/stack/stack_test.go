@@ -594,3 +594,39 @@ func TestTrustBundle(t *testing.T) {
 		t.Error("bundle not replaced after a system update")
 	}
 }
+
+// A new certificate or trust bundle of Supla restarts only the services
+// using it, not the database.
+func TestCertificateRestartsUsers(t *testing.T) {
+	s := newStack(t)
+	must(t, s.Install("supla", nil))
+	s.after = nil
+	deviceNames = func() ([]string, []net.IP) {
+		return []string{"suplaos.local"}, []net.IP{net.ParseIP("192.168.1.40")}
+	}
+	must(t, s.Apply())
+	var restarted []string
+	for _, a := range s.after {
+		restarted = append(restarted, a.Restart...)
+	}
+	if strings.Join(restarted, " ") != "supla-cloud" {
+		t.Errorf("restarted: %v", restarted)
+	}
+}
+
+// A new name of the device changes .env, which the certificate watcher
+// notices (and applies).
+func TestEnvChanged(t *testing.T) {
+	s := newStack(t)
+	must(t, s.Install("mosquitto", nil))
+	must(t, s.Apply())
+	if s.envChanged() {
+		t.Error(".env changed right after Apply")
+	}
+	file := filepath.Join(s.Dir(), ".env")
+	data, _ := os.ReadFile(file)
+	must(t, os.WriteFile(file, []byte(strings.Replace(string(data), "SUPLAOS_HOSTNAME=", "SUPLAOS_HOSTNAME=old", 1)), 0o644))
+	if !s.envChanged() {
+		t.Error("changed .env not noticed")
+	}
+}

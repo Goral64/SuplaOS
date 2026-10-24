@@ -149,6 +149,24 @@ func (p *Port) UnmarshalYAML(n *yaml.Node) error {
 	return n.Decode((*plain)(p))
 }
 
+// CertDir is a directory with certificates made by SuplaOS. Restart are
+// the services that use it, restarted when the certificates change; all
+// services of the add-on when empty. In addon.yaml a path or
+// {dir: ..., restart: [...]}.
+type CertDir struct {
+	Dir     string   `yaml:"dir"`
+	Restart []string `yaml:"restart"`
+}
+
+func (c *CertDir) UnmarshalYAML(n *yaml.Node) error {
+	if n.Kind == yaml.ScalarNode {
+		c.Dir = n.Value
+		return nil
+	}
+	type plain CertDir
+	return n.Decode((*plain)(c))
+}
+
 // Download is a file of the add-on in the stack directory the panel
 // offers for download, e.g. a certificate for clients.
 type Download struct {
@@ -227,11 +245,11 @@ type Addon struct {
 	Ports       []Port        `yaml:"ports"`
 	// Certificates are directories that get a certificate for the device
 	// (server.crt, server.key) signed by its CA, renewed when needed.
-	Certificates []string `yaml:"certificates"`
+	Certificates []CertDir `yaml:"certificates"`
 	// Trust are directories that get ca-certificates.crt: the CAs of the
 	// system with the CA of the device, for containers that connect to
 	// services of the device over HTTPS.
-	Trust     []string           `yaml:"trust"`
+	Trust     []CertDir          `yaml:"trust"`
 	Downloads []Download         `yaml:"downloads"`
 	Dirs      []string           `yaml:"dirs"`
 	Data      []string           `yaml:"data"`
@@ -339,10 +357,20 @@ func (a *Addon) validate() error {
 			return fmt.Errorf("%s: option %s: file must be a plain name", a.ID, o.Key)
 		}
 	}
-	for _, list := range [][]string{a.Files, a.Dirs, a.Data, a.Certificates} {
+	for _, list := range [][]string{a.Files, a.Dirs, a.Data} {
 		for _, p := range list {
 			if !local(p) {
 				return fmt.Errorf("%s: path %q leaves the stack directory", a.ID, p)
+			}
+		}
+	}
+	for _, c := range slices.Concat(a.Certificates, a.Trust) {
+		if !local(c.Dir) {
+			return fmt.Errorf("%s: path %q leaves the stack directory", a.ID, c.Dir)
+		}
+		for _, svc := range c.Restart {
+			if !slices.Contains(a.Services, svc) {
+				return fmt.Errorf("%s: %s: restart of unknown service %q", a.ID, c.Dir, svc)
 			}
 		}
 	}

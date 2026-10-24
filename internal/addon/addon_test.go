@@ -59,6 +59,8 @@ func TestParseErrors(t *testing.T) {
 		"secret":        "id: x\ncompose: [a.yml]\nservices: [x]\noptions: [{key: A, type: secret}]\n",
 		"proxy service": "id: x\ncompose: [a.yml]\nservices: [x]\nweb: {port: \"1\", proxy: \"y:80\"}\n",
 		"proxy port":    "id: x\ncompose: [a.yml]\nservices: [x]\nweb: {port: \"1\", proxy: x}\n",
+		"cert escape":   "id: x\ncompose: [a.yml]\nservices: [x]\ncertificates: [../ssl]\n",
+		"cert restart":  "id: x\ncompose: [a.yml]\nservices: [x]\ntrust: [{dir: ssl, restart: [y]}]\n",
 	} {
 		if _, err := Parse([]byte(src)); err == nil {
 			t.Errorf("%s: no error", name)

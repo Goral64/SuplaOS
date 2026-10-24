@@ -31,10 +31,14 @@ images:
 dirs: [ssl/cloud, ssl/server, var]
 # The Cloud uses an existing certificate; ssl/server stays the one made by
 # supla-server, zigbee2supla trusts exactly that one.
-certificates: [ssl/cloud]
+certificates:
+  - dir: ssl/cloud
+    restart: [supla-cloud]
 # supla-server sends state webhooks, e.g. to SUPLA Scripts on this device:
 # it trusts the CA of the device too.
-trust: [ssl/trust]
+trust:
+  - dir: ssl/trust
+    restart: [supla-server]
 data: [ssl/cloud, ssl/server, var/mysql, var/cloud-local, var/cloud-logs]
 
 options:

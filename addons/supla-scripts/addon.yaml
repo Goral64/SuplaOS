@@ -12,7 +12,9 @@ images:
     changelog: https://github.com/fracz/supla-scripts/releases
 dirs: [ssl/supla-scripts, var/supla-scripts, var/supla-scripts-db]
 data: [ssl/supla-scripts, var/supla-scripts, var/supla-scripts-db]
-certificates: [ssl/supla-scripts]
+certificates:
+  - dir: ssl/supla-scripts
+    restart: [supla-scripts]
 
 options:
   - key: SUPLA_SCRIPTS_PORT

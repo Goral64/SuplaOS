@@ -70,25 +70,37 @@ func (s *Stack) CACertFile() string { return filepath.Join(s.CADir(), "ca.crt") 
 func (s *Stack) certificates() error {
 	for _, a := range s.Order() {
 		for _, d := range a.Certificates {
-			replaced, err := s.Certificate(filepath.Join(s.Dir(), d))
+			replaced, err := s.Certificate(filepath.Join(s.Dir(), d.Dir))
 			if err != nil {
 				return err
 			}
-			if replaced && len(a.Services) > 0 {
-				s.after = append(s.after, addon.After{Restart: slices.Clone(a.Services)})
+			if replaced {
+				s.restartFor(a, d)
 			}
 		}
 		for _, d := range a.Trust {
-			replaced, err := s.trustBundle(filepath.Join(s.Dir(), d))
+			replaced, err := s.trustBundle(filepath.Join(s.Dir(), d.Dir))
 			if err != nil {
 				return err
 			}
-			if replaced && len(a.Services) > 0 {
-				s.after = append(s.after, addon.After{Restart: slices.Clone(a.Services)})
+			if replaced {
+				s.restartFor(a, d)
 			}
 		}
 	}
 	return nil
+}
+
+// restartFor queues a restart of the services using the certificates of
+// d, after Up.
+func (s *Stack) restartFor(a *addon.Addon, d addon.CertDir) {
+	services := d.Restart
+	if len(services) == 0 {
+		services = a.Services
+	}
+	if len(services) > 0 {
+		s.after = append(s.after, addon.After{Restart: slices.Clone(services)})
+	}
 }
 
 // systemCAs is the CA bundle of the system (ca-certificates).
@@ -241,7 +253,7 @@ func (s *Stack) loadCA() (*x509.Certificate, *ecdsa.PrivateKey, error) {
 		ranges = append(ranges, n)
 	}
 	tmpl := &x509.Certificate{
-		SerialNumber:          serialNumber(),
+		SerialNumber: serialNumber(),
 		Subject: pkix.Name{
 			CommonName:   "SuplaOS " + host + " " + id,
 			Organization: []string{"SuplaOS"},
@@ -301,10 +313,29 @@ func serialNumber() *big.Int {
 
 // RenewCertificates renews the certificates of the add-ons when needed,
 // e.g. after the address of the device changed, and restarts the add-ons
-// that got a new one.
+// that got a new one. A new address or name of the device also changes
+// .env (SUPLAOS_IP, SUPLAOS_HOSTNAME): then the stack is applied and the
+// containers using them are recreated; not while new add-on files wait,
+// those are applied after backups.
 func (s *Stack) RenewCertificates() error {
+	if pending, err := s.Pending(); err == nil && len(pending) == 0 && len(s.State.Addons) > 0 && s.envChanged() {
+		if err := s.Apply(); err != nil {
+			return err
+		}
+		return s.Up()
+	}
 	if err := s.certificates(); err != nil {
 		return err
 	}
 	return s.RunAfter()
+}
+
+// envChanged tells whether .env would be written differently now.
+func (s *Stack) envChanged() bool {
+	p, err := s.Plan()
+	if err != nil {
+		return false
+	}
+	disk, err := os.ReadFile(filepath.Join(s.Dir(), ".env"))
+	return err == nil && !bytes.Equal(disk, p.Files[".env"])
 }
