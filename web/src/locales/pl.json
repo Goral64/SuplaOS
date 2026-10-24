@@ -46,6 +46,10 @@
     "hostnameHelp": "Panel będzie pod adresem https://{name}.local:8443",
     "suplaIntro": "Zainstalować teraz własny serwer Supla? To potrwa kilka minut, obrazy pobierają się z internetu. Można to też zrobić później w Dodatkach.",
     "installSupla": "Zainstaluj Suplę",
+    "account": "Pierwsze konto Supla",
+    "accountHelp": "Opcjonalnie: konto w twoim Supla Cloud, zakładane zaraz po instalacji, bez potwierdzania e-mailem. Można to też zrobić później na stronie Supli.",
+    "repeatPassword": "Powtórz hasło",
+    "passwordsDiffer": "Hasła się różnią.",
     "skip": "Pomiń",
     "done": "Gotowe."
   },

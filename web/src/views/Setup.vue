@@ -5,6 +5,7 @@ import { useI18n } from 'vue-i18n'
 import { api, panelUrl, session } from '../api'
 import { languages, setLanguage } from '../i18n'
 import { runJob } from '../components/jobs'
+import AccountFields from '../components/AccountFields.vue'
 
 const router = useRouter()
 const { locale } = useI18n()
@@ -15,6 +16,7 @@ const hostname = ref('')
 const timezones = ref([])
 const error = ref('')
 const busy = ref(false)
+const account = ref({ email: '', password: '', repeat: '' })
 
 onMounted(async () => {
   const s = await api('GET', '/settings')
@@ -55,7 +57,8 @@ async function finish(installSupla) {
   error.value = ''
   if (installSupla) {
     try {
-      const result = await runJob('POST', '/addons/supla/install', { values: {} })
+      const { email, password } = account.value
+      const result = await runJob('POST', '/addons/supla/install', { values: {}, account: email ? { email, password } : undefined })
       if (result.state !== 'done') return
     } catch (e) {
       error.value = e.message
@@ -103,14 +106,15 @@ async function finish(installSupla) {
       </div>
     </form>
 
-    <div v-else>
+    <form v-else @submit.prevent="finish(true)">
       <p>{{ $t('setup.suplaIntro') }}</p>
+      <AccountFields v-model="account" />
       <div class="row">
-        <button @click="step = 2">{{ $t('common.back') }}</button>
+        <button type="button" @click="step = 2">{{ $t('common.back') }}</button>
         <span class="spacer"></span>
-        <button @click="finish(false)">{{ $t('setup.skip') }}</button>
-        <button class="primary" @click="finish(true)">{{ $t('setup.installSupla') }}</button>
+        <button type="button" @click="finish(false)">{{ $t('setup.skip') }}</button>
+        <button class="primary">{{ $t('setup.installSupla') }}</button>
       </div>
-    </div>
+    </form>
   </div>
 </template>

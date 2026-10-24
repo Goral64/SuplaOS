@@ -31,9 +31,11 @@ used, also not in the local network.
 ## Add-ons
 
 Add-ons are installed, configured and updated in the panel, under Add-ons.
-After installing Supla, Supla Cloud is at https://<device address> and the
-account can be created on the Supla add-on page. The Zigbee2MQTT interface is
-at https://<device address>:8080, served by the panel after logging in to it.
+After installing Supla, Supla Cloud is at https://<device address>. The
+first account can be given already when installing Supla (also in the first
+run wizard), or created later on the Supla add-on page. The Zigbee2MQTT
+interface is at https://<device address>:8080, served by the panel after
+logging in to it.
 
 The same can be done from SSH with `suplaos`:
 

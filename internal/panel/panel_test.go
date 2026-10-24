@@ -177,6 +177,26 @@ func TestBackupUpload(t *testing.T) {
 	}
 }
 
+func TestInstallAccount(t *testing.T) {
+	s := newServer(t)
+	h := s.Handler()
+	token := s.sessions.create(false)
+	install := func(addon, body string) *httptest.ResponseRecorder {
+		r := httptest.NewRequest("POST", "/api/addons/"+addon+"/install", strings.NewReader(body))
+		r.AddCookie(&http.Cookie{Name: cookieName, Value: token})
+		r.Header.Set("X-SuplaOS", "1")
+		w := httptest.NewRecorder()
+		h.ServeHTTP(w, r)
+		return w
+	}
+	if w := install("supla", `{"account":{"email":"me@example.com","password":"short"}}`); w.Code != http.StatusBadRequest {
+		t.Errorf("short password: %d", w.Code)
+	}
+	if w := install("mosquitto", `{"account":{"email":"me@example.com","password":"long enough"}}`); w.Code != http.StatusBadRequest {
+		t.Errorf("account for another add-on: %d", w.Code)
+	}
+}
+
 func TestTLS(t *testing.T) {
 	s := newServer(t)
 	cfg, err := s.TLSConfig()

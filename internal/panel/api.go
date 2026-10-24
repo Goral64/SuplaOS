@@ -419,12 +419,31 @@ func summary(st *stack.Stack, j *Job, id, host string) {
 	}
 }
 
+// installAddon installs an add-on; for Supla also the first account, when
+// one is given.
 func (s *Server) installAddon(w http.ResponseWriter, r *http.Request) {
 	id := r.PathValue("id")
-	set, err := readValues(r)
-	if err != nil {
+	var req struct {
+		Values  map[string]string `json:"values"`
+		Account *suplaAccount     `json:"account"`
+	}
+	if err := readJSON(r, &req); err != nil {
 		jsonError(w, http.StatusBadRequest, err)
 		return
+	}
+	set := req.Values
+	if set == nil {
+		set = map[string]string{}
+	}
+	if req.Account != nil {
+		err := req.Account.check()
+		if err == nil && id != "supla" {
+			err = errors.New("only Supla has accounts")
+		}
+		if err != nil {
+			jsonError(w, http.StatusBadRequest, err)
+			return
+		}
 	}
 	s.stackJob(w, "install "+id, func(st *stack.Stack, j *Job) error {
 		a := st.Catalog[id]
@@ -438,6 +457,11 @@ func (s *Server) installAddon(w http.ResponseWriter, r *http.Request) {
 		}
 		if err := st.Up(); err != nil {
 			return err
+		}
+		if req.Account != nil {
+			if err := req.Account.create(st, j); err != nil {
+				return err
+			}
 		}
 		s.checkImagesAfter(j)
 		summary(st, j, id, r.Host)
@@ -643,24 +667,39 @@ func (s *Server) suplaUsers(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, map[string]int{"count": n})
 }
 
+// suplaAccount is a Supla Cloud account to create.
+type suplaAccount struct{ Email, Password string }
+
+func (a *suplaAccount) check() error {
+	if !strings.Contains(a.Email, "@") || len(a.Password) < 8 {
+		return errors.New("e-mail and a password of at least 8 characters are required")
+	}
+	return nil
+}
+
+func (a *suplaAccount) create(st *stack.Stack, j *Job) error {
+	j.Logf("Creating the account %s", a.Email)
+	if err := st.Run("supla", "console", []string{"supla:user:create", a.Email, a.Password}); err != nil {
+		// Not the error itself: it has the command, with the password.
+		return fmt.Errorf("creating the account %s: %w", a.Email, errors.Unwrap(err))
+	}
+	// E.g. MQTT turned on for the new account.
+	st.QueueAfter("supla", "SUPLA_MQTT_BROKER_ENABLED")
+	return st.RunAfter()
+}
+
 func (s *Server) createSuplaUser(w http.ResponseWriter, r *http.Request) {
-	var req struct{ Email, Password string }
+	var req suplaAccount
 	if err := readJSON(r, &req); err != nil {
 		jsonError(w, http.StatusBadRequest, err)
 		return
 	}
-	if !strings.Contains(req.Email, "@") || len(req.Password) < 8 {
-		jsonError(w, http.StatusBadRequest, errors.New("e-mail and a password of at least 8 characters are required"))
+	if err := req.check(); err != nil {
+		jsonError(w, http.StatusBadRequest, err)
 		return
 	}
 	s.stackJob(w, "create Supla account", func(st *stack.Stack, j *Job) error {
-		j.Logf("Creating the account %s", req.Email)
-		if err := st.Run("supla", "console", []string{"supla:user:create", req.Email, req.Password}); err != nil {
-			return err
-		}
-		// E.g. MQTT turned on for the new account.
-		st.QueueAfter("supla", "SUPLA_MQTT_BROKER_ENABLED")
-		return st.RunAfter()
+		return req.create(st, j)
 	})
 }
 

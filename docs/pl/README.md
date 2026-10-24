@@ -31,9 +31,11 @@ używane, także w sieci lokalnej.
 ## Dodatki
 
 Dodatki instaluje się, konfiguruje i aktualizuje w panelu, w zakładce Dodatki.
-Po instalacji Supli Supla Cloud jest pod https://<adres urządzenia>, a konto
-zakłada się na stronie dodatku Supla. Interfejs Zigbee2MQTT jest pod
-https://<adres urządzenia>:8080, udostępnia go panel po zalogowaniu.
+Po instalacji Supli Supla Cloud jest pod https://<adres urządzenia>.
+Pierwsze konto można podać już przy instalacji Supli (także w kreatorze
+pierwszego uruchomienia) albo założyć później na stronie dodatku Supla.
+Interfejs Zigbee2MQTT jest pod https://<adres urządzenia>:8080, udostępnia
+go panel po zalogowaniu.
 
 To samo można zrobić przez SSH poleceniem `suplaos`:
 

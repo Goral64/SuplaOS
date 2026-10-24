@@ -42,7 +42,8 @@ The device needs a network cable, Wi-Fi isn't set up yet.
   screen connected to it?
 - Does the panel open, does the dashboard show sensible values (memory,
   disk, temperature on a Raspberry Pi)?
-- Supla: install it, create an account on the Supla add-on page, log in to
+- Supla: install it with the first account (or create one on the Supla
+  add-on page later), log in to
   Supla Cloud at https://<device address> and connect a Supla device.
 - ZigBee (if you have a coordinator): install Mosquitto, Zigbee2MQTT and
   Zigbee2Supla. A USB coordinator should show up in the list of devices in

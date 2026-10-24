@@ -41,7 +41,8 @@ Urządzenie potrzebuje kabla sieciowego, Wi-Fi nie jest jeszcze ustawiane.
   ekranie?
 - Czy panel się otwiera, czy pulpit pokazuje sensowne wartości (pamięć, dysk,
   temperatura na Raspberry Pi)?
-- Supla: zainstaluj ją, załóż konto na stronie dodatku Supla, zaloguj się do
+- Supla: zainstaluj ją z pierwszym kontem (albo załóż je później na stronie
+  dodatku Supla), zaloguj się do
   Supla Cloud pod https://<adres urządzenia> i podłącz jakieś urządzenie Supla.
 - ZigBee (jeśli masz koordynator): zainstaluj Mosquitto, Zigbee2MQTT
   i Zigbee2Supla. Koordynator USB powinien być na liście urządzeń

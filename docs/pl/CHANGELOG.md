@@ -4,7 +4,14 @@
 
 ## 0.4.2
 
+- CA każdego urządzenia ma własną nazwę. CA z 0.4.0 i 0.4.1 miały wszystkie
+  tę samą i przeglądarki je myliły, np. Firefox nie otwierał panelu drugiego
+  urządzenia. Po aktualizacji wymieniają się same: zainstaluj ponownie
+  certyfikat CA (strona System) i usuń stary `SuplaOS suplaos`. Klienci MQTT
+  na porcie 8883 też potrzebują nowego CA.
 - Zmiana ustawienia Supli nie uruchamia już ponownie jej bazy danych.
+- Pierwsze konto Supli można podać od razu przy instalacji Supli, także
+  w kreatorze pierwszego uruchomienia.
 
 ## 0.4.1
 

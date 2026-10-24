@@ -9,6 +9,7 @@ import { active, formValues } from '../components/options'
 import OptionField from '../components/OptionField.vue'
 import StateBadge from '../components/StateBadge.vue'
 import LogView from '../components/LogView.vue'
+import AccountFields from '../components/AccountFields.vue'
 
 const props = defineProps({ id: String })
 const router = useRouter()
@@ -76,7 +77,13 @@ function activeValues() {
   return v
 }
 
-const install = () => job('POST', `/addons/${props.id}/install`, { values: activeValues() })
+// The first account, only with installing Supla.
+const firstAccount = ref({ email: '', password: '', repeat: '' })
+function install() {
+  const { email, password } = firstAccount.value
+  const account = props.id === 'supla' && email ? { email, password } : undefined
+  return job('POST', `/addons/${props.id}/install`, { values: activeValues(), account })
+}
 const saveConfig = () => job('PUT', `/addons/${props.id}/config`, { values: activeValues() })
 const action = (a) => job('POST', `/addons/${props.id}/${a}`)
 
@@ -146,6 +153,7 @@ function webURL(a) {
       </div>
       <form v-else @submit.prevent="install">
         <OptionField v-for="o in visible" :key="o.key" v-model="values[o.key]" :option="o" :installed="false" />
+        <AccountFields v-if="addon.id === 'supla'" v-model="firstAccount" />
         <p v-if="addon.recommends.length" class="muted small">{{ $t('addons.worksWith', { list: addon.recommends.join(', ') }) }}</p>
         <button class="primary">{{ $t('addon.install') }}</button>
       </form>

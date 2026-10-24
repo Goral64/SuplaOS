@@ -4,7 +4,14 @@
 
 ## 0.4.2
 
+- The CA of every device has its own name. The CAs of 0.4.0 and 0.4.1 all had
+  the same one and browsers mixed them up, e.g. Firefox refused to open the
+  panel of a second device. They are replaced after the update: install the
+  CA certificate again (System page) and remove the old `SuplaOS suplaos`
+  one. MQTT clients on port 8883 need the new CA too.
 - Changing a setting of Supla no longer restarts its database.
+- The first Supla account can be given right when installing Supla, also in
+  the first run wizard.
 
 ## 0.4.1
 
