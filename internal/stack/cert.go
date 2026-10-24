@@ -1,6 +1,7 @@
 package stack
 
 import (
+	"bytes"
 	"crypto/ecdsa"
 	"crypto/elliptic"
 	"crypto/rand"
@@ -77,8 +78,44 @@ func (s *Stack) certificates() error {
 				s.after = append(s.after, addon.After{Restart: slices.Clone(a.Services)})
 			}
 		}
+		for _, d := range a.Trust {
+			replaced, err := s.trustBundle(filepath.Join(s.Dir(), d))
+			if err != nil {
+				return err
+			}
+			if replaced && len(a.Services) > 0 {
+				s.after = append(s.after, addon.After{Restart: slices.Clone(a.Services)})
+			}
+		}
 	}
 	return nil
+}
+
+// systemCAs is the CA bundle of the system (ca-certificates).
+var systemCAs = "/etc/ssl/certs/ca-certificates.crt"
+
+// trustBundle writes ca-certificates.crt in dir: the CAs of the system and
+// the CA of the device after them. replaced tells that an existing bundle
+// changed, e.g. after an update of ca-certificates.
+func (s *Stack) trustBundle(dir string) (replaced bool, err error) {
+	ca, _, err := s.loadCA()
+	if err != nil {
+		return false, err
+	}
+	system, err := os.ReadFile(systemCAs)
+	if err != nil {
+		return false, err
+	}
+	data := append(append(system, '\n'), pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: ca.Raw})...)
+	file := filepath.Join(dir, "ca-certificates.crt")
+	old, err := os.ReadFile(file)
+	if err == nil && bytes.Equal(old, data) {
+		return false, nil
+	}
+	if err := s.mkdir(dir); err != nil {
+		return false, err
+	}
+	return err == nil, s.writeFile(file, data, 0o644)
 }
 
 // Certificate makes server.crt (with the CA certificate after it) and

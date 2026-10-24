@@ -25,6 +25,8 @@ services:
       TZ: ${TZ}
   supla-server:
     env_file: !override [.env.default, supla.env]
+    volumes:
+      - ./ssl/trust/ca-certificates.crt:/etc/ssl/certs/ca-certificates.crt:ro
     depends_on:
       supla-cloud:
         condition: service_healthy

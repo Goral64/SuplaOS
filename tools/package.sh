@@ -36,7 +36,7 @@ Package: suplaos
 Version: $version
 Architecture: $arch
 Maintainer: Goral64 <goral64@gmail.com>
-Depends: docker.io, docker-cli, docker-compose, network-manager, avahi-daemon, cloud-guest-utils, e2fsprogs
+Depends: docker.io, docker-cli, docker-compose, network-manager, avahi-daemon, cloud-guest-utils, e2fsprogs, ca-certificates
 Section: admin
 Priority: optional
 Homepage: https://github.com/Goral64/SuplaOS

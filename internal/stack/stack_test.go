@@ -569,3 +569,28 @@ func TestFileChangeRestarts(t *testing.T) {
 		t.Errorf("after = %v", s.after)
 	}
 }
+
+// The trust bundle has the CAs of the system and the CA of the device, and
+// a new system bundle replaces it.
+func TestTrustBundle(t *testing.T) {
+	s := newStack(t)
+	systemCAs = filepath.Join(t.TempDir(), "system.crt")
+	t.Cleanup(func() { systemCAs = "/etc/ssl/certs/ca-certificates.crt" })
+	must(t, os.WriteFile(systemCAs, []byte("system CAs"), 0o644))
+	dir := filepath.Join(s.Dir(), "ssl/trust")
+	if replaced, err := s.trustBundle(dir); err != nil || replaced {
+		t.Fatalf("new bundle: %v %v", replaced, err)
+	}
+	data, _ := os.ReadFile(filepath.Join(dir, "ca-certificates.crt"))
+	ca, _ := os.ReadFile(s.CACertFile())
+	if !strings.HasPrefix(string(data), "system CAs\n") || !strings.HasSuffix(string(data), string(ca)) {
+		t.Errorf("bundle:\n%s", data)
+	}
+	if replaced, _ := s.trustBundle(dir); replaced {
+		t.Error("unchanged bundle replaced")
+	}
+	must(t, os.WriteFile(systemCAs, []byte("newer system CAs"), 0o644))
+	if replaced, _ := s.trustBundle(dir); !replaced {
+		t.Error("bundle not replaced after a system update")
+	}
+}

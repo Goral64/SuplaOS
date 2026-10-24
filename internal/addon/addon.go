@@ -227,14 +227,18 @@ type Addon struct {
 	Ports       []Port        `yaml:"ports"`
 	// Certificates are directories that get a certificate for the device
 	// (server.crt, server.key) signed by its CA, renewed when needed.
-	Certificates []string           `yaml:"certificates"`
-	Downloads    []Download         `yaml:"downloads"`
-	Dirs         []string           `yaml:"dirs"`
-	Data         []string           `yaml:"data"`
-	Web          *Web               `yaml:"web"`
-	Backup       *Backup            `yaml:"backup"`
-	Commands     map[string]Command `yaml:"commands"`
-	Images       map[string]Image   `yaml:"images"`
+	Certificates []string `yaml:"certificates"`
+	// Trust are directories that get ca-certificates.crt: the CAs of the
+	// system with the CA of the device, for containers that connect to
+	// services of the device over HTTPS.
+	Trust     []string           `yaml:"trust"`
+	Downloads []Download         `yaml:"downloads"`
+	Dirs      []string           `yaml:"dirs"`
+	Data      []string           `yaml:"data"`
+	Web       *Web               `yaml:"web"`
+	Backup    *Backup            `yaml:"backup"`
+	Commands  map[string]Command `yaml:"commands"`
+	Images    map[string]Image   `yaml:"images"`
 
 	// Dir is the catalog directory of the add-on.
 	Dir string `yaml:"-"`
