@@ -21,6 +21,8 @@ import (
 	"testing"
 	"testing/fstest"
 	"time"
+
+	"github.com/Goral64/SuplaOS/internal/acme"
 )
 
 func newServer(t *testing.T) *Server {
@@ -323,5 +325,50 @@ func TestProxy(t *testing.T) {
 	h.ServeHTTP(w, r)
 	if w.Code != http.StatusBadGateway || ps.addr != "" {
 		t.Errorf("gone: %d %q", w.Code, ps.addr)
+	}
+}
+
+func TestDomainAPI(t *testing.T) {
+	s := newServer(t)
+	h := s.Handler()
+	token := s.sessions.create(false)
+	send := func(method, path, body string) *httptest.ResponseRecorder {
+		r := httptest.NewRequest(method, path, strings.NewReader(body))
+		r.AddCookie(&http.Cookie{Name: cookieName, Value: token})
+		r.Header.Set("X-SuplaOS", "1")
+		w := httptest.NewRecorder()
+		h.ServeHTTP(w, r)
+		return w
+	}
+	if w := send("GET", "/api/domain", ""); w.Code != http.StatusOK || !strings.Contains(w.Body.String(), `"status":null`) ||
+		!strings.Contains(w.Body.String(), `"name":"ovh"`) {
+		t.Fatalf("no domain: %d %s", w.Code, w.Body)
+	}
+	if w := send("PUT", "/api/domain", `{"domain":"suplaos.local","provider":"duckdns","fields":{"DUCKDNS_TOKEN":"x"}}`); w.Code != http.StatusBadRequest {
+		t.Errorf(".local accepted: %d", w.Code)
+	}
+	if w := send("POST", "/api/domain/renew", ""); w.Code != http.StatusBadRequest {
+		t.Errorf("renew without a domain: %d", w.Code)
+	}
+
+	// Saved settings come back without the secrets.
+	err := s.acme.SaveSettings(acme.Settings{Domain: "supla.example.com", Provider: "ovh", Fields: map[string]string{
+		"OVH_APPLICATION_KEY": "ak", "OVH_APPLICATION_SECRET": "very secret", "OVH_CONSUMER_KEY": "ck secret",
+	}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	w := send("GET", "/api/domain", "")
+	body := w.Body.String()
+	if strings.Contains(body, "very secret") || strings.Contains(body, "ck secret") || !strings.Contains(body, `"OVH_APPLICATION_KEY":"ak"`) ||
+		!strings.Contains(body, `"secrets":["OVH_APPLICATION_SECRET","OVH_CONSUMER_KEY"]`) || !strings.Contains(body, `"domain":"supla.example.com"`) {
+		t.Errorf("settings: %s", body)
+	}
+
+	if w := send("DELETE", "/api/domain", ""); w.Code != http.StatusAccepted {
+		t.Fatalf("disable: %d %s", w.Code, w.Body)
+	}
+	if set, _ := s.acme.Settings(); set != nil {
+		t.Errorf("settings kept: %+v", set)
 	}
 }

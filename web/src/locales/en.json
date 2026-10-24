@@ -227,5 +227,28 @@
     "upgradeTitle": "System update",
     "seeLog": "see the log above",
     "showLog": "Show the log"
+  },
+  "domain": {
+    "title": "Own domain (Let's Encrypt)",
+    "intro": "With your own domain (or a free name at DuckDNS or deSEC) the device gets a Let's Encrypt certificate, which browsers and apps trust without installing the CA. The DNS provider has to have an API: SuplaOS sets a TXT record there, the device doesn't have to be reachable from the internet.",
+    "set": "Set a domain",
+    "how": "How to set it up",
+    "domain": "Domain",
+    "domainHelp": "e.g. supla.example.com. Supla Cloud, the panel and the add-ons answer at this name, so it should point to the address of the device.",
+    "provider": "DNS provider",
+    "providerHelp": "Where the DNS of the domain is kept. A domain at a registrar without an API can use DuckDNS or deSEC through a CNAME record.",
+    "savedSecret": "saved, leave empty to keep",
+    "email": "E-mail",
+    "emailHelp": "Of the Let's Encrypt account. Not needed.",
+    "staging": "Test server of Let's Encrypt (the certificate won't be trusted)",
+    "save": "Save and get the certificate",
+    "issued": "Certificate from {issuer}, valid until {date}.",
+    "none": "No certificate yet.",
+    "failed": "Getting the certificate failed ({date}):",
+    "next": "Next try: {date}",
+    "renew": "Get again",
+    "change": "Change",
+    "disable": "Turn off",
+    "disableConfirm": "Turn off the domain? The add-ons go back to the certificate of the device and the keys of the DNS provider are removed."
   }
 }

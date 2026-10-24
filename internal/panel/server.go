@@ -106,6 +106,10 @@ func (s *Server) Handler() http.Handler {
 	mux.HandleFunc("POST /api/logout", s.logout)
 	mux.HandleFunc("GET /api/ca.crt", s.getCA)
 	api("GET /api/ca", s.getCAInfo)
+	api("GET /api/domain", s.getDomain)
+	api("PUT /api/domain", s.putDomain)
+	api("POST /api/domain/renew", s.renewDomainNow)
+	api("DELETE /api/domain", s.deleteDomain)
 	api("POST /api/password", s.changePassword)
 
 	api("GET /api/system", s.getSystem)

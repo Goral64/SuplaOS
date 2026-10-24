@@ -227,5 +227,28 @@
     "upgradeTitle": "Aktualizacja systemu",
     "seeLog": "zobacz log powyżej",
     "showLog": "Pokaż log"
+  },
+  "domain": {
+    "title": "Własna domena (Let's Encrypt)",
+    "intro": "Z własną domeną (albo darmową nazwą w DuckDNS lub deSEC) urządzenie dostaje certyfikat Let's Encrypt, któremu przeglądarki i aplikacje ufają bez instalowania CA. Dostawca DNS musi mieć API: SuplaOS ustawia tam rekord TXT, urządzenie nie musi być widoczne z internetu.",
+    "set": "Ustaw domenę",
+    "how": "Jak to ustawić",
+    "domain": "Domena",
+    "domainHelp": "np. supla.example.com. Pod tą nazwą odpowiadają Supla Cloud, panel i dodatki, więc powinna wskazywać na adres urządzenia.",
+    "provider": "Dostawca DNS",
+    "providerHelp": "Gdzie jest DNS domeny. Domena u rejestratora bez API może skorzystać z DuckDNS albo deSEC przez rekord CNAME.",
+    "savedSecret": "zapisane, zostaw puste, żeby nie zmieniać",
+    "email": "E-mail",
+    "emailHelp": "Konta w Let's Encrypt. Nie jest potrzebny.",
+    "staging": "Serwer testowy Let's Encrypt (certyfikat nie będzie zaufany)",
+    "save": "Zapisz i pobierz certyfikat",
+    "issued": "Certyfikat od {issuer}, ważny do {date}.",
+    "none": "Nie ma jeszcze certyfikatu.",
+    "failed": "Nie udało się pobrać certyfikatu ({date}):",
+    "next": "Kolejna próba: {date}",
+    "renew": "Pobierz ponownie",
+    "change": "Zmień",
+    "disable": "Wyłącz",
+    "disableConfirm": "Wyłączyć domenę? Dodatki wrócą do certyfikatu urządzenia, a klucze dostawcy DNS zostaną usunięte."
   }
 }

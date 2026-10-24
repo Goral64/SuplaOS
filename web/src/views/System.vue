@@ -4,6 +4,7 @@ import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { api, panelUrl } from '../api'
 import { ask } from '../components/dialog'
+import DomainCard from '../components/DomainCard.vue'
 
 const { t, locale } = useI18n()
 const router = useRouter()
@@ -126,6 +127,8 @@ const power = (action) => call(async () => {
       <a :href="certificateHelp" target="_blank" rel="noopener">{{ $t('system.certificateHow') }}</a>
     </div>
   </div>
+
+  <DomainCard />
 
   <div class="card">
     <h2>{{ $t('system.password') }}</h2>

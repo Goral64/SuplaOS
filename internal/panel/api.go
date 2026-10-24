@@ -344,16 +344,7 @@ func nonNil(s []string) []string {
 // docker compose output in the job log.
 func (s *Server) stackJob(w http.ResponseWriter, title string, fn func(st *stack.Stack, j *Job) error) {
 	j, err := s.startStackJob(title, fn)
-	if err != nil {
-		var busy errBusy
-		if errors.As(err, &busy) {
-			writeJSON(w, http.StatusConflict, map[string]any{"error": err.Error(), "job": busy.job.snapshot()})
-			return
-		}
-		jsonError(w, http.StatusInternalServerError, err)
-		return
-	}
-	writeJSON(w, http.StatusAccepted, j.snapshot())
+	writeJob(w, j, err)
 }
 
 func (s *Server) startStackJob(title string, fn func(st *stack.Stack, j *Job) error) (*Job, error) {

@@ -186,6 +186,20 @@ func (m *Manager) SaveSettings(s Settings) error {
 	return m.writeFile("settings.yaml", data, 0o600)
 }
 
+// Disable removes the settings with the keys of the DNS provider: the
+// add-ons go back to the certificate of the device. The account and the
+// last certificate are kept.
+func (m *Manager) Disable() error {
+	mu.Lock()
+	defer mu.Unlock()
+	for _, name := range []string{"settings.yaml", "state.json"} {
+		if err := os.Remove(m.path(name)); err != nil && !errors.Is(err, os.ErrNotExist) {
+			return err
+		}
+	}
+	return nil
+}
+
 // checkDomain accepts a name in public DNS: no wildcard, no .local.
 func checkDomain(d string) error {
 	if len(d) > 253 || !strings.Contains(d, ".") {
