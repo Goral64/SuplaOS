@@ -9,6 +9,14 @@ mkdir -p "$var/backups" "$var/cache" "$var/config" "$var/logs" "$var/ssl" "$var/
 # backups of the add-on are made by SuplaOS, the five newest are enough.
 ls -t "$var"/backups/*.sql.gz 2>/dev/null | tail -n +6 | xargs -r rm -f
 
+# With an OAuth app SUPLA Scripts offers logging in with Supla Cloud and
+# gets changes of the channels from it (state webhook).
+oauth=
+if [ -n "$SUPLA_SCRIPTS_OAUTH_ID" ]; then
+  oauth=$(printf ',\n  "oauth": {"cloudUrl": "%s", "clientId": "%s", "secret": "%s", "scriptsUrl": "%s"}' \
+    "${SUPLA_SCRIPTS_OAUTH_CLOUD%/}" "$SUPLA_SCRIPTS_OAUTH_ID" "$SUPLA_SCRIPTS_OAUTH_SECRET" "${SUPLA_SCRIPTS_URL%/}")
+fi
+
 cat > "$var/config/config.json" <<EOF
 {
   "displayErrorDetails": false,
@@ -35,7 +43,7 @@ cat > "$var/config/config.json" <<EOF
     "expirationTimeClient": 157680000,
     "iss": "https://scripts.supla.io"
   },
-  "metrics": {"enabled": false, "instanceName": "root", "host": "metrics", "statsd_port": 8125}
+  "metrics": {"enabled": false, "instanceName": "root", "host": "metrics", "statsd_port": 8125}$oauth
 }
 EOF
 chmod 640 "$var/config/config.json"

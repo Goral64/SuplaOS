@@ -2,6 +2,16 @@
 
 [Po polsku](docs/pl/CHANGELOG.md)
 
+## 0.5.1
+
+- SUPLA Scripts can log in with Supla Cloud (OAuth) and gets changes of the
+  channels from it. With Supla on the same device the panel makes the OAuth
+  app itself (Connect with Supla Cloud on the add-on page).
+- supla-server trusts the CA of the device, so its webhooks reach services
+  on the device over HTTPS.
+- Browsers no longer fill saved logins into password fields of add-on
+  settings (e.g. Mosquitto), which could save wrong values with the form.
+
 ## 0.5.0
 
 - New add-on: SUPLA Scripts (scenes, thermostats, voice commands,

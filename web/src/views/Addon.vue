@@ -20,7 +20,9 @@ const addon = computed(() => all.value.find((a) => a.id === props.id))
 const installedIds = computed(() => all.value.filter((a) => a.installed).map((a) => a.id))
 const missing = computed(() => addon.value ? addon.value.requires.filter((r) => !installedIds.value.includes(r)) : [])
 const values = ref({})
-const visible = computed(() => addon.value ? addon.value.options.filter((o) => active(o, values.value, installedIds.value)) : [])
+const visible = computed(() => addon.value
+  ? addon.value.options.filter((o) => active(o, values.value, installedIds.value) && !(byConnect.value && connectKeys.includes(o.key)))
+  : [])
 const name = computed(() => addon.value ? text(addon.value.name, locale.value) : props.id)
 const error = ref('')
 const showLogs = ref(false)
@@ -33,6 +35,22 @@ const suplaUsers = ref(null)
 // Creating accounts here: when there is none yet, or registration is on.
 const showAccount = computed(() => addon.value?.id === 'supla' &&
   (suplaUsers.value === 0 || addon.value.values.SUPLA_ACCOUNTS_REGISTRATION_ENABLED === 'true'))
+
+// Logging in to SUPLA Scripts with the Supla Cloud of this device: only
+// while Supla runs here.
+const suplaRunning = computed(() => {
+  const supla = all.value.find((a) => a.id === 'supla')
+  return !!supla?.installed && supla.containers.length > 0 && supla.containers.every((c) => c.State === 'running')
+})
+// Then the OAuth app comes from Connect with Supla Cloud: its settings are
+// not in the form, which would also overwrite them.
+const connectKeys = ['SUPLA_SCRIPTS_OAUTH_CLOUD', 'SUPLA_SCRIPTS_OAUTH_ID', 'SUPLA_SCRIPTS_OAUTH_SECRET']
+const byConnect = computed(() => addon.value?.id === 'supla-scripts' && suplaRunning.value)
+const cloudLogin = ref({ email: '', password: '' })
+async function connectCloud() {
+  const result = await job('POST', '/supla-scripts/oauth', cloudLogin.value)
+  if (result?.state === 'done') cloudLogin.value = { email: '', password: '' }
+}
 
 // MQTT ports reachable from the local network (mosquitto add-on).
 const mqttPorts = computed(() => {
@@ -221,6 +239,23 @@ function webURL(a) {
             {{ text(d.label, locale) }}
           </a>
         </div>
+      </div>
+
+      <div v-if="addon.id === 'supla-scripts' && suplaRunning" class="card">
+        <h2>{{ $t('addon.cloudLogin') }}</h2>
+        <p class="muted">{{ $t('addon.cloudLoginHelp') }}</p>
+        <p v-if="addon.values.SUPLA_SCRIPTS_OAUTH_ID" class="alert ok">{{ $t('addon.cloudLoginDone') }}</p>
+        <form class="row" style="align-items: flex-end" @submit.prevent="connectCloud">
+          <div class="field" style="flex: 1; min-width: 200px; margin: 0">
+            <label for="cl-email">{{ $t('addon.email') }}</label>
+            <input id="cl-email" v-model="cloudLogin.email" type="email" required autocomplete="off">
+          </div>
+          <div class="field" style="flex: 1; min-width: 200px; margin: 0">
+            <label for="cl-pass">{{ $t('addon.password') }}</label>
+            <input id="cl-pass" v-model="cloudLogin.password" type="password" required autocomplete="new-password">
+          </div>
+          <button class="primary">{{ $t('addon.cloudConnect') }}</button>
+        </form>
       </div>
 
       <div v-if="showAccount" class="card">

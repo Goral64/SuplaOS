@@ -17,12 +17,27 @@ certificates: [ssl/supla-scripts]
 options:
   - key: SUPLA_SCRIPTS_PORT
     label: {en: HTTPS port, pl: Port HTTPS}
-    help:
-      en: Log in with a personal access token from Supla Cloud (Account, Security), with access to the account, devices and channels.
-      pl: Logowanie tokenem osobistym z Supla Cloud (Konto, Bezpieczeństwo) z dostępem do konta, urządzeń i kanałów.
     type: port
     default: "8444"
     required: true
+  - key: SUPLA_SCRIPTS_URL
+    label: {en: Address of SUPLA Scripts, pl: Adres SUPLA Scripts}
+    help:
+      en: Where SUPLA Scripts is opened, with the port. Supla Cloud sends there the login (OAuth) and changes of the channels.
+      pl: Adres, pod którym otwiera się SUPLA Scripts, z portem. Tam Supla Cloud odsyła logowanie (OAuth) i zmiany kanałów.
+    default: "https://{ip}:8444"
+    required: true
+  - key: SUPLA_SCRIPTS_OAUTH_CLOUD
+    label: {en: Supla Cloud of the OAuth app, pl: Supla Cloud aplikacji OAuth}
+    default: "https://{ip}"
+  - key: SUPLA_SCRIPTS_OAUTH_ID
+    label: {en: OAuth app ID, pl: Identyfikator aplikacji OAuth}
+    help:
+      en: "From an app in Supla Cloud (Integrations, My OAuth apps) with the redirect address <address of SUPLA Scripts>/authorize. With Supla on this device Connect with Supla Cloud makes the app instead. Empty: logging in with a personal access token only."
+      pl: "Z aplikacji w Supla Cloud (Integracje, Moje aplikacje OAuth) z adresem przekierowania <adres SUPLA Scripts>/authorize. Gdy Supla działa na tym urządzeniu, aplikację zakłada zamiast tego Połącz z Supla Cloud. Puste: logowanie tylko tokenem osobistym."
+  - key: SUPLA_SCRIPTS_OAUTH_SECRET
+    label: {en: OAuth app secret, pl: Sekret aplikacji OAuth}
+    type: password
   - key: SUPLA_SCRIPTS_DB_PASSWORD
     type: secret
     generate: 32

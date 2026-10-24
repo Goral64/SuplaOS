@@ -123,6 +123,7 @@ func (s *Server) Handler() http.Handler {
 	api("GET /api/addons/{id}/downloads/{n}", s.downloadFile)
 	api("GET /api/supla/users", s.suplaUsers)
 	api("POST /api/supla/users", s.createSuplaUser)
+	api("POST /api/supla-scripts/oauth", s.connectScripts)
 
 	api("POST /api/addons/apply", s.applyAddons)
 

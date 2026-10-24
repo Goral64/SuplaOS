@@ -44,6 +44,14 @@ konta, urządzeń i kanałów, a potem zakłada login i hasło do samego SUPLA
 Scripts. Działa z Cloud na tym urządzeniu i z cloud.supla.org. Obraz buduje
 SuplaOS z wydań supla-scripts.
 
+Gdy Supla działa na tym samym urządzeniu, na stronie dodatku SUPLA Scripts
+jest Połącz z Supla Cloud: panel zakłada w Cloud aplikację OAuth (na podanym
+koncie, hasło nie jest zapisywane) i od tej pory SUPLA Scripts pozwala
+logować się przez Supla Cloud i od razu dostaje zmiany kanałów. Bez Supli na
+urządzeniu ustawienia dodatku przyjmują aplikację OAuth założoną ręcznie
+(Integracje, Moje aplikacje OAuth, adres przekierowania https://<adres
+urządzenia>:8444/authorize).
+
 To samo można zrobić przez SSH poleceniem `suplaos`:
 
     suplaos list

@@ -2,6 +2,17 @@
 
 [In English](../../CHANGELOG.md)
 
+## 0.5.1
+
+- SUPLA Scripts pozwala logować się przez Supla Cloud (OAuth) i dostaje od
+  niego zmiany kanałów. Gdy Supla działa na tym samym urządzeniu, aplikację
+  OAuth zakłada sam panel (Połącz z Supla Cloud na stronie dodatku).
+- supla-server ufa CA urządzenia, więc jego webhooki docierają po HTTPS do
+  usług na urządzeniu.
+- Przeglądarki nie wpisują już zapamiętanych loginów w pola haseł ustawień
+  dodatków (np. Mosquitto), przez co zapis formularza mógł zapisać złe
+  wartości.
+
 ## 0.5.0
 
 - Nowy dodatek: SUPLA Scripts (sceny, termostaty, polecenia głosowe,

@@ -45,6 +45,14 @@ password for SUPLA Scripts itself. It works with the Cloud on this device and
 with cloud.supla.org. The image is built by SuplaOS from the releases of
 supla-scripts.
 
+With Supla on the same device there is also Connect with Supla Cloud on the
+SUPLA Scripts add-on page: the panel makes an OAuth app in the Cloud (with
+the account you give, the password isn't saved) and from then on SUPLA
+Scripts offers logging in with Supla Cloud and gets changes of the channels
+right away. Without Supla on the device the settings of the add-on take an
+OAuth app made by hand (Integrations, My OAuth apps, redirect address
+https://<device address>:8444/authorize).
+
 The same can be done from SSH with `suplaos`:
 
     suplaos list
