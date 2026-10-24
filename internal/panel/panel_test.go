@@ -1,6 +1,8 @@
 package panel
 
 import (
+	"bytes"
+	"compress/gzip"
 	"context"
 	"crypto/tls"
 	"crypto/x509"
@@ -127,6 +129,51 @@ func TestJobs(t *testing.T) {
 		}
 	case <-time.After(5 * time.Second):
 		t.Fatal("follow did not end")
+	}
+}
+
+func TestBackupUpload(t *testing.T) {
+	s := newServer(t)
+	h := s.Handler()
+	token := s.sessions.create(false)
+	var dump bytes.Buffer
+	gz := gzip.NewWriter(&dump)
+	gz.Write([]byte("-- MariaDB dump\n"))
+	gz.Close()
+	upload := func(addon, name string, body []byte) *httptest.ResponseRecorder {
+		r := httptest.NewRequest("POST", "/api/addons/"+addon+"/backups?name="+url.QueryEscape(name), bytes.NewReader(body))
+		r.AddCookie(&http.Cookie{Name: cookieName, Value: token})
+		r.Header.Set("X-SuplaOS", "1")
+		w := httptest.NewRecorder()
+		h.ServeHTTP(w, r)
+		return w
+	}
+	if w := upload("supla", "old.sql.gz", dump.Bytes()); w.Code != http.StatusOK || !strings.Contains(w.Body.String(), `"supla-old.sql.gz"`) {
+		t.Errorf("upload: %d %s", w.Code, w.Body)
+	}
+	if w := upload("supla", "supla-old.sql.gz", dump.Bytes()); w.Code != http.StatusConflict {
+		t.Errorf("same name: %d", w.Code)
+	}
+	if w := upload("supla", "cut.sql.gz", dump.Bytes()[:dump.Len()-4]); w.Code != http.StatusBadRequest {
+		t.Errorf("truncated: %d", w.Code)
+	}
+	if w := upload("supla", "plain.sql", []byte("select 1;")); w.Code != http.StatusBadRequest {
+		t.Errorf("not gzip: %d", w.Code)
+	}
+	if w := upload("mosquitto", "x.gz", dump.Bytes()); w.Code != http.StatusNotFound {
+		t.Errorf("add-on without backups: %d", w.Code)
+	}
+	w := do(t, h, "GET", "/api/backups", token, false)
+	if got := w.Body.String(); !strings.Contains(got, "supla-old.sql.gz") || strings.Contains(got, "upload") || strings.Contains(got, "cut") {
+		t.Errorf("backups: %s", got)
+	}
+	r := httptest.NewRequest("POST", "/api/addons/supla/restore", strings.NewReader(`{"name":"zigbee2mqtt-x.gz"}`))
+	r.AddCookie(&http.Cookie{Name: cookieName, Value: token})
+	r.Header.Set("X-SuplaOS", "1")
+	w = httptest.NewRecorder()
+	h.ServeHTTP(w, r)
+	if w.Code != http.StatusBadRequest {
+		t.Errorf("restore of another add-on's backup: %d", w.Code)
 	}
 }
 

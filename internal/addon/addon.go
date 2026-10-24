@@ -165,10 +165,12 @@ type Fetch struct {
 
 // Backup describes how to dump the add-on data: Command runs in Service and
 // its output is saved, gzipped, as File ({time} is replaced by a timestamp).
+// Restore, also run in Service, reads such a dump on its input.
 type Backup struct {
 	Service string   `yaml:"service"`
 	Command []string `yaml:"command"`
 	File    string   `yaml:"file"`
+	Restore []string `yaml:"restore"`
 }
 
 // Command is an add-on specific command run in one of its containers.

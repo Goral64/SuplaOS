@@ -19,11 +19,14 @@ export class ApiError extends Error {
 }
 
 // api calls the panel API. Changes carry the X-SuplaOS header the server
-// requires.
+// requires. A Blob body (a file) is sent as it is, anything else as JSON.
 export async function api(method, path, body) {
   const opts = { method, headers: {} }
   if (method !== 'GET') opts.headers['X-SuplaOS'] = '1'
-  if (body !== undefined) {
+  if (body instanceof Blob) {
+    opts.headers['Content-Type'] = 'application/octet-stream'
+    opts.body = body
+  } else if (body !== undefined) {
     opts.headers['Content-Type'] = 'application/json'
     opts.body = JSON.stringify(body)
   }

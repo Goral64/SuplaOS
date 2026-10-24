@@ -2,6 +2,13 @@
 
 [In English](../../CHANGELOG.md)
 
+## 0.4.1
+
+- Kopie można przywracać: Przywróć na stronie dodatku Supla albo
+  `suplaos restore supla <plik>`. Najpierw powstaje kopia bieżących danych.
+- Wgraj kopię wgrywa pobraną kopię na urządzenie, np. nowe.
+- Kopie bazy Supli zawierają teraz też jej procedury.
+
 ## 0.4.0
 
 - Tylko HTTPS. Panel jest teraz pod https://<nazwa>.local:8443, port 80

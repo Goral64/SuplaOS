@@ -116,6 +116,8 @@ func (s *Server) Handler() http.Handler {
 	api("POST /api/addons/{id}/install", s.installAddon)
 	api("PUT /api/addons/{id}/config", s.configAddon)
 	api("POST /api/addons/{id}/remove", s.removeAddon)
+	api("POST /api/addons/{id}/restore", s.restoreAddon)
+	api("POST /api/addons/{id}/backups", s.uploadBackup)
 	api("POST /api/addons/{id}/{action}", s.addonAction)
 	api("GET /api/addons/{id}/logs", s.addonLogs)
 	api("GET /api/addons/{id}/downloads/{n}", s.downloadFile)

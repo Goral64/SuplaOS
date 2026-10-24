@@ -69,6 +69,21 @@ pojedyncze zapytanie, a bez argumentów otwiera się klient MariaDB:
 Inne polecenia `docker compose` działają jako `suplaos compose ...` (np.
 `suplaos compose ps`), w projekcie compose SuplaOS.
 
+## Kopie zapasowe
+
+Kopie bazy Supli są na stronie dodatku Supla. Zrób kopię robi ją od razu,
+a panel robi ją też przed każdą aktualizacją Supli. Od czasu do czasu warto
+pobrać kopię i trzymać ją poza urządzeniem. Przywróć wczytuje kopię z
+powrotem: najpierw powstaje kopia bieżących danych, a jeśli wczytanie się
+nie uda, wracają one na miejsce. Żeby przenieść dane na nowe urządzenie albo
+nową kartę SD, zainstaluj tam Suplę, wgraj pobrany plik przyciskiem Wgraj
+kopię i przywróć go.
+
+Przez SSH:
+
+    suplaos backup supla
+    suplaos restore supla supla-20261024141039.sql.gz
+
 ## Aktualizacje
 
 Panel pokazuje dostępne aktualizacje w zakładce Aktualizacje i instaluje je

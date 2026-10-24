@@ -2,6 +2,13 @@
 
 [Po polsku](docs/pl/CHANGELOG.md)
 
+## 0.4.1
+
+- Backups can be restored: Restore on the Supla add-on page or
+  `suplaos restore supla <file>`. The current data is backed up first.
+- Upload backup puts a downloaded backup on the device, e.g. a new one.
+- Backups of the Supla database now also have its procedures.
+
 ## 0.4.0
 
 - HTTPS only. The panel moved to https://<name>.local:8443, port 80 only

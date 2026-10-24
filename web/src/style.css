@@ -118,7 +118,7 @@ button, .button {
   gap: .35rem;
 }
 button:hover:not(:disabled), .button:hover { border-color: var(--muted); }
-button:disabled { opacity: .55; cursor: default; }
+button:disabled, .button.disabled { opacity: .55; cursor: default; pointer-events: none; }
 button.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-text); font-weight: 600; }
 button.danger { color: var(--danger); }
 button.danger.filled { background: var(--danger); border-color: var(--danger); color: #fff; }

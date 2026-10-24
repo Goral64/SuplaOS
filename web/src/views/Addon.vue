@@ -92,6 +92,28 @@ async function createAccount() {
   if (result?.state === 'done') account.value = { email: '', password: '' }
 }
 
+async function restoreBackup(b) {
+  if (!(await ask(t('addon.restoreConfirm', { file: b.name, name: name.value }), { ok: t('addon.restore'), danger: true }))) return
+  await job('POST', `/addons/${props.id}/restore`, { name: b.name })
+}
+
+const uploading = ref(false)
+async function uploadBackup(e) {
+  const file = e.target.files[0]
+  e.target.value = ''
+  if (!file) return
+  error.value = ''
+  uploading.value = true
+  try {
+    await api('POST', `/addons/${props.id}/backups?name=${encodeURIComponent(file.name)}`, file)
+    await load()
+  } catch (err) {
+    error.value = err.message
+  } finally {
+    uploading.value = false
+  }
+}
+
 async function deleteBackup(b) {
   if (!(await ask(`${t('common.delete')} ${b.name}?`, { ok: t('common.delete'), danger: true }))) return
   await api('DELETE', `/backups/${encodeURIComponent(b.name)}`)
@@ -222,8 +244,13 @@ function webURL(a) {
         <div class="row">
           <h2 style="margin: 0">{{ $t('addon.backups') }}</h2>
           <span class="spacer"></span>
+          <label class="button" :class="{ disabled: uploading }">
+            {{ uploading ? $t('addon.uploading') : $t('addon.upload') }}
+            <input type="file" accept=".gz" hidden :disabled="uploading" @change="uploadBackup">
+          </label>
           <button @click="action('backup')">{{ $t('addon.backupNow') }}</button>
         </div>
+        <p class="muted small mt">{{ $t('addon.backupsHelp') }}</p>
         <p v-if="!backups.length" class="muted mt">{{ $t('addon.noBackups') }}</p>
         <table v-else class="mt">
           <tr v-for="b in backups" :key="b.name">
@@ -231,6 +258,7 @@ function webURL(a) {
             <td class="muted">{{ new Date(b.time).toLocaleString(locale) }}</td>
             <td class="muted">{{ formatBytes(b.size) }}</td>
             <td style="text-align: right">
+              <button @click="restoreBackup(b)">{{ $t('addon.restore') }}</button>
               <a class="button" :href="'/api/backups/' + encodeURIComponent(b.name)">{{ $t('common.download') }}</a>
               <button class="link danger" @click="deleteBackup(b)">{{ $t('common.delete') }}</button>
             </td>

@@ -110,8 +110,18 @@ web:
 
 backup:
   service: supla-db
-  command: [sh, -c, 'exec mariadb-dump --user=supla --password="$MYSQL_PASSWORD" supla']
+  command: [sh, -c, 'exec mariadb-dump --routines --user=supla --password="$MYSQL_PASSWORD" supla']
   file: supla-{time}.sql
+  # Tables and views are dropped first, so none of a newer Cloud version is
+  # left behind. Procedures stay: older dumps were made without them.
+  restore:
+    - sh
+    - -c
+    - |
+      set -e
+      m() { mariadb --user=supla --password="$MYSQL_PASSWORD" supla "$@"; }
+      drop=$(m -N -e "select concat('drop ', if(table_type = 'VIEW', 'view', 'table'), ' if exists \`', table_name, '\`;') from information_schema.tables where table_schema = 'supla'")
+      { echo 'set foreign_key_checks = 0;'; echo "$drop"; cat; } | m
 
 commands:
   console:

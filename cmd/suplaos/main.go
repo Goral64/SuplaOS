@@ -7,6 +7,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"path/filepath"
 	"sort"
 	"strings"
 	"text/tabwriter"
@@ -34,6 +35,8 @@ Containers:
   logs [add-on...] [-f] [--tail N]
   update [add-on...]           backup, pull new images and recreate
   backup [add-on...]           dump add-on data to /srv/suplaos/backups
+  restore <add-on> <file>      load a backup (a name from backups/ or a path),
+                               the current data is backed up first
   run <add-on> <command> [args...]
                                add-on command, e.g. suplaos run supla console
   apply                        apply new versions of the add-ons (after backups)
@@ -123,6 +126,22 @@ func run(args []string) error {
 			return err
 		}
 		return backup(s, args, len(args) == 0)
+	case "restore":
+		if len(args) != 2 {
+			return errors.New("usage: suplaos restore <add-on> <file>")
+		}
+		if err := s.Lock(); err != nil {
+			return err
+		}
+		path := args[1]
+		if !strings.Contains(path, "/") {
+			path = filepath.Join(s.BackupDir(), path)
+		}
+		if err := s.Restore(args[0], path); err != nil {
+			return err
+		}
+		fmt.Printf("%s: restored from %s\n", args[0], filepath.Base(path))
+		return nil
 	case "run":
 		if len(args) < 2 {
 			return errors.New("usage: suplaos run <add-on> <command> [args...]")

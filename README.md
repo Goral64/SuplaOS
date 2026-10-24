@@ -69,6 +69,20 @@ single query, and without arguments it opens the MariaDB client:
 Other `docker compose` commands work as `suplaos compose ...` (e.g.
 `suplaos compose ps`), in the SuplaOS compose project.
 
+## Backups
+
+Backups of the Supla database are on the Supla add-on page. Back up now
+makes one, and the panel also makes one before every update of Supla.
+Download a backup now and then to keep it off the device. Restore loads a
+backup back: the current data is backed up first, and if loading fails,
+it goes back in. To move to a new device or a fresh SD card, install Supla
+there, upload the downloaded file with Upload backup and restore it.
+
+Over SSH:
+
+    suplaos backup supla
+    suplaos restore supla supla-20261024141039.sql.gz
+
 ## Updates
 
 The panel shows available updates under Updates and installs them with one

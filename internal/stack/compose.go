@@ -5,6 +5,7 @@ import (
 	"compress/gzip"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -12,6 +13,8 @@ import (
 	"path/filepath"
 	"strings"
 	"time"
+
+	"github.com/Goral64/SuplaOS/internal/addon"
 )
 
 // Compose runs docker compose in the stack directory with the standard
@@ -174,6 +177,115 @@ func (s *Stack) Backup(id string) (string, error) {
 		return "", err
 	}
 	return path, nil
+}
+
+// Restore loads a backup of an add-on made by Backup. The current data is
+// backed up first and loaded back when the restore fails; the other
+// services of the add-on are stopped meanwhile.
+func (s *Stack) Restore(id, path string) error {
+	a := s.Catalog[id]
+	if a == nil || !s.IsInstalled(id) {
+		return fmt.Errorf("%s is not installed", id)
+	}
+	if a.Backup == nil || len(a.Backup.Restore) == 0 {
+		return fmt.Errorf("%s has no restore", id)
+	}
+	if err := checkBackup(path, filepath.Base(path)); err != nil {
+		return err
+	}
+	fmt.Fprintln(s.stdout(), "Backing up the current data")
+	current, err := s.Backup(id)
+	if err != nil {
+		return err
+	}
+	fmt.Fprintf(s.stdout(), "Backup saved to %s\n", current)
+	var others []string
+	for _, svc := range a.Services {
+		if svc != a.Backup.Service {
+			others = append(others, svc)
+		}
+	}
+	if len(others) > 0 {
+		if err := s.Compose(append([]string{"stop"}, others...)...); err != nil {
+			return err
+		}
+	}
+	fmt.Fprintf(s.stdout(), "Restoring %s\n", filepath.Base(path))
+	err = s.load(a, path)
+	if err != nil {
+		fmt.Fprintf(s.stdout(), "Restore failed (%v), loading %s back\n", err, filepath.Base(current))
+		if lerr := s.load(a, current); lerr != nil {
+			fmt.Fprintf(s.stdout(), "Loading it back failed too: %v\n", lerr)
+		}
+	}
+	if len(others) > 0 {
+		if uerr := s.Compose(append([]string{"up", "-d"}, others...)...); err == nil {
+			err = uerr
+		}
+	}
+	return err
+}
+
+// load feeds a gzipped dump to the restore command of an add-on.
+func (s *Stack) load(a *addon.Addon, path string) error {
+	f, err := os.Open(path)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+	gz, err := gzip.NewReader(f)
+	if err != nil {
+		return err
+	}
+	// The restore command is a script, too long for the error message.
+	args := append([]string{"exec", "-T", a.Backup.Service}, a.Backup.Restore...)
+	if err := s.compose(gz, s.stdout(), args...); err != nil {
+		return fmt.Errorf("restore of %s: %w", a.ID, errors.Unwrap(err))
+	}
+	return nil
+}
+
+// checkBackup reads a gzipped backup through, so that a damaged or
+// truncated file is not loaded in place of the data.
+func checkBackup(path, name string) error {
+	f, err := os.Open(path)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+	gz, err := gzip.NewReader(f)
+	if err == nil {
+		_, err = io.Copy(io.Discard, gz)
+	}
+	if err != nil {
+		return fmt.Errorf("%s is not a valid backup: %w", name, err)
+	}
+	return nil
+}
+
+// SaveBackup stores a backup read from r under name in the backup
+// directory, only when it is a whole gzip file.
+func (s *Stack) SaveBackup(name string, r io.Reader) error {
+	if err := s.mkdir(s.BackupDir()); err != nil {
+		return err
+	}
+	f, err := os.CreateTemp(s.BackupDir(), ".upload-*")
+	if err != nil {
+		return err
+	}
+	defer os.Remove(f.Name())
+	_, err = io.Copy(f, r)
+	if cerr := f.Close(); err == nil {
+		err = cerr
+	}
+	if err == nil {
+		err = checkBackup(f.Name(), name)
+	}
+	if err != nil {
+		return err
+	}
+	s.chown(f.Name())
+	return os.Rename(f.Name(), filepath.Join(s.BackupDir(), name))
 }
 
 // Run executes an add-on command in its container.

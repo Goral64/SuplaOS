@@ -841,6 +841,9 @@ func (s *Server) getBackups(w http.ResponseWriter, r *http.Request) {
 	list := []entry{}
 	entries, _ := os.ReadDir(filepath.Join(s.cfg.Root, "backups"))
 	for _, e := range entries {
+		if strings.HasPrefix(e.Name(), ".") {
+			continue // upload in progress
+		}
 		if info, err := e.Info(); err == nil && info.Mode().IsRegular() {
 			list = append(list, entry{e.Name(), info.Size(), info.ModTime()})
 		}
@@ -870,6 +873,72 @@ func (s *Server) deleteBackup(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	writeJSON(w, http.StatusOK, map[string]any{})
+}
+
+// maxBackup limits uploaded backups.
+const maxBackup = 4 << 30
+
+// uploadBackup saves a backup sent as the request body, ?name= is its file
+// name. Names get the add-on prefix, so the backup shows up with it.
+func (s *Server) uploadBackup(w http.ResponseWriter, r *http.Request) {
+	id := r.PathValue("id")
+	st, err := s.openStack()
+	if err != nil {
+		jsonError(w, http.StatusInternalServerError, err)
+		return
+	}
+	if a := st.Catalog[id]; a == nil || a.Backup == nil {
+		http.NotFound(w, r)
+		return
+	}
+	name := filepath.Base(r.URL.Query().Get("name"))
+	if !strings.HasSuffix(name, ".gz") {
+		jsonError(w, http.StatusBadRequest, errors.New("a backup is a .gz file"))
+		return
+	}
+	if !strings.HasPrefix(name, id+"-") {
+		name = id + "-" + name
+	}
+	p, err := s.backupPath(name)
+	if err != nil {
+		jsonError(w, http.StatusBadRequest, err)
+		return
+	}
+	if _, err := os.Stat(p); err == nil {
+		jsonError(w, http.StatusConflict, fmt.Errorf("%s already exists", name))
+		return
+	}
+	if err := st.SaveBackup(name, http.MaxBytesReader(w, r.Body, maxBackup)); err != nil {
+		jsonError(w, http.StatusBadRequest, err)
+		return
+	}
+	writeJSON(w, http.StatusOK, map[string]any{"name": name})
+}
+
+func (s *Server) restoreAddon(w http.ResponseWriter, r *http.Request) {
+	id := r.PathValue("id")
+	var req struct {
+		Name string `json:"name"`
+	}
+	if err := readJSON(r, &req); err != nil {
+		jsonError(w, http.StatusBadRequest, err)
+		return
+	}
+	p, err := s.backupPath(req.Name)
+	if err == nil && !strings.HasPrefix(req.Name, id+"-") {
+		err = errors.New("not a backup of " + id)
+	}
+	if err != nil {
+		jsonError(w, http.StatusBadRequest, err)
+		return
+	}
+	s.stackJob(w, "restore "+id, func(st *stack.Stack, j *Job) error {
+		if err := st.Restore(id, p); err != nil {
+			return err
+		}
+		j.Logf("Restored from %s", req.Name)
+		return nil
+	})
 }
 
 // --- Jobs ------------------------------------------------------------------
