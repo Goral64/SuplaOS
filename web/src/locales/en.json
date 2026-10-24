@@ -168,15 +168,29 @@
     "poweroff": "Shut down",
     "rebootConfirm": "Restart the device?",
     "poweroffConfirm": "Shut down the device? You will need physical access to turn it on.",
-    "rebooting": "Restarting, the panel will be back in a minute or two.",
-    "poweringOff": "Shutting down.",
     "backups": "Backups"
+  },
+  "changelog": {
+    "title": "Changes in SuplaOS",
+    "show": "Changes",
+    "new": "new",
+    "installed": "installed"
   },
   "job": {
     "running": "Working...",
     "done": "Done.",
     "failed": "Failed: {error}",
     "busy": "Another operation is running."
+  },
+  "power": {
+    "rebootTitle": "Restarting",
+    "rebootText": "The device is restarting. The panel opens again on its own when it's back, usually after a minute or two.",
+    "slow": "It takes longer than usual. Check the device, this page keeps waiting.",
+    "poweroffTitle": "Shutting down",
+    "stopping": "The device is shutting down.",
+    "offTitle": "The device is off",
+    "offText": "Wait a few seconds before unplugging it (on a Raspberry Pi until the green LED stops blinking).",
+    "waiting": "When you turn it on again, this page opens the panel on its own."
   },
   "updates": {
     "title": "Updates",

@@ -1,11 +1,14 @@
 <script setup>
 import { computed, onMounted, ref } from 'vue'
+import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { api, imageVersions, text } from '../api'
 import { activeJob, runJob, showOutput } from '../components/jobs'
-import { ask, tell } from '../components/dialog'
+import { ask } from '../components/dialog'
+import ChangelogDialog from '../components/ChangelogDialog.vue'
 
 const { t, locale } = useI18n()
+const router = useRouter()
 const info = ref(null)
 const addons = ref([])
 const images = ref([])
@@ -24,9 +27,8 @@ async function load() {
 onMounted(load)
 
 const suplaos = computed(() => info.value?.packages.find((p) => p.name === 'suplaos'))
-// The changes of a SuplaOS version, in the language of the panel.
-const changesURL = (version) => 'https://github.com/Goral64/SuplaOS/blob/main/' +
-  (locale.value === 'pl' ? 'docs/pl/' : '') + 'CHANGELOG.md#' + version.replace(/\./g, '')
+// The changes dialog: {newer} is the version to update to, if any.
+const changes = ref(null)
 const others = computed(() => info.value?.packages.filter((p) => p.name !== 'suplaos') || [])
 const when = (d) => (d ? new Date(d).toLocaleString(locale.value) : '-')
 
@@ -115,10 +117,8 @@ async function setAuto(e) {
 
 async function reboot() {
   if (!(await ask(t('system.rebootConfirm'), { ok: t('system.reboot') }))) return
-  await api('POST', '/system/reboot')
-  error.value = ''
-  info.value.rebootRequired = false
-  await tell(t('system.rebooting'))
+  const { boot } = await api('POST', '/system/reboot')
+  router.push({ path: '/power/reboot', query: { boot } })
 }
 </script>
 
@@ -136,6 +136,7 @@ async function reboot() {
     <div class="card">
       <div class="row">
         <h2 style="margin: 0">SuplaOS {{ info.version }}</h2>
+        <button class="link" @click="changes = {}">{{ $t('changelog.show') }}</button>
         <span class="spacer"></span>
         <button :disabled="following" @click="check">{{ $t('updates.check') }}</button>
       </div>
@@ -144,7 +145,7 @@ async function reboot() {
 
       <p v-if="suplaos" class="alert ok">
         {{ $t('updates.newSuplaos', { version: suplaos.to }) }}
-        <a :href="changesURL(suplaos.to)" target="_blank" rel="noopener">{{ $t('addon.changelog') }}</a>
+        <button class="link" @click="changes = { newer: suplaos.to }">{{ $t('addon.changelog') }}</button>
       </p>
       <p v-if="!info.packages.length" class="mt">{{ $t('updates.upToDate') }}</p>
       <template v-else>
@@ -192,4 +193,5 @@ async function reboot() {
       <button class="primary" @click="applyAddons">{{ $t('updates.apply') }}</button>
     </div>
   </template>
+  <ChangelogDialog v-if="changes" :installed="info.version" :newer="changes.newer" @close="changes = null" />
 </template>

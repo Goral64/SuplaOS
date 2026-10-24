@@ -1,10 +1,12 @@
 <script setup>
 import { computed, onMounted, ref } from 'vue'
+import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { api, panelUrl } from '../api'
 import { ask } from '../components/dialog'
 
 const { t, locale } = useI18n()
+const router = useRouter()
 const settings = ref({ timezone: '', hostname: '' })
 const timezones = ref([])
 const net = ref(null)
@@ -59,8 +61,8 @@ const saveNetwork = () => call(async () => {
 const power = (action) => call(async () => {
   if (!(await ask(t(action === 'reboot' ? 'system.rebootConfirm' : 'system.poweroffConfirm'),
     { ok: t(action === 'reboot' ? 'system.reboot' : 'system.poweroff'), danger: action === 'poweroff' }))) return
-  await api('POST', '/system/' + action)
-  message.value = t(action === 'reboot' ? 'system.rebooting' : 'system.poweringOff')
+  const { boot } = await api('POST', '/system/' + action)
+  router.push({ path: '/power/' + action, query: { boot } })
 })
 </script>
 

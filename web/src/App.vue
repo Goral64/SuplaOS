@@ -30,7 +30,7 @@ async function logout() {
   <header class="topbar">
     <div class="topbar-inner">
       <router-link to="/" class="brand"><span class="brand-dot"></span>SuplaOS</router-link>
-      <nav v-if="session.loggedIn && !session.mustChange && session.setupDone" class="nav">
+      <nav v-if="session.loggedIn && !session.mustChange && session.setupDone && !$route.meta.standalone" class="nav">
         <router-link to="/" exact-active-class="router-link-active" active-class="">{{ $t('nav.dashboard') }}</router-link>
         <router-link to="/addons">{{ $t('nav.addons') }}</router-link>
         <router-link to="/updates">{{ $t('nav.updates') }}</router-link>

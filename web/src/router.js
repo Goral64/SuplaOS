@@ -8,6 +8,7 @@ import Addons from './views/Addons.vue'
 import Addon from './views/Addon.vue'
 import System from './views/System.vue'
 import Updates from './views/Updates.vue'
+import Power from './views/Power.vue'
 
 export const router = createRouter({
   history: createWebHistory(),
@@ -20,11 +21,14 @@ export const router = createRouter({
     { path: '/addons/:id', component: Addon, props: true },
     { path: '/system', component: System },
     { path: '/updates', component: Updates },
+    // Works while the panel is down, without a session check.
+    { path: '/power/:action(reboot|poweroff)', component: Power, props: true, meta: { standalone: true } },
     { path: '/:rest(.*)', redirect: '/' },
   ],
 })
 
 router.beforeEach(async (to) => {
+  if (to.meta.standalone) return true
   if (!session.loaded) await loadSession()
   if (to.meta.public) return session.loggedIn ? '/' : true
   if (!session.loggedIn) return '/login'

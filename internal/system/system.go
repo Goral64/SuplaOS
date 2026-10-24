@@ -281,6 +281,12 @@ func SetLanguage(lang string) error {
 	return os.WriteFile("/etc/default/locale", []byte("LANG="+loc+"\n"), 0o644)
 }
 
+// BootID changes with every start of the system.
+func BootID() string {
+	data, _ := os.ReadFile("/proc/sys/kernel/random/boot_id")
+	return strings.TrimSpace(string(data))
+}
+
 // Reboot and Poweroff run after a moment, so that the answer to the request
 // still gets out.
 func Reboot() { later("reboot") }

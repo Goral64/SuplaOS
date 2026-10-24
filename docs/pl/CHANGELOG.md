@@ -8,6 +8,10 @@
   `suplaos restore supla <plik>`. Najpierw powstaje kopia bieżących danych.
 - Wgraj kopię wgrywa pobraną kopię na urządzenie, np. nowe.
 - Kopie bazy Supli zawierają teraz też jej procedury.
+- Zmiany w SuplaOS można przeczytać w panelu (Zmiany na stronie
+  Aktualizacje), także dla wersji czekającej na instalację.
+- Uruchom ponownie i Wyłącz otwierają stronę, która czeka na urządzenie
+  i sama wraca do panelu, gdy ono wstanie.
 
 ## 0.4.0
 

@@ -168,15 +168,29 @@
     "poweroff": "Wyłącz",
     "rebootConfirm": "Uruchomić urządzenie ponownie?",
     "poweroffConfirm": "Wyłączyć urządzenie? Włączenie wymaga fizycznego dostępu.",
-    "rebooting": "Trwa ponowne uruchamianie, panel wróci za minutę lub dwie.",
-    "poweringOff": "Trwa wyłączanie.",
     "backups": "Kopie zapasowe"
+  },
+  "changelog": {
+    "title": "Zmiany w SuplaOS",
+    "show": "Zmiany",
+    "new": "nowa",
+    "installed": "zainstalowana"
   },
   "job": {
     "running": "Trwa...",
     "done": "Gotowe.",
     "failed": "Błąd: {error}",
     "busy": "Trwa inna operacja."
+  },
+  "power": {
+    "rebootTitle": "Ponowne uruchamianie",
+    "rebootText": "Urządzenie uruchamia się ponownie. Panel otworzy się sam, gdy wróci, zwykle po minucie lub dwóch.",
+    "slow": "Trwa to dłużej niż zwykle. Sprawdź urządzenie, ta strona dalej czeka.",
+    "poweroffTitle": "Wyłączanie",
+    "stopping": "Urządzenie się wyłącza.",
+    "offTitle": "Urządzenie jest wyłączone",
+    "offText": "Odczekaj kilka sekund przed odłączeniem zasilania (na Raspberry Pi aż przestanie migać zielona dioda).",
+    "waiting": "Po ponownym włączeniu ta strona sama otworzy panel."
   },
   "updates": {
     "title": "Aktualizacje",

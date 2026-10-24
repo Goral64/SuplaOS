@@ -33,6 +33,7 @@ func (s *Server) getSession(w http.ResponseWriter, r *http.Request) {
 		"lang":       st.Lang,
 		"setupDone":  st.SetupDone,
 		"user":       system.User,
+		"boot":       system.BootID(),
 	})
 }
 
@@ -110,7 +111,8 @@ func (s *Server) power(w http.ResponseWriter, r *http.Request) {
 		http.NotFound(w, r)
 		return
 	}
-	writeJSON(w, http.StatusOK, map[string]any{})
+	// The interface waits for another boot ID to know the system is back.
+	writeJSON(w, http.StatusOK, map[string]any{"boot": system.BootID()})
 }
 
 func (s *Server) getSettingsAPI(w http.ResponseWriter, r *http.Request) {

@@ -8,6 +8,10 @@
   `suplaos restore supla <file>`. The current data is backed up first.
 - Upload backup puts a downloaded backup on the device, e.g. a new one.
 - Backups of the Supla database now also have its procedures.
+- What's new in SuplaOS can be read in the panel (Changes on the Updates
+  page), also for a version waiting to be installed.
+- Restart and Shut down open a page that waits for the device and opens the
+  panel again once it's back.
 
 ## 0.4.0
 

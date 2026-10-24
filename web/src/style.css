@@ -181,6 +181,10 @@ pre.log {
 }
 .modal { background: var(--surface); border-radius: var(--radius); padding: 20px; width: 100%; max-width: 760px; max-height: 90vh; overflow: auto; }
 .modal.narrow { max-width: 460px; }
+
+.narrow-card { max-width: 560px; margin: 2rem auto; }
+.progress { height: 8px; border-radius: 999px; background: var(--border); overflow: hidden; }
+.progress > div { height: 100%; background: var(--accent); transition: width 1s linear; }
 .dialog-text { margin: 0; white-space: pre-line; }
 
 .addon-list .card { display: flex; flex-direction: column; }
@@ -195,3 +199,7 @@ pre.log {
   main { padding-top: 16px; }
   .narrow { margin-top: 16px; }
 }
+
+.changelog h3 { margin: 0 0 .4rem; font-size: 1.05rem; }
+.changelog ul { margin: 0; padding-left: 1.2rem; }
+.changelog li, .changelog p { margin: 0 0 .4rem; }
