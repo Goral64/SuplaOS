@@ -2,6 +2,10 @@
 
 [In English](../../CHANGELOG.md)
 
+## 0.4.2
+
+- Zmiana ustawienia Supli nie uruchamia już ponownie jej bazy danych.
+
 ## 0.4.1
 
 - Kopie można przywracać: Przywróć na stronie dodatku Supla albo

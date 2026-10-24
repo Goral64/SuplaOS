@@ -2,6 +2,10 @@
 
 [Po polsku](docs/pl/CHANGELOG.md)
 
+## 0.4.2
+
+- Changing a setting of Supla no longer restarts its database.
+
 ## 0.4.1
 
 - Backups can be restored: Restore on the Supla add-on page or
