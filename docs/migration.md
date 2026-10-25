@@ -19,8 +19,9 @@ point to the new server.
 - The account here gets the e-mail of the source account (devices register
   with it). If there is none, the move makes it, with the password you give.
 - In the source Supla Cloud make a personal access token: Account, Security,
-  Personal access tokens, with the read scopes. To move SUPLA Scripts too,
-  add Channels: execute actions.
+  Personal access tokens. Turn on Read in every section except Client's
+  Apps, Modification is not needed. To move SUPLA Scripts too, add
+  Channels: execute actions.
 
 ## Moving
 

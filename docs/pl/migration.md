@@ -19,8 +19,9 @@ dalej, gdy tylko wskażą nowy serwer.
 - Konto tutaj dostaje e-mail konta źródłowego (urządzenia rejestrują się tym
   adresem). Jeśli go nie ma, przeniesienie je zakłada, z podanym hasłem.
 - W źródłowym Supla Cloud utwórz osobisty token dostępowy: Konto,
-  Bezpieczeństwo, Osobiste tokeny dostępowe, z zakresami odczytu. Żeby
-  przenieść też SUPLA Scripts, dodaj Kanały: wykonywanie akcji.
+  Bezpieczeństwo, Osobiste tokeny dostępowe. Włącz Odczyt we wszystkich
+  sekcjach oprócz Aplikacji klienckich, Modyfikacja nie jest potrzebna.
+  Żeby przenieść też SUPLA Scripts, dodaj Kanały: wykonywanie akcji.
 
 ## Przenoszenie
 

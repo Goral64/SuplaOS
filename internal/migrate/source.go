@@ -225,7 +225,17 @@ func (s *Source) get(path string, out any) error {
 	case res.StatusCode == http.StatusUnauthorized:
 		return errors.New("the source Cloud refused the token")
 	case res.StatusCode == http.StatusForbidden:
-		return fmt.Errorf("the token may not read %s: give it the read scopes", strings.Split(path, "?")[0])
+		msg := fmt.Sprintf("the token may not read %s: give it the read scopes", strings.Split(path, "?")[0])
+		var body struct {
+			Message string `json:"message"`
+		}
+		if json.Unmarshal(data, &body) == nil && body.Message != "" {
+			msg += " (" + body.Message + ")"
+		}
+		if scope, err := s.scope(); err == nil {
+			msg += "; the source Cloud sees the scopes: " + scope
+		}
+		return errors.New(msg)
 	case res.StatusCode == http.StatusNotFound:
 		return fmt.Errorf("source Cloud: GET %s: %w", path, errGone)
 	case res.StatusCode >= 300:
@@ -234,9 +244,76 @@ func (s *Source) get(path string, out any) error {
 	return json.Unmarshal(data, out)
 }
 
+// readScopes are what Fetch reads with, by the names the token form of
+// Supla Cloud shows. The Cloud checks the _r scope (it adds it to a _rw
+// one itself).
+var readScopes = []struct{ scope, name string }{
+	{"account_r", "Account"},
+	{"channels_r", "Channels"},
+	{"channelgroups_r", "Channel groups"},
+	{"scenes_r", "Scenes"},
+	{"directlinks_r", "Direct links"},
+	{"iodevices_r", "I/O Devices"},
+	{"accessids_r", "Access Identifiers"},
+	{"locations_r", "Locations"},
+	{"schedules_r", "Schedules"},
+}
+
+// scope is the scope of the token as the source Cloud sees it.
+func (s *Source) scope() (string, error) {
+	var info struct {
+		Scope string `json:"scope"`
+	}
+	req, err := http.NewRequest("GET", s.Server+"/api/v3/token-info", nil)
+	if err != nil {
+		return "", err
+	}
+	req.Header.Set("Authorization", "Bearer "+s.token)
+	req.Header.Set("Accept", "application/json")
+	res, err := s.client.Do(req)
+	if err != nil {
+		return "", err
+	}
+	defer res.Body.Close()
+	if res.StatusCode != http.StatusOK {
+		return "", fmt.Errorf("source Cloud: GET token-info: %s", res.Status)
+	}
+	if err := json.NewDecoder(io.LimitReader(res.Body, 1<<20)).Decode(&info); err != nil {
+		return "", err
+	}
+	return info.Scope, nil
+}
+
+// checkScope tells which read scopes the token lacks. A Cloud without
+// token-info is not checked here.
+func (s *Source) checkScope() error {
+	scope, err := s.scope()
+	if err != nil {
+		return nil
+	}
+	has := map[string]bool{}
+	for _, sc := range strings.Fields(scope) {
+		has[sc] = true
+	}
+	var missing []string
+	for _, r := range readScopes {
+		if !has[r.scope] {
+			missing = append(missing, r.name)
+		}
+	}
+	if len(missing) > 0 {
+		return fmt.Errorf("the token lacks the Read scope for: %s (the token has: %s)",
+			strings.Join(missing, ", "), scope)
+	}
+	return nil
+}
+
 // Fetch reads the account.
 func (s *Source) Fetch() (*Bundle, error) {
 	b := &Bundle{Server: s.Server, Fetched: time.Now().UTC()}
+	if err := s.checkScope(); err != nil {
+		return nil, err
+	}
 	var user struct {
 		Email    string `json:"email"`
 		Timezone string `json:"timezone"`

@@ -322,7 +322,7 @@
     "title": "Move from another Supla Cloud",
     "intro": "Moves your account on the public Supla Cloud (or another own server) here: devices, channels, locations, access IDs, channel groups, scenes, schedules, reactions, direct links, icons and the measurement history. Devices and channels keep their IDs, so the apps, MQTT, Home Assistant and scripts that use them keep working.",
     "token": "Personal access token of the source account",
-    "tokenHelp": "In that Supla Cloud: Account, Security, Personal access tokens. Give it the read scopes, and for SUPLA Scripts also Channels: execute actions. It is kept until the move ends, for the measurement history, and deleted then.",
+    "tokenHelp": "In that Supla Cloud: Account, Security, Personal access tokens. Turn on Read in every section except Client’s Apps (Modification is not needed), and for SUPLA Scripts also Channels: execute actions. It is kept until the move ends, for the measurement history, and deleted then.",
     "read": "Read the account",
     "reading": "Reading...",
     "summary": "{source}, account {email}, read {date}.",

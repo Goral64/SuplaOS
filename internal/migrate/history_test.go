@@ -85,3 +85,25 @@ func TestImportHistory(t *testing.T) {
 		t.Errorf("insert:\n%s", last)
 	}
 }
+
+func TestCheckScope(t *testing.T) {
+	scope := ""
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path != "/api/v3/token-info" {
+			http.NotFound(w, r)
+			return
+		}
+		json.NewEncoder(w).Encode(map[string]string{"scope": scope})
+	}))
+	defer ts.Close()
+	src := &Source{Server: ts.URL, token: "t", client: ts.Client()}
+	scope = "account_r channels_r channelgroups_r scenes_r directlinks_r iodevices_r accessids_r locations_r schedules_r channels_ea"
+	if err := src.checkScope(); err != nil {
+		t.Error(err)
+	}
+	scope = "account_rw channels_r channelgroups_r scenes_r directlinks_r iodevices_r accessids_rw locations_r schedules_r"
+	err := src.checkScope()
+	if err == nil || !strings.Contains(err.Error(), "for: Account, Access Identifiers (") {
+		t.Errorf("%v", err)
+	}
+}

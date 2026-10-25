@@ -322,7 +322,7 @@
     "title": "Przeniesienie z innego Supla Cloud",
     "intro": "Przenosi tu Twoje konto z publicznego Supla Cloud (albo innego własnego serwera): urządzenia, kanały, lokalizacje, identyfikatory dostępu, grupy kanałów, sceny, harmonogramy, reakcje, linki bezpośrednie, ikony i historię pomiarów. Urządzenia i kanały zachowują swoje ID, więc aplikacje, MQTT, Home Assistant i skrypty, które z nich korzystają, działają dalej.",
     "token": "Osobisty token dostępowy konta źródłowego",
-    "tokenHelp": "W tamtym Supla Cloud: Konto, Bezpieczeństwo, Osobiste tokeny dostępowe. Nadaj mu zakresy odczytu, a dla SUPLA Scripts także Kanały: wykonywanie akcji. Jest przechowywany do końca przenoszenia, dla historii pomiarów, a potem usuwany.",
+    "tokenHelp": "W tamtym Supla Cloud: Konto, Bezpieczeństwo, Osobiste tokeny dostępowe. Włącz Odczyt we wszystkich sekcjach oprócz Aplikacji klienckich (Modyfikacja nie jest potrzebna), a dla SUPLA Scripts także Kanały: wykonywanie akcji. Jest przechowywany do końca przenoszenia, dla historii pomiarów, a potem usuwany.",
     "read": "Odczytaj konto",
     "reading": "Odczytuję...",
     "summary": "{source}, konto {email}, odczytane {date}.",
