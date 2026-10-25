@@ -56,6 +56,9 @@ type Server struct {
 	mu       sync.Mutex
 	settings Settings
 	fan      fanState
+	// migration guards the state of a move from another Supla Cloud,
+	// changed by its jobs and by WatchMigration.
+	migration sync.Mutex
 }
 
 func New(cfg Config) *Server {
@@ -153,6 +156,7 @@ func (s *Server) Handler() http.Handler {
 	api("GET /api/migration", s.getMigration)
 	api("POST /api/migration/fetch", s.fetchMigration)
 	api("POST /api/migration/prepare", s.prepareMigration)
+	api("POST /api/migration/history", s.historyMigration)
 	api("DELETE /api/migration", s.cancelMigration)
 
 	api("POST /api/addons/apply", s.applyAddons)

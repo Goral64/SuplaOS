@@ -38,6 +38,21 @@ type State struct {
 	// channels of devices that connect later.
 	Token   string               `json:"token,omitempty"`
 	Devices map[int]*DeviceState `json:"devices"`
+	// Objects made by CreateObjects.
+	Objects *Objects `json:"objects,omitempty"`
+	// SourceToken reads the source again for its measurement logs, until
+	// the move ends.
+	SourceToken string      `json:"sourceToken,omitempty"`
+	History     *HistoryRun `json:"history,omitempty"`
+}
+
+// HistoryRun is the last import of measurement logs: Items of all of
+// them, Added by the last one.
+type HistoryRun struct {
+	Time  time.Time `json:"time"`
+	Items int       `json:"items"`
+	Added int       `json:"added"`
+	Error string    `json:"error,omitempty"`
 }
 
 // Store is the directory of a move: the bundle read from the source and

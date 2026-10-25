@@ -47,6 +47,11 @@ const prepare = () => call(async () => {
   await load()
 })
 
+const history = () => call(async () => {
+  await runJob('POST', '/migration/history')
+  await load()
+})
+
 const cancel = () => call(async () => {
   if (!(await ask(t(view.value.prepared ? 'migration.cancelPreparedConfirm' : 'migration.cancelConfirm'),
     { ok: t('migration.cancel'), danger: true }))) return
@@ -55,7 +60,9 @@ const cancel = () => call(async () => {
 })
 
 const count = (status) => view.value?.devices?.filter((d) => d.status === status).length || 0
-const others = computed(() => Object.entries(view.value?.other || {}))
+// Kinds of objects with their number in the source, those there are.
+const objects = computed(() => Object.entries(view.value?.objects || {}).filter(([, n]) => n > 0))
+const made = (kind) => view.value?.made?.counts?.[kind] || 0
 const when = (d) => new Date(d).toLocaleString(locale.value)
 </script>
 
@@ -79,9 +86,9 @@ const when = (d) => new Date(d).toLocaleString(locale.value)
         {{ $t('migration.summary', { source: view.source, email: view.email, date: when(view.fetched) }) }}<br>
         {{ $t('migration.counts', { devices: view.devices.length, channels: view.channels, locations: view.locations, accessIds: view.accessIds }) }}
       </p>
-      <p v-if="others.length" class="alert warn">
-        {{ $t('migration.notMoved') }}
-        <span v-for="([k, n], i) in others" :key="k">{{ i ? ', ' : ' ' }}{{ $t('migration.other.' + k) }}: {{ n }}</span>
+      <p v-if="objects.length && !view.prepared">
+        {{ $t('migration.also') }}
+        <span v-for="([k, n], i) in objects" :key="k">{{ i ? ', ' : ' ' }}{{ $t('migration.kinds.' + k) }}: {{ n }}</span>.
       </p>
 
       <form v-if="!view.prepared" @submit.prevent="prepare">
@@ -98,6 +105,23 @@ const when = (d) => new Date(d).toLocaleString(locale.value)
 
       <template v-else>
         <p class="alert ok">{{ $t('migration.progress', { done: count('done'), all: view.devices.length }) }}</p>
+        <p v-if="objects.length">
+          {{ $t('migration.made') }}
+          <span v-for="([k, n], i) in objects" :key="k">{{ i ? ', ' : ' ' }}{{ $t('migration.kinds.' + k) }}: {{ made(k) }}/{{ n }}</span>.
+        </p>
+        <div v-if="view.made?.errors?.length" class="alert error">
+          {{ $t('migration.notMade') }}
+          <ul class="small"><li v-for="e in view.made.errors" :key="e">{{ e }}</li></ul>
+        </div>
+        <template v-if="view.links.length">
+          <p>{{ $t('migration.links') }}</p>
+          <table class="stack small">
+            <tr v-for="l in view.links" :key="l.url">
+              <td>{{ l.caption }}</td>
+              <td><code class="fingerprint">{{ l.url }}</code></td>
+            </tr>
+          </table>
+        </template>
         <p>{{ $t('migration.switch', { server: view.server }) }}</p>
         <p v-if="count('error')" class="alert error">{{ $t('migration.errors', { n: count('error') }) }}</p>
         <details>
@@ -112,9 +136,16 @@ const when = (d) => new Date(d).toLocaleString(locale.value)
             </tr>
           </table>
         </details>
+        <p v-if="view.history" :class="view.history.error ? 'alert error' : 'muted'">
+          {{ $t('migration.history', { date: when(view.history.time), n: view.history.items }) }}
+          <template v-if="view.history.error"> {{ view.history.error }}</template>
+        </p>
         <div class="row mt">
+          <button type="button" :disabled="busy" @click="history">{{ $t('migration.historyAgain') }}</button>
+          <span class="spacer"></span>
           <button type="button" class="link danger" :disabled="busy" @click="cancel">{{ $t('migration.finish') }}</button>
         </div>
+        <p class="muted small">{{ $t('migration.historyHelp') }}</p>
       </template>
     </template>
   </div>

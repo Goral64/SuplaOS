@@ -318,20 +318,13 @@
   },
   "migration": {
     "title": "Move from another Supla Cloud",
-    "intro": "Moves the devices, channels, locations and access IDs of your account on the public Supla Cloud (or another own server) here. Devices and channels keep their IDs, so the apps, MQTT, Home Assistant and scripts that use them keep working.",
+    "intro": "Moves your account on the public Supla Cloud (or another own server) here: devices, channels, locations, access IDs, channel groups, scenes, schedules, reactions, direct links, icons and the measurement history. Devices and channels keep their IDs, so the apps, MQTT, Home Assistant and scripts that use them keep working.",
     "token": "Personal access token of the source account",
-    "tokenHelp": "In that Supla Cloud: Account, Security, Personal access tokens. Give it the read scopes. It is used only to read the account, it is not kept.",
+    "tokenHelp": "In that Supla Cloud: Account, Security, Personal access tokens. Give it the read scopes. It is kept until the move ends, for the measurement history, and deleted then.",
     "read": "Read the account",
     "reading": "Reading...",
     "summary": "{source}, account {email}, read {date}.",
     "counts": "{devices} devices, {channels} channels, {locations} locations, {accessIds} access IDs.",
-    "notMoved": "Not moved (yet), set them again here:",
-    "other": {
-      "channelGroups": "channel groups",
-      "scenes": "scenes",
-      "schedules": "schedules",
-      "directLinks": "direct links"
-    },
     "prepareHelp": "The devices register with the e-mail of the account, so the account here is {email}. It is made with this password when there is none. The Supla here has to be fresh: without devices or locations of the same IDs.",
     "password": "Password of {email} here",
     "prepare": "Prepare the move",
@@ -348,7 +341,22 @@
     "cancel": "Cancel",
     "finish": "End the move",
     "cancelConfirm": "Forget the account read from the source?",
-    "cancelPreparedConfirm": "End the move? Devices that connect later do not get their settings any more. What was added to the Supla here stays."
+    "cancelPreparedConfirm": "End the move? Devices that connect later do not get their settings any more. What was added to the Supla here stays.",
+    "also": "Also",
+    "made": "Made",
+    "notMade": "Not moved, set them again here:",
+    "links": "Direct links get new addresses here, change them where you use them:",
+    "kinds": {
+      "icons": "icons",
+      "channelGroups": "channel groups",
+      "scenes": "scenes",
+      "schedules": "schedules",
+      "reactions": "reactions",
+      "directLinks": "direct links"
+    },
+    "history": "Measurement history: {n} log items, last copied {date}.",
+    "historyAgain": "Copy the newer history",
+    "historyHelp": "The source keeps logging until a device is switched here. Copy the newer history after switching the devices, before you end the move."
   },
   "suplaDevices": {
     "title": "CA certificate for devices (Custom CA)",
