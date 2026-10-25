@@ -120,6 +120,12 @@ func LimitsSQL(b *Bundle, userID int) string {
 	return fmt.Sprintf("UPDATE supla_user SET %s WHERE id = %d;\n", strings.Join(set, ", "), userID)
 }
 
+// AddScopeSQL gives an access token of this server one more scope.
+func AddScopeSQL(token, scope string) string {
+	return fmt.Sprintf("UPDATE supla_oauth_access_tokens SET scope = CONCAT(scope, ' ', %s) "+
+		"WHERE token = %s AND CONCAT(' ', scope, ' ') NOT LIKE %s;\n", str(scope), str(token), str("% "+scope+" %"))
+}
+
 // SkeletonSQL puts the locations, access IDs, devices and channels of the
 // bundle in the database of this server with their IDs, for the user.
 // Devices get no auth key: supla-server lets the device in with any key

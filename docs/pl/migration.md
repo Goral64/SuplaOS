@@ -19,7 +19,8 @@ dalej, gdy tylko wskażą nowy serwer.
 - Konto tutaj dostaje e-mail konta źródłowego (urządzenia rejestrują się tym
   adresem). Jeśli go nie ma, przeniesienie je zakłada, z podanym hasłem.
 - W źródłowym Supla Cloud utwórz osobisty token dostępowy: Konto,
-  Bezpieczeństwo, Osobiste tokeny dostępowe, z zakresami odczytu.
+  Bezpieczeństwo, Osobiste tokeny dostępowe, z zakresami odczytu. Żeby
+  przenieść też SUPLA Scripts, dodaj Kanały: wykonywanie akcji.
 
 ## Przenoszenie
 
@@ -41,6 +42,26 @@ dalej, gdy tylko wskażą nowy serwer.
 
 Dopóki urządzenia nie przestawisz, działa ze źródłem jak dotąd, a jego
 stary wpis tam zostaje, więc możesz wrócić, ustawiając dawny serwer.
+
+## SUPLA Scripts
+
+Jeśli korzystasz z SUPLA Scripts i masz go tu zainstalowanego, karta
+przeniesie też jego sceny, grupy scen, termostaty i powiadomienia. Odwołują
+się do kanałów po ID, które przeniesienie zachowuje, więc działają tu tak
+jak wcześniej.
+
+- Konto, które loguje się do SUPLA Scripts tylko przez Supla Cloud,
+  potrzebuje tam najpierw nazwy użytkownika i hasła, inaczej token nie
+  zostanie wpuszczony. Żeby je ustawić, wyloguj się z SUPLA Scripts,
+  wybierz Inne metody logowania, powiąż konto z prywatnym Supla Cloud,
+  wklej osobisty token i wpisz nazwę użytkownika i hasło. Logowanie przez
+  Suplę działa dalej.
+- SUPLA Scripts wymaga tokena z zakresem Kanały: wykonywanie akcji. Jeśli
+  token, którym przenosisz konto, ma tylko zakresy odczytu, utwórz drugi,
+  z tym zakresem, i wklej go w karcie obok adresu SUPLA Scripts.
+- Obiekty, które już tu są pod tą samą nazwą, są pomijane.
+- Powiadomienia idą na telefony zarejestrowane tutaj, więc przed ich
+  przeniesieniem zarejestruj aplikację w tutejszym SUPLA Scripts.
 
 ## Co się zmienia
 

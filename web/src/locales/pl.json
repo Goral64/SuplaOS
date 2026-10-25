@@ -320,7 +320,7 @@
     "title": "Przeniesienie z innego Supla Cloud",
     "intro": "Przenosi tu Twoje konto z publicznego Supla Cloud (albo innego własnego serwera): urządzenia, kanały, lokalizacje, identyfikatory dostępu, grupy kanałów, sceny, harmonogramy, reakcje, linki bezpośrednie, ikony i historię pomiarów. Urządzenia i kanały zachowują swoje ID, więc aplikacje, MQTT, Home Assistant i skrypty, które z nich korzystają, działają dalej.",
     "token": "Osobisty token dostępowy konta źródłowego",
-    "tokenHelp": "W tamtym Supla Cloud: Konto, Bezpieczeństwo, Osobiste tokeny dostępowe. Nadaj mu zakresy odczytu. Jest przechowywany do końca przenoszenia, dla historii pomiarów, a potem usuwany.",
+    "tokenHelp": "W tamtym Supla Cloud: Konto, Bezpieczeństwo, Osobiste tokeny dostępowe. Nadaj mu zakresy odczytu, a dla SUPLA Scripts także Kanały: wykonywanie akcji. Jest przechowywany do końca przenoszenia, dla historii pomiarów, a potem usuwany.",
     "read": "Odczytaj konto",
     "reading": "Odczytuję...",
     "summary": "{source}, konto {email}, odczytane {date}.",
@@ -356,7 +356,19 @@
     },
     "history": "Historia pomiarów: {n} wpisów, ostatnio dociągnięta {date}.",
     "historyAgain": "Dociągnij nowszą historię",
-    "historyHelp": "Źródło zapisuje pomiary, dopóki urządzenie nie zostanie przestawione tutaj. Po przestawieniu urządzeń dociągnij nowszą historię, zanim zakończysz przenoszenie."
+    "historyHelp": "Źródło zapisuje pomiary, dopóki urządzenie nie zostanie przestawione tutaj. Po przestawieniu urządzeń dociągnij nowszą historię, zanim zakończysz przenoszenie.",
+    "scriptsHelp": "Sceny, termostaty i powiadomienia SUPLA Scripts konta źródłowego przechodzą do SUPLA Scripts tutaj. Odwołują się do kanałów po ID, które przeniesienie zachowuje. Konto, które loguje się tam tylko przez Supla Cloud, potrzebuje najpierw nazwy użytkownika i hasła (strona logowania SUPLA Scripts: Inne metody logowania, powiązanie z prywatnym Supla Cloud tokenem). Telefony dla powiadomień rejestruje się w aplikacji od nowa.",
+    "scriptsURL": "Adres źródłowego SUPLA Scripts",
+    "scriptsToken": "Inny token (opcjonalnie)",
+    "scriptsTokenHelp": "Tylko gdy token przeniesienia nie ma zakresu Kanały: wykonywanie akcji. Służy tylko do tego i nie jest zapisywany.",
+    "scriptsMove": "Przenieś SUPLA Scripts",
+    "scriptsDone": "Przeniesione {date}:",
+    "scriptsKinds": {
+      "sceneGroups": "grupy scen",
+      "scenes": "sceny",
+      "thermostats": "termostaty",
+      "notifications": "powiadomienia"
+    }
   },
   "suplaDevices": {
     "title": "Certyfikat CA dla urządzeń (Custom CA)",
@@ -399,7 +411,8 @@
     "restart": "Ponowne uruchamianie: {name}",
     "update": "Aktualizacja: {name}",
     "backup": "Kopia: {name}",
-    "certificate_for": "Certyfikat dla {name}"
+    "certificate_for": "Certyfikat dla {name}",
+    "moveScripts": "Przenoszenie SUPLA Scripts"
   },
   "power": {
     "rebootTitle": "Ponowne uruchamianie",

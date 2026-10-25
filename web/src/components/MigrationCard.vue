@@ -8,6 +8,8 @@ import { runJob } from './jobs'
 const { t, locale } = useI18n()
 const view = ref(null)
 const token = ref('')
+const scriptsURL = ref('https://scripts.supla.io')
+const scriptsToken = ref('')
 const password = ref('')
 const error = ref('')
 const busy = ref(false)
@@ -49,6 +51,11 @@ const prepare = () => call(async () => {
 
 const history = () => call(async () => {
   await runJob('POST', '/migration/history')
+  await load()
+})
+
+const moveScripts = () => call(async () => {
+  await runJob('POST', '/migration/scripts', { url: scriptsURL.value, token: scriptsToken.value.trim() })
   await load()
 })
 
@@ -140,6 +147,27 @@ const when = (d) => new Date(d).toLocaleString(locale.value)
           {{ $t('migration.history', { date: when(view.history.time), n: view.history.items }) }}
           <template v-if="view.history.error"> {{ view.history.error }}</template>
         </p>
+        <form v-if="view.scriptsInstalled" class="mt" @submit.prevent="moveScripts">
+          <h3>SUPLA Scripts</h3>
+          <p class="muted small">{{ $t('migration.scriptsHelp') }}</p>
+          <div class="field">
+            <label for="mig-scripts">{{ $t('migration.scriptsURL') }}</label>
+            <input id="mig-scripts" v-model="scriptsURL" type="url" required>
+          </div>
+          <div class="field">
+            <label for="mig-scripts-token">{{ $t('migration.scriptsToken') }}</label>
+            <textarea id="mig-scripts-token" v-model="scriptsToken" rows="2" spellcheck="false"></textarea>
+            <div class="help">{{ $t('migration.scriptsTokenHelp') }}</div>
+          </div>
+          <p v-if="view.scripts">
+            {{ $t('migration.scriptsDone', { date: when(view.scripts.time) }) }}
+            <span v-for="([k, n], i) in Object.entries(view.scripts.counts || {})" :key="k">{{ i ? ', ' : ' ' }}{{ $t('migration.scriptsKinds.' + k) }}: {{ n }}</span>
+          </p>
+          <div v-if="view.scripts?.errors?.length" class="alert error">
+            <ul class="small"><li v-for="e in view.scripts.errors" :key="e">{{ e }}</li></ul>
+          </div>
+          <button :disabled="busy">{{ $t('migration.scriptsMove') }}</button>
+        </form>
         <div class="row mt">
           <button type="button" :disabled="busy" @click="history">{{ $t('migration.historyAgain') }}</button>
           <span class="spacer"></span>

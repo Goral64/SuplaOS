@@ -44,6 +44,8 @@ type State struct {
 	// the move ends.
 	SourceToken string      `json:"sourceToken,omitempty"`
 	History     *HistoryRun `json:"history,omitempty"`
+	// Scripts is the result of moving the objects of SUPLA Scripts.
+	Scripts *ScriptsResult `json:"scripts,omitempty"`
 }
 
 // HistoryRun is the last import of measurement logs: Items of all of

@@ -157,6 +157,7 @@ func (s *Server) Handler() http.Handler {
 	api("POST /api/migration/fetch", s.fetchMigration)
 	api("POST /api/migration/prepare", s.prepareMigration)
 	api("POST /api/migration/history", s.historyMigration)
+	api("POST /api/migration/scripts", s.scriptsMigration)
 	api("DELETE /api/migration", s.cancelMigration)
 
 	api("POST /api/addons/apply", s.applyAddons)

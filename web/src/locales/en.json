@@ -320,7 +320,7 @@
     "title": "Move from another Supla Cloud",
     "intro": "Moves your account on the public Supla Cloud (or another own server) here: devices, channels, locations, access IDs, channel groups, scenes, schedules, reactions, direct links, icons and the measurement history. Devices and channels keep their IDs, so the apps, MQTT, Home Assistant and scripts that use them keep working.",
     "token": "Personal access token of the source account",
-    "tokenHelp": "In that Supla Cloud: Account, Security, Personal access tokens. Give it the read scopes. It is kept until the move ends, for the measurement history, and deleted then.",
+    "tokenHelp": "In that Supla Cloud: Account, Security, Personal access tokens. Give it the read scopes, and for SUPLA Scripts also Channels: execute actions. It is kept until the move ends, for the measurement history, and deleted then.",
     "read": "Read the account",
     "reading": "Reading...",
     "summary": "{source}, account {email}, read {date}.",
@@ -356,7 +356,19 @@
     },
     "history": "Measurement history: {n} log items, last copied {date}.",
     "historyAgain": "Copy the newer history",
-    "historyHelp": "The source keeps logging until a device is switched here. Copy the newer history after switching the devices, before you end the move."
+    "historyHelp": "The source keeps logging until a device is switched here. Copy the newer history after switching the devices, before you end the move.",
+    "scriptsHelp": "Scenes, thermostats and notifications of SUPLA Scripts of the source account move to SUPLA Scripts here. They refer to the channels by the IDs the move keeps. An account that logs in there only through Supla Cloud needs a username and password first (SUPLA Scripts login page: other ways to log in, link with a private Supla Cloud by a token). Phones for notifications are registered again in the app.",
+    "scriptsURL": "Address of the source SUPLA Scripts",
+    "scriptsToken": "Another token (optional)",
+    "scriptsTokenHelp": "Only if the token of the move has no Channels: execute actions. It is used for this and not kept.",
+    "scriptsMove": "Move SUPLA Scripts",
+    "scriptsDone": "Moved {date}:",
+    "scriptsKinds": {
+      "sceneGroups": "scene groups",
+      "scenes": "scenes",
+      "thermostats": "thermostats",
+      "notifications": "notifications"
+    }
   },
   "suplaDevices": {
     "title": "CA certificate for devices (Custom CA)",
@@ -399,7 +411,8 @@
     "restart": "Restarting {name}",
     "update": "Updating {name}",
     "backup": "Backup of {name}",
-    "certificate_for": "Certificate for {name}"
+    "certificate_for": "Certificate for {name}",
+    "moveScripts": "Moving SUPLA Scripts"
   },
   "power": {
     "rebootTitle": "Restarting",

@@ -31,6 +31,7 @@ const fixedTitles = {
   'restore full backup': 'restoreFull',
   'prepare the move from Supla Cloud': 'prepareMove',
   'copy the measurement history': 'copyHistory',
+  'move SUPLA Scripts': 'moveScripts',
   'certificate of the device': 'deviceCertificate',
 }
 const namedTitles = ['install', 'configure', 'remove', 'restore', 'start', 'stop', 'restart', 'update', 'backup', 'certificate for']

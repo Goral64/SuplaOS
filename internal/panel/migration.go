@@ -1,6 +1,8 @@
 package panel
 
 import (
+	"crypto/rand"
+	"encoding/base64"
 	"errors"
 	"fmt"
 	"log"
@@ -18,7 +20,8 @@ func (s *Server) migrationStore() migrate.Store {
 }
 
 // migrationScope lets the panel set what the move needs in the local Cloud.
-const migrationScope = "accessids_rw account_rw channels_rw channelgroups_rw directlinks_rw iodevices_rw locations_rw scenes_rw schedules_rw"
+// SUPLA Scripts logs in only with channels_ea.
+const migrationScope = "accessids_rw account_rw channels_rw channels_ea channelgroups_rw directlinks_rw iodevices_rw locations_rw scenes_rw schedules_rw"
 
 // cloudCaller is the Cloud client of the panel for package migrate.
 type cloudCaller struct{ *cloudAPI }
@@ -67,9 +70,10 @@ func (s *Server) getMigration(w http.ResponseWriter, r *http.Request) {
 	if !st.Prepared.IsZero() {
 		prepared = &st.Prepared
 	}
-	server := ""
+	server, scripts := "", false
 	if stk, err := s.openStack(); err == nil && stk.IsInstalled("supla") {
 		server = stk.Values(stk.Catalog["supla"])["SUPLA_HOST_ADDRESS"]
+		scripts = stk.IsInstalled("supla-scripts")
 	}
 	type link struct {
 		Caption string `json:"caption"`
@@ -88,7 +92,7 @@ func (s *Server) getMigration(w http.ResponseWriter, r *http.Request) {
 			"icons": len(b.UserIcons), "channelGroups": len(b.ChannelGroups), "scenes": len(b.Scenes),
 			"schedules": len(b.Schedules), "reactions": len(b.Reactions), "directLinks": len(b.DirectLinks),
 		},
-		"made": st.Objects, "links": links, "history": st.History,
+		"made": st.Objects, "links": links, "history": st.History, "scripts": st.Scripts, "scriptsInstalled": scripts,
 		"prepared": prepared, "devices": devices, "server": server,
 	})
 }
@@ -258,6 +262,82 @@ func (s *Server) historyMigration(w http.ResponseWriter, r *http.Request) {
 		}
 		return nil
 	})
+}
+
+// scriptsMigration copies the objects of SUPLA Scripts of the source
+// account (scenes, thermostats, notifications) to SUPLA Scripts here.
+func (s *Server) scriptsMigration(w http.ResponseWriter, r *http.Request) {
+	var req struct {
+		URL   string `json:"url"`
+		Token string `json:"token"`
+	}
+	if err := readJSON(r, &req); err != nil {
+		jsonError(w, http.StatusBadRequest, err)
+		return
+	}
+	if !strings.HasPrefix(req.URL, "https://") {
+		jsonError(w, http.StatusBadRequest, errors.New("the address of SUPLA Scripts starts with https://"))
+		return
+	}
+	store := s.migrationStore()
+	s.stackJob(w, "move SUPLA Scripts", func(st *stack.Stack, j *Job) error {
+		s.migration.Lock()
+		defer s.migration.Unlock()
+		state, err := store.State()
+		if err != nil || state.Prepared.IsZero() {
+			return errors.New("prepare the move first")
+		}
+		if !st.IsInstalled("supla-scripts") {
+			return errors.New("SUPLA Scripts is not installed")
+		}
+		// The token of the move may lack Channels: execute actions, which
+		// SUPLA Scripts asks for.
+		token := state.SourceToken
+		if req.Token != "" {
+			token = req.Token
+		}
+		j.Logf("Reading %s", req.URL)
+		src, err := migrate.ScriptsLogin(req.URL, token, "", "", nil)
+		if err != nil {
+			return err
+		}
+		bundle, err := src.ExportScripts()
+		if err != nil {
+			return err
+		}
+		j.Logf("%d scenes, %d thermostats, %d notifications", len(bundle.Scenes), len(bundle.Thermostats), len(bundle.Notifications))
+		local, err := s.cloudClient("https://127.0.0.1:" + st.Values(st.Catalog["supla-scripts"])["SUPLA_SCRIPTS_PORT"])
+		if err != nil {
+			return err
+		}
+		// A move prepared before SUPLA Scripts was moved has a token
+		// without the scope SUPLA Scripts asks for.
+		if _, err := (migrate.StackDB{Stack: st}).Query(migrate.AddScopeSQL(state.Token, "channels_ea")); err != nil {
+			return err
+		}
+		dst, err := migrate.ScriptsLogin(local.url, state.Token, "", "", local.client)
+		if errors.Is(err, migrate.ErrScriptsNoLogin) {
+			// An account of SUPLA Scripts here logged in only through the
+			// Cloud: a username lets the token in; the Cloud login stays.
+			b, berr := store.Bundle()
+			if berr != nil || b == nil {
+				return err
+			}
+			dst, err = migrate.ScriptsLogin(local.url, state.Token, b.Email, randomPassword(), local.client)
+		}
+		if err != nil {
+			return fmt.Errorf("SUPLA Scripts here: %w", err)
+		}
+		state.Scripts = migrate.ImportScripts(dst, bundle, j)
+		return store.SaveState(state)
+	})
+}
+
+// randomPassword is a password nobody types: the Cloud login is used.
+func randomPassword() string {
+	b := make([]byte, 18)
+	rand.Read(b)
+	return base64.RawURLEncoding.EncodeToString(b)
 }
 
 func (s *Server) cancelMigration(w http.ResponseWriter, r *http.Request) {

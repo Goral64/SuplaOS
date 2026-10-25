@@ -19,7 +19,8 @@ point to the new server.
 - The account here gets the e-mail of the source account (devices register
   with it). If there is none, the move makes it, with the password you give.
 - In the source Supla Cloud make a personal access token: Account, Security,
-  Personal access tokens, with the read scopes.
+  Personal access tokens, with the read scopes. To move SUPLA Scripts too,
+  add Channels: execute actions.
 
 ## Moving
 
@@ -40,6 +41,24 @@ point to the new server.
 
 Until a device is switched, it works with the source as before, and its old
 entry stays there, so you can go back by setting the old server again.
+
+## SUPLA Scripts
+
+If you use SUPLA Scripts and have it installed here, the card can move its
+scenes, scene groups, thermostats and notifications too. They refer to
+channels by ID, which the move keeps, so they work here as they did.
+
+- An account that signs in to SUPLA Scripts only through Supla Cloud needs a
+  username and password there first, otherwise the token is not let in. To
+  set them, sign out of SUPLA Scripts, choose Other login methods, link the
+  account with a private Supla Cloud, paste a personal token and fill in the
+  username and password. Signing in through Supla keeps working.
+- SUPLA Scripts asks for a token with Channels: execute actions. If the
+  token you moved with has only the read scopes, make another one with it
+  and paste it in the card next to the address of SUPLA Scripts.
+- Objects that already exist here with the same name are skipped.
+- Notifications go to the phones registered here, so register the app with
+  SUPLA Scripts here before moving them.
 
 ## What changes
 
