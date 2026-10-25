@@ -3,6 +3,7 @@ package migrate
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"math"
@@ -155,7 +156,8 @@ func insertSQL(k logKind, channel int, items []map[string]json.RawMessage) (stri
 // ImportHistory copies the measurement logs of the channels of the bundle
 // from the source, from the newest one already here on, and returns how
 // many items were read. It can be run again later to add what the source
-// logged until the devices were switched.
+// logged until the devices were switched. A channel deleted in the source
+// meanwhile is skipped: its history up to then is here already.
 func ImportHistory(src *Source, db DB, b *Bundle, log io.Writer) (int, error) {
 	total := 0
 	for _, d := range b.Devices {
@@ -172,6 +174,10 @@ func ImportHistory(src *Source, db DB, b *Bundle, log io.Writer) (int, error) {
 				n := 0
 				for offset := 0; ; offset += logsPage {
 					items, err := src.logs(c.ID, k.logsType, after, offset)
+					if errors.Is(err, errGone) {
+						fmt.Fprintf(log, "Channel %d: not in the source any more, skipped\n", c.ID)
+						break
+					}
 					if err != nil {
 						return total, fmt.Errorf("channel %d: %w", c.ID, err)
 					}

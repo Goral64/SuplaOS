@@ -202,6 +202,9 @@ func NewSource(token string) (*Source, error) {
 		client: &http.Client{Timeout: time.Minute}}, nil
 }
 
+// errGone: the object is not in the source (any more).
+var errGone = errors.New("not in the source")
+
 func (s *Source) get(path string, out any) error {
 	req, err := http.NewRequest("GET", s.Server+"/api/v3/"+path, nil)
 	if err != nil {
@@ -223,6 +226,8 @@ func (s *Source) get(path string, out any) error {
 		return errors.New("the source Cloud refused the token")
 	case res.StatusCode == http.StatusForbidden:
 		return fmt.Errorf("the token may not read %s: give it the read scopes", strings.Split(path, "?")[0])
+	case res.StatusCode == http.StatusNotFound:
+		return fmt.Errorf("source Cloud: GET %s: %w", path, errGone)
 	case res.StatusCode >= 300:
 		return fmt.Errorf("source Cloud: GET %s: %s", path, res.Status)
 	}

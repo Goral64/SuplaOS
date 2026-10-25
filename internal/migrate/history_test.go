@@ -53,6 +53,10 @@ func TestImportHistory(t *testing.T) {
 	var asked []string
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		asked = append(asked, r.URL.Path+"?"+r.URL.RawQuery)
+		if strings.Contains(r.URL.Path, "/channels/9/") {
+			http.NotFound(w, r) // deleted in the source
+			return
+		}
 		if r.URL.Query().Get("offset") != "0" {
 			io.WriteString(w, "[]")
 			return
@@ -62,6 +66,7 @@ func TestImportHistory(t *testing.T) {
 	defer ts.Close()
 	src := &Source{Server: ts.URL, token: "t", client: ts.Client()}
 	b := &Bundle{Devices: []Device{{ID: 1, Channels: []Channel{
+		{ID: 9, FunctionID: 40},   // thermometer deleted in the source
 		{ID: 10, FunctionID: 40},  // thermometer: logs
 		{ID: 11, FunctionID: 130}, // power switch: none
 	}}}}
@@ -70,8 +75,8 @@ func TestImportHistory(t *testing.T) {
 	if err != nil || n != 2 {
 		t.Fatalf("%d %v", n, err)
 	}
-	if len(asked) != 1 || !strings.Contains(asked[0], "/api/v3/channels/10/measurement-logs?") ||
-		!strings.Contains(asked[0], "afterTimestamp=1700000000") || !strings.Contains(asked[0], "order=ASC") {
+	if len(asked) != 2 || !strings.Contains(asked[1], "/api/v3/channels/10/measurement-logs?") ||
+		!strings.Contains(asked[1], "afterTimestamp=1700000000") || !strings.Contains(asked[1], "order=ASC") {
 		t.Errorf("asked %v", asked)
 	}
 	last := db.ran[len(db.ran)-1]
