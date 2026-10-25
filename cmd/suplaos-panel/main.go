@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/Goral64/SuplaOS/internal/panel"
+	"github.com/Goral64/SuplaOS/internal/system"
 	"github.com/Goral64/SuplaOS/web"
 )
 
@@ -41,6 +42,11 @@ func main() {
 	go s.WatchImages()
 	go s.WatchCertificates()
 	go s.WatchBackups()
+	go func() {
+		if err := system.ApplyWifiCountry(); err != nil {
+			log.Printf("wifi country: %v", err)
+		}
+	}()
 	go s.WatchProxies(tlsConfig)
 	go s.ApplyPending()
 	if *redirect != "" {

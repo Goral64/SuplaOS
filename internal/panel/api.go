@@ -151,6 +151,10 @@ func (s *Server) putSettings(w http.ResponseWriter, r *http.Request) {
 			jsonError(w, http.StatusBadRequest, err)
 			return
 		}
+		// The Wi-Fi follows the radio rules of the country of the zone.
+		if err := system.ApplyWifiCountry(); err != nil {
+			log.Printf("wifi country: %v", err)
+		}
 	}
 	if req.Hostname != nil {
 		if host, _ := os.Hostname(); host != *req.Hostname {

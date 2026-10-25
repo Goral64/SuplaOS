@@ -304,9 +304,9 @@ func (s *Stack) extract(root *os.Root, file, password string, m *Manifest) error
 }
 
 // loadNew loads a dump into a database just started on an empty data
-// directory: it takes a while to initialize, so loading is tried again for
-// up to two minutes. The restore command drops what is there first, so a
-// failed try does no harm.
+// directory: it takes a while to initialize (minutes on a Raspberry Pi), so
+// loading is tried again for up to loadWait. The restore command drops what
+// is there first, so a failed try does no harm.
 func (s *Stack) loadNew(a *addon.Addon, dump string) error {
 	// The errors of the tries before it is ready are not shown, only those
 	// of the last one.
@@ -314,11 +314,15 @@ func (s *Stack) loadNew(a *addon.Addon, dump string) error {
 	defer func() { s.Stderr = stderr }()
 	var msg bytes.Buffer
 	var err error
-	for try := 0; try < 40; try++ {
-		if try == 1 {
-			fmt.Fprintln(s.stdout(), "Waiting for the database")
-		}
+	start := time.Now()
+	said := time.Duration(0)
+	for try := 0; try == 0 || time.Since(start) < loadWait; try++ {
 		if try > 0 {
+			// A line now and then, so that the wait does not look stuck.
+			if w := time.Since(start).Truncate(time.Minute); try == 1 || w > said {
+				fmt.Fprintln(s.stdout(), "Waiting for the database")
+				said = w
+			}
 			time.Sleep(loadRetry)
 		}
 		var f *os.File
@@ -338,8 +342,12 @@ func (s *Stack) loadNew(a *addon.Addon, dump string) error {
 	return err
 }
 
-// loadRetry is the pause between tries of loadNew.
-var loadRetry = 3 * time.Second
+// loadRetry is the pause between tries of loadNew, loadWait how long it
+// tries.
+var (
+	loadRetry = 3 * time.Second
+	loadWait  = 10 * time.Minute
+)
 
 // importWarnings points at options that may not fit the new device: a
 // serial port that is not there, an address of the old device.

@@ -27,6 +27,9 @@ actions:
       - iputils-ping
       - network-manager
       - wpasupplicant
+      # Radio rules of the country for Wi-Fi.
+      - wireless-regdb
+      - iw
       - openssh-server
       - avahi-daemon
       - libnss-mdns

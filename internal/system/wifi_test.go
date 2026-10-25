@@ -1,6 +1,7 @@
 package system
 
 import (
+	"os"
 	"reflect"
 	"testing"
 )
@@ -40,6 +41,18 @@ func TestWifiConnectValidate(t *testing.T) {
 	for _, c := range []WifiConnect{{SSID: "Kawiarnia"}, {SSID: "Dom", Password: "12345678"}} {
 		if err := c.Validate(); err != nil {
 			t.Errorf("%+v: %v", c, err)
+		}
+	}
+}
+
+func TestCountryOf(t *testing.T) {
+	old := zoneTab
+	zoneTab = t.TempDir() + "/zone.tab"
+	t.Cleanup(func() { zoneTab = old })
+	os.WriteFile(zoneTab, []byte("# comment\nPL\t+5215+02100\tEurope/Warsaw\nDE\t+5230+01322\tEurope/Berlin\tmost of Germany\n"), 0o644)
+	for tz, want := range map[string]string{"Europe/Warsaw": "PL", "Europe/Berlin": "DE", "UTC": "", "Europe/Nowhere": ""} {
+		if got := CountryOf(tz); got != want {
+			t.Errorf("CountryOf(%s) = %q", tz, got)
 		}
 	}
 }

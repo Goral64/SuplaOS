@@ -297,3 +297,51 @@ func ForgetWifi(name string) error {
 	}
 	return run("nmcli", "connection", "delete", "id", name)
 }
+
+// zoneTab maps time zones to countries (tzdata).
+var zoneTab = "/usr/share/zoneinfo/zone.tab"
+
+// CountryOf returns the country code of a time zone, "" when there is
+// none (UTC).
+func CountryOf(tz string) string {
+	data, err := os.ReadFile(zoneTab)
+	if err != nil {
+		return ""
+	}
+	for _, line := range strings.Split(string(data), "\n") {
+		f := strings.Fields(line)
+		if len(f) >= 3 && !strings.HasPrefix(f[0], "#") && f[2] == tz {
+			return f[0]
+		}
+	}
+	return ""
+}
+
+// wifiCountryFile sets the country when cfg80211 loads as a module (x86-64);
+// the panel sets it again at every start.
+var wifiCountryFile = "/etc/modprobe.d/suplaos-wifi-country.conf"
+
+// SetWifiCountry sets the country whose radio rules Wi-Fi follows. Without
+// it the card keeps to the rules valid everywhere: no 5 GHz channels on
+// some cards, and their drivers complain on the console.
+func SetWifiCountry(country string) error {
+	if len(country) != 2 {
+		return nil
+	}
+	line := "options cfg80211 ieee80211_regdom=" + country + "\n"
+	if data, err := os.ReadFile(wifiCountryFile); err != nil || string(data) != line {
+		if err := os.WriteFile(wifiCountryFile, []byte(line), 0o644); err != nil {
+			return err
+		}
+	}
+	// The database may have come after cfg80211 started (wireless-regdb
+	// installed by an update), which reads it only once; built into the
+	// kernel (Raspberry Pi) it does not see the modprobe option either.
+	run("iw", "reg", "reload")
+	return run("iw", "reg", "set", country)
+}
+
+// ApplyWifiCountry sets the country of the time zone of the system.
+func ApplyWifiCountry() error {
+	return SetWifiCountry(CountryOf(Timezone()))
+}
