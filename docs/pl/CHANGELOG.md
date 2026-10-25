@@ -2,6 +2,15 @@
 
 [In English](../../CHANGELOG.md)
 
+## 0.9.2
+
+- Przeniesienie z Supla Cloud przenosi też SUPLA Scripts: sceny, grupy scen,
+  termostaty i powiadomienia trafiają do SUPLA Scripts zainstalowanego
+  tutaj, razem z odwołaniami do kanałów i do siebie nawzajem. SUPLA Scripts
+  wymaga tokena z zakresem Kanały: wykonywanie akcji; jeśli token
+  przeniesienia ma tylko zakresy odczytu, w karcie można podać drugi.
+  Przeniesienie zaczęte w 0.9.0 albo 0.9.1 też może przenieść SUPLA Scripts.
+
 ## 0.9.1
 
 - Przeniesienie z Supla Cloud podnosi limity konta tutaj (liczbę urządzeń,

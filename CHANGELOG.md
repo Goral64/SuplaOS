@@ -2,6 +2,15 @@
 
 [Po polsku](docs/pl/CHANGELOG.md)
 
+## 0.9.2
+
+- Moving from Supla Cloud can also move SUPLA Scripts: scenes, scene groups,
+  thermostats and notifications go to SUPLA Scripts installed here, with
+  their references to channels and to each other. SUPLA Scripts needs a
+  token with Channels: execute actions; if the token of the move has only
+  the read scopes, another one can be given in the card. A move started in
+  0.9.0 or 0.9.1 can move SUPLA Scripts too.
+
 ## 0.9.1
 
 - Moving from Supla Cloud raises the limits of the account here (number of
