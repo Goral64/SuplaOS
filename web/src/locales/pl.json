@@ -316,6 +316,40 @@
     "gpioHelp": "Oficjalny wentylator obudowy Raspberry Pi 4 jest na GPIO 14, Pimoroni Fan SHIM na GPIO 18. Wyłącza się 10 °C niżej. Steruje nim jądro, także gdy panel nie działa.",
     "rebootNeeded": "Uruchom urządzenie ponownie, żeby zastosować ustawienia wentylatora."
   },
+  "migration": {
+    "title": "Przeniesienie z innego Supla Cloud",
+    "intro": "Przenosi tu urządzenia, kanały, lokalizacje i identyfikatory dostępu z Twojego konta w publicznym Supla Cloud (albo na innym własnym serwerze). Urządzenia i kanały zachowują swoje ID, więc aplikacje, MQTT, Home Assistant i skrypty, które z nich korzystają, działają dalej.",
+    "token": "Osobisty token dostępowy konta źródłowego",
+    "tokenHelp": "W tamtym Supla Cloud: Konto, Bezpieczeństwo, Osobiste tokeny dostępowe. Nadaj mu zakresy odczytu. Służy tylko do odczytu konta i nie jest zapisywany.",
+    "read": "Odczytaj konto",
+    "reading": "Odczytuję...",
+    "summary": "{source}, konto {email}, odczytane {date}.",
+    "counts": "{devices} urządzeń, {channels} kanałów, {locations} lokalizacji, {accessIds} identyfikatorów dostępu.",
+    "notMoved": "Nie przenosi się (jeszcze), ustaw je tu ponownie:",
+    "other": {
+      "channelGroups": "grupy kanałów",
+      "scenes": "sceny",
+      "schedules": "harmonogramy",
+      "directLinks": "linki bezpośrednie"
+    },
+    "prepareHelp": "Urządzenia rejestrują się adresem e-mail konta, więc konto tutaj to {email}. Jeśli go nie ma, powstanie z tym hasłem. Supla tutaj musi być świeża: bez urządzeń i lokalizacji o tych samych ID.",
+    "password": "Hasło konta {email} tutaj",
+    "prepare": "Przygotuj przeniesienie",
+    "prepareConfirm": "Urządzenia, kanały, lokalizacje i identyfikatory dostępu zostaną dodane do Supli tutaj z ich ID. Potem przestaw urządzenia po kolei na ten serwer. Kontynuować?",
+    "progress": "Przeniesione urządzenia: {done} z {all}.",
+    "switch": "Przestaw każde urządzenie na serwer {server}: na jego stronie konfiguracji (GUI-Generic, SuplaDevice), w aplikacji Supla Config dla urządzeń fabrycznych albo w opcjach Zigbee2Supla. Gdy się połączy, w ciągu minuty dostanie swoje ustawienia.",
+    "errors": "Urządzenia, które się połączyły, ale części ustawień nie przyjęto: {n}, zobacz listę.",
+    "list": "Urządzenia (czeka: {waiting})",
+    "status": {
+      "waiting": "czeka",
+      "done": "przeniesione",
+      "error": "błąd"
+    },
+    "cancel": "Anuluj",
+    "finish": "Zakończ przenoszenie",
+    "cancelConfirm": "Zapomnieć konto odczytane ze źródła?",
+    "cancelPreparedConfirm": "Zakończyć przenoszenie? Urządzenia, które połączą się później, nie dostaną już swoich ustawień. To, co dodano do Supli tutaj, zostaje."
+  },
   "changelog": {
     "title": "Zmiany w SuplaOS",
     "show": "Zmiany",

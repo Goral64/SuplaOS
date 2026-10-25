@@ -196,6 +196,12 @@ func (s *Stack) Backup(id string) (string, error) {
 	return path, nil
 }
 
+// Exec runs a command in the container of a service, with stdin and
+// stdout given.
+func (s *Stack) Exec(service string, stdin io.Reader, stdout io.Writer, cmd ...string) error {
+	return s.compose(stdin, stdout, append([]string{"exec", "-T", service}, cmd...)...)
+}
+
 // dump writes the database dump of an add-on to w.
 func (s *Stack) dump(a *addon.Addon, w io.Writer) error {
 	return s.compose(nil, w, append([]string{"exec", "-T", a.Backup.Service}, a.Backup.Command...)...)

@@ -316,6 +316,40 @@
     "gpioHelp": "The official Raspberry Pi 4 case fan is on GPIO 14, the Pimoroni Fan SHIM on GPIO 18. The fan goes off 10 °C below. The kernel switches it, also when the panel does not run.",
     "rebootNeeded": "Restart the device to apply the fan settings."
   },
+  "migration": {
+    "title": "Move from another Supla Cloud",
+    "intro": "Moves the devices, channels, locations and access IDs of your account on the public Supla Cloud (or another own server) here. Devices and channels keep their IDs, so the apps, MQTT, Home Assistant and scripts that use them keep working.",
+    "token": "Personal access token of the source account",
+    "tokenHelp": "In that Supla Cloud: Account, Security, Personal access tokens. Give it the read scopes. It is used only to read the account, it is not kept.",
+    "read": "Read the account",
+    "reading": "Reading...",
+    "summary": "{source}, account {email}, read {date}.",
+    "counts": "{devices} devices, {channels} channels, {locations} locations, {accessIds} access IDs.",
+    "notMoved": "Not moved (yet), set them again here:",
+    "other": {
+      "channelGroups": "channel groups",
+      "scenes": "scenes",
+      "schedules": "schedules",
+      "directLinks": "direct links"
+    },
+    "prepareHelp": "The devices register with the e-mail of the account, so the account here is {email}. It is made with this password when there is none. The Supla here has to be fresh: without devices or locations of the same IDs.",
+    "password": "Password of {email} here",
+    "prepare": "Prepare the move",
+    "prepareConfirm": "The devices, channels, locations and access IDs are added to the Supla here with their IDs. Then switch the devices one by one to this server. Continue?",
+    "progress": "{done} of {all} devices moved.",
+    "switch": "Switch every device to the server {server}: in its configuration page (GUI-Generic, SuplaDevice), in the Supla Config app for factory devices, or in the options of Zigbee2Supla. When it connects, it gets its settings within a minute.",
+    "errors": "{n} devices connected, but some settings were not accepted, see the list.",
+    "list": "Devices ({waiting} waiting)",
+    "status": {
+      "waiting": "waiting",
+      "done": "moved",
+      "error": "error"
+    },
+    "cancel": "Cancel",
+    "finish": "End the move",
+    "cancelConfirm": "Forget the account read from the source?",
+    "cancelPreparedConfirm": "End the move? Devices that connect later do not get their settings any more. What was added to the Supla here stays."
+  },
   "changelog": {
     "title": "Changes in SuplaOS",
     "show": "Changes",

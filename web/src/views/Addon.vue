@@ -10,6 +10,7 @@ import OptionField from '../components/OptionField.vue'
 import StateBadge from '../components/StateBadge.vue'
 import LogView from '../components/LogView.vue'
 import AccountFields from '../components/AccountFields.vue'
+import MigrationCard from '../components/MigrationCard.vue'
 
 const props = defineProps({ id: String })
 const router = useRouter()
@@ -257,6 +258,8 @@ function webURL(a) {
           <button class="primary">{{ $t('addon.cloudConnect') }}</button>
         </form>
       </div>
+
+      <MigrationCard v-if="addon.id === 'supla' && suplaRunning" />
 
       <div v-if="showAccount" class="card">
         <h2>{{ $t('addon.account') }}</h2>

@@ -11,9 +11,11 @@ import (
 	"sort"
 	"strings"
 	"text/tabwriter"
+	"time"
 
 	"github.com/Goral64/SuplaOS/internal/addon"
 	"github.com/Goral64/SuplaOS/internal/fan"
+	"github.com/Goral64/SuplaOS/internal/migrate"
 	"github.com/Goral64/SuplaOS/internal/stack"
 	"github.com/Goral64/SuplaOS/internal/system"
 )
@@ -48,6 +50,8 @@ System:
   export [-o file]             full backup of the device: add-ons with their data
                                and the CA, to backups/ by default (as root);
                                encrypted with SUPLAOS_BACKUP_PASSWORD when set
+  migrate fetch|prepare|status move an account of another Supla Cloud here (the
+                               token of the source in SUPLAOS_SOURCE_TOKEN)
   import <file> [--yes]        restore a full backup: replaces all add-ons and
                                their data (the current state is backed up
                                first, --yes when add-ons are installed)
@@ -137,6 +141,8 @@ func run(args []string) error {
 		return export(s, args)
 	case "import":
 		return importBackup(s, args)
+	case "migrate":
+		return migrateCmd(s, args)
 	case "backup":
 		if err := s.Lock(); err != nil {
 			return err
@@ -547,6 +553,64 @@ func export(s *stack.Stack, args []string) error {
 	}
 	fmt.Printf("Full backup saved to %s\n", path)
 	return nil
+}
+
+// migrateCmd reads an account of another Supla Cloud and puts its devices
+// and channels here, with their IDs.
+func migrateCmd(s *stack.Stack, args []string) error {
+	store := migrate.Store{Dir: filepath.Join(s.Root, "migration")}
+	if len(args) != 1 {
+		return errors.New("usage: suplaos migrate fetch|prepare|status")
+	}
+	switch args[0] {
+	case "fetch":
+		src, err := migrate.NewSource(os.Getenv("SUPLAOS_SOURCE_TOKEN"))
+		if err != nil {
+			return err
+		}
+		b, err := src.Fetch()
+		if err != nil {
+			return err
+		}
+		if err := store.SaveBundle(b); err != nil {
+			return err
+		}
+		fmt.Printf("%s, %s: %d devices, %d channels, %d locations, %d access IDs\n", b.Server, b.Email,
+			len(b.Devices), b.ChannelCount(), len(b.Locations), len(b.AccessIDs))
+		return nil
+	case "prepare":
+		if err := s.Lock(); err != nil {
+			return err
+		}
+		b, err := store.Bundle()
+		if err != nil || b == nil {
+			return fmt.Errorf("fetch the source first: %v", err)
+		}
+		st, err := store.State()
+		if err != nil {
+			return err
+		}
+		if !st.Prepared.IsZero() {
+			return errors.New("already prepared")
+		}
+		if err := migrate.Prepare(migrate.StackDB{Stack: s}, b, os.Stdout); err != nil {
+			return err
+		}
+		st.Prepared = time.Now().UTC()
+		return store.SaveState(st)
+	case "status":
+		b, err := store.Bundle()
+		if err != nil || b == nil {
+			return fmt.Errorf("no move: %v", err)
+		}
+		connected, err := migrate.Connected(migrate.StackDB{Stack: s}, b)
+		if err != nil {
+			return err
+		}
+		fmt.Printf("%d of %d devices connected to this server\n", len(connected), len(b.Devices))
+		return nil
+	}
+	return errors.New("usage: suplaos migrate fetch|prepare|status")
 }
 
 // importBackup restores a full backup.

@@ -150,6 +150,10 @@ func (s *Server) Handler() http.Handler {
 	api("GET /api/supla/users", s.suplaUsers)
 	api("POST /api/supla/users", s.createSuplaUser)
 	api("POST /api/supla-scripts/oauth", s.connectScripts)
+	api("GET /api/migration", s.getMigration)
+	api("POST /api/migration/fetch", s.fetchMigration)
+	api("POST /api/migration/prepare", s.prepareMigration)
+	api("DELETE /api/migration", s.cancelMigration)
 
 	api("POST /api/addons/apply", s.applyAddons)
 
