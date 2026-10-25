@@ -2,7 +2,7 @@
 
 [In English](../../CHANGELOG.md)
 
-## Niewydane
+## 0.9.0
 
 - Przeniesienie z innego Supla Cloud (strona dodatku Supla): konto
   w publicznym Supla Cloud albo na innym własnym serwerze przechodzi tu

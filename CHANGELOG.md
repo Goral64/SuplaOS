@@ -2,7 +2,7 @@
 
 [Po polsku](docs/pl/CHANGELOG.md)
 
-## Unreleased
+## 0.9.0
 
 - Move from another Supla Cloud (Supla add-on page): an account on the
   public Supla Cloud or another own server moves here with its devices,
