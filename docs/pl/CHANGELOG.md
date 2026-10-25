@@ -2,6 +2,15 @@
 
 [In English](../../CHANGELOG.md)
 
+## 0.9.1
+
+- Przeniesienie z Supla Cloud podnosi limity konta tutaj (liczbę urządzeń,
+  lokalizacji, identyfikatorów dostępu, scen, harmonogramów i inne), żeby
+  zmieściło się źródło z zapasem. W 0.9.0 konto z ponad 100 urządzeniami
+  przenosiło się, ale potem nie dało się dodać żadnego urządzenia.
+- Strefa czasowa konta jest przenoszona ze źródła.
+- Tytuły okien zadań są przetłumaczone.
+
 ## 0.9.0
 
 - Przeniesienie z innego Supla Cloud (strona dodatku Supla): konto

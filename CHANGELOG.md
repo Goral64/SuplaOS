@@ -2,6 +2,15 @@
 
 [Po polsku](docs/pl/CHANGELOG.md)
 
+## 0.9.1
+
+- Moving from Supla Cloud raises the limits of the account here (number of
+  devices, locations, access IDs, scenes, schedules and others) to fit the
+  source with room to spare. In 0.9.0 an account with more than 100 devices
+  was moved, but no device could be added afterwards.
+- The time zone of the account comes from the source.
+- The titles of the job windows are translated.
+
 ## 0.9.0
 
 - Move from another Supla Cloud (Supla add-on page): an account on the
