@@ -9,10 +9,10 @@ server at home. Write the image to an SD card or a disk, power the device on
 and do the rest from a web browser. Besides Supla you can add extras: an MQTT
 broker, Zigbee2MQTT, Zigbee2Supla, SUPLA Scripts.
 
-The project is at an early stage. The Raspberry Pi image has so far been
-tried on a Pi 3B+ (it runs Supla fine, but with 1 GB of RAM I wouldn't add
-much more), it still needs testing on a Pi 4 and 5. The x86-64 image runs on
-an HP T630 thin client. If you can help, see [testing](docs/testing.md).
+The project is at an early stage. The Raspberry Pi image runs on a Pi 4
+with an SSD and on a Pi 3B+ (Supla is fine there, but with 1 GB of RAM I
+wouldn't add much more), it still needs testing on a Pi 5. The x86-64 image
+runs on an HP T630 thin client. If you can help, see [testing](docs/testing.md).
 Images are in [Releases](https://github.com/Goral64/SuplaOS/releases).
 
 ## First start

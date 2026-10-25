@@ -2,6 +2,17 @@
 
 [Po polsku](docs/pl/CHANGELOG.md)
 
+## 0.8.1
+
+- Wi-Fi follows the rules of the country of the time zone, so 5 GHz
+  networks work. Before, the Raspberry Pi showed no 5 GHz networks and its
+  Wi-Fi driver filled the screen with "set chanspec ... fail" messages.
+- The screen of the device shows only critical kernel messages, the rest
+  is in the journal.
+- Restoring a full backup waits up to 10 minutes for a new database
+  instead of 2: on a Raspberry Pi it takes that long to start the first
+  time.
+
 ## 0.8.0
 
 - Full backup of the device (System, Full backup): all add-ons with their

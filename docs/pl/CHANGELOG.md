@@ -2,6 +2,16 @@
 
 [In English](../../CHANGELOG.md)
 
+## 0.8.1
+
+- Wi-Fi działa według przepisów kraju ze strefy czasowej, więc działają
+  sieci 5 GHz. Wcześniej Raspberry Pi nie widziało sieci 5 GHz, a sterownik
+  Wi-Fi zapełniał ekran komunikatami „set chanspec ... fail”.
+- Na ekranie urządzenia są tylko krytyczne komunikaty jądra, reszta jest
+  w dzienniku.
+- Przywracanie pełnej kopii czeka na nową bazę do 10 minut zamiast 2: na
+  Raspberry Pi tyle trwa jej pierwsze uruchomienie.
+
 ## 0.8.0
 
 - Pełna kopia urządzenia (System, Pełna kopia): wszystkie dodatki
