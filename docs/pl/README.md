@@ -11,8 +11,8 @@ brokera MQTT, Zigbee2MQTT, Zigbee2Supla, SUPLA Scripts.
 
 Projekt jest na wczesnym etapie. Obraz dla Raspberry Pi był na razie
 uruchomiony na Pi 3B+ (Supla działa dobrze, ale przy 1 GB RAM nie dokładałbym
-wiele więcej), wciąż czeka na test na Pi 4 i 5. Jeśli możesz pomóc, zobacz
-[testowanie](testing.md).
+wiele więcej), wciąż czeka na test na Pi 4 i 5. Obraz x86-64 działa na
+terminalu HP T630. Jeśli możesz pomóc, zobacz [testowanie](testing.md).
 Obrazy są w [Releases](https://github.com/Goral64/SuplaOS/releases).
 
 ## Pierwsze uruchomienie

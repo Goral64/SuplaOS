@@ -21,7 +21,9 @@ Write it to an SD card, a USB disk or an SSD with Raspberry Pi Imager
 directly. In Raspberry Pi Imager skip the "OS customisation", SuplaOS
 doesn't use it.
 
-The device needs a network cable, Wi-Fi isn't set up yet.
+The first start needs a network cable. The panel doesn't set up Wi-Fi yet,
+but you can do it over SSH with `sudo nmtui` (Activate a connection, pick
+the network, enter the password).
 
 ## First start
 

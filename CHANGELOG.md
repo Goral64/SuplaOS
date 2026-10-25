@@ -2,6 +2,12 @@
 
 [Po polsku](docs/pl/CHANGELOG.md)
 
+## Unreleased
+
+- Wi-Fi: the images come with wpa_supplicant, and the x86-64 one with the
+  firmware of Intel and Atheros cards too. It can be set up over SSH with
+  `sudo nmtui`. An update brings the same to an existing installation.
+
 ## 0.6.0
 
 - Own domain with a Let's Encrypt certificate (System, Own domain): the

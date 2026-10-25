@@ -26,6 +26,7 @@ actions:
       - iproute2
       - iputils-ping
       - network-manager
+      - wpasupplicant
       - openssh-server
       - avahi-daemon
       - libnss-mdns

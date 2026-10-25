@@ -31,12 +31,19 @@ done
 cp -r addons "$root/usr/share/suplaos/addons"
 echo "$version" > "$root/usr/share/suplaos/version"
 
+# Firmware of common Wi-Fi cards in x86-64 computers, so that it comes with
+# an update too. The Raspberry Pi image has its own.
+recommends=""
+if [ "$arch" = amd64 ]; then
+  recommends=$'\nRecommends: firmware-iwlwifi, firmware-atheros, firmware-realtek'
+fi
+
 cat > "$root/DEBIAN/control" <<CONTROL
 Package: suplaos
 Version: $version
 Architecture: $arch
 Maintainer: Goral64 <goral64@gmail.com>
-Depends: docker.io, docker-cli, docker-compose, network-manager, avahi-daemon, cloud-guest-utils, e2fsprogs, ca-certificates
+Depends: docker.io, docker-cli, docker-compose, network-manager, wpasupplicant, avahi-daemon, cloud-guest-utils, e2fsprogs, ca-certificates$recommends
 Section: admin
 Priority: optional
 Homepage: https://github.com/Goral64/SuplaOS

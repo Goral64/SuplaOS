@@ -2,6 +2,12 @@
 
 [In English](../../CHANGELOG.md)
 
+## Niewydane
+
+- Wi-Fi: obrazy mają wpa_supplicant, a obraz x86-64 także firmware kart Intel
+  i Atheros. Wi-Fi ustawia się przez SSH poleceniem `sudo nmtui`. Aktualizacja
+  dokłada to samo do istniejącej instalacji.
+
 ## 0.6.0
 
 - Własna domena z certyfikatem Let's Encrypt (System, Własna domena):

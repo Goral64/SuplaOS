@@ -11,8 +11,8 @@ broker, Zigbee2MQTT, Zigbee2Supla, SUPLA Scripts.
 
 The project is at an early stage. The Raspberry Pi image has so far been
 tried on a Pi 3B+ (it runs Supla fine, but with 1 GB of RAM I wouldn't add
-much more), it still needs testing on a Pi 4 and 5. If you can help, see
-[testing](docs/testing.md).
+much more), it still needs testing on a Pi 4 and 5. The x86-64 image runs on
+an HP T630 thin client. If you can help, see [testing](docs/testing.md).
 Images are in [Releases](https://github.com/Goral64/SuplaOS/releases).
 
 ## First start

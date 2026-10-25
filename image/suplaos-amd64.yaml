@@ -26,6 +26,8 @@ actions:
       - grub-efi-amd64
       - firmware-linux-free
       - firmware-realtek
+      - firmware-iwlwifi
+      - firmware-atheros
       - firmware-misc-nonfree
       - intel-microcode
       - amd64-microcode
