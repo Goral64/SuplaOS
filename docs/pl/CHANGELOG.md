@@ -2,7 +2,7 @@
 
 [In English](../../CHANGELOG.md)
 
-## Niewydane
+## 0.7.0
 
 - Wi-Fi w panelu (System, Wi-Fi, i w kreatorze pierwszego uruchomienia):
   wyszukiwanie sieci, łączenie, rozłączanie, zapamiętane sieci z włączanym

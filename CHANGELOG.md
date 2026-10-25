@@ -2,7 +2,7 @@
 
 [Po polsku](docs/pl/CHANGELOG.md)
 
-## Unreleased
+## 0.7.0
 
 - Wi-Fi in the panel (System, Wi-Fi, and in the setup wizard): search for
   networks, connect, disconnect, saved networks with automatic connecting
