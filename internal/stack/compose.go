@@ -259,9 +259,14 @@ func (s *Stack) load(a *addon.Addon, path string) error {
 	if err != nil {
 		return err
 	}
+	return s.loadDump(a, gz)
+}
+
+// loadDump feeds a dump to the restore command of an add-on.
+func (s *Stack) loadDump(a *addon.Addon, r io.Reader) error {
 	// The restore command is a script, too long for the error message.
 	args := append([]string{"exec", "-T", a.Backup.Service}, a.Backup.Restore...)
-	if err := s.compose(gz, s.stdout(), args...); err != nil {
+	if err := s.compose(r, s.stdout(), args...); err != nil {
 		return fmt.Errorf("restore of %s: %w", a.ID, errors.Unwrap(err))
 	}
 	return nil

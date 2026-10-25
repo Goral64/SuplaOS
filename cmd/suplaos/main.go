@@ -47,6 +47,9 @@ System:
   export [-o file]             full backup of the device: add-ons with their data
                                and the CA, to backups/ by default (as root);
                                encrypted with SUPLAOS_BACKUP_PASSWORD when set
+  import <file> [--yes]        restore a full backup: replaces all add-ons and
+                               their data (the current state is backed up
+                               first, --yes when add-ons are installed)
 
 Environment: SUPLAOS_ROOT (default /srv/suplaos), SUPLAOS_ADDONS
 (default /usr/share/suplaos/addons).
@@ -126,6 +129,8 @@ func run(args []string) error {
 		return update(s, args)
 	case "export":
 		return export(s, args)
+	case "import":
+		return importBackup(s, args)
 	case "backup":
 		if err := s.Lock(); err != nil {
 			return err
@@ -535,6 +540,37 @@ func export(s *stack.Stack, args []string) error {
 		return err
 	}
 	fmt.Printf("Full backup saved to %s\n", path)
+	return nil
+}
+
+// importBackup restores a full backup.
+func importBackup(s *stack.Stack, args []string) error {
+	var file string
+	yes := false
+	for _, a := range args {
+		switch {
+		case a == "--yes":
+			yes = true
+		case file == "" && !strings.HasPrefix(a, "-"):
+			file = a
+		default:
+			return errors.New("usage: suplaos import <file> [--yes]")
+		}
+	}
+	if file == "" {
+		return errors.New("usage: suplaos import <file> [--yes]")
+	}
+	if len(s.State.Addons) > 0 && !yes {
+		return errors.New("this replaces all installed add-ons and their data, run again with --yes")
+	}
+	if err := s.Lock(); err != nil {
+		return err
+	}
+	opt := stack.ImportOptions{Version: system.Version(), Password: os.Getenv("SUPLAOS_BACKUP_PASSWORD")}
+	if err := s.Import(file, opt); err != nil {
+		return err
+	}
+	fmt.Println("Full backup restored")
 	return nil
 }
 

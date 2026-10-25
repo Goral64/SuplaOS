@@ -19,6 +19,9 @@ func fakeCompose(s *Stack, running ...string) *[]string {
 	var calls []string
 	s.composeHook = func(stdin io.Reader, stdout io.Writer, args ...string) error {
 		switch {
+		case len(args) > 2 && args[0] == "exec" && stdin != nil:
+			b, _ := io.ReadAll(stdin)
+			calls = append(calls, "load "+args[2]+": "+string(b))
 		case len(args) > 2 && args[0] == "exec":
 			io.WriteString(stdout, "-- dump of "+args[2]+"\n")
 		case len(args) > 0 && args[0] == "ps":

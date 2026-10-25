@@ -42,8 +42,10 @@ type Manifest struct {
 	Version  string    `json:"version"`
 	Created  time.Time `json:"created"`
 	Hostname string    `json:"hostname"`
-	Arch     string    `json:"arch"`
-	Addons   []string  `json:"addons"`
+	// Addresses of the device then, to find them in options on restore.
+	Addresses []string `json:"addresses"`
+	Arch      string   `json:"arch"`
+	Addons    []string `json:"addons"`
 }
 
 // ExportOptions of a full backup. Without Password it is not encrypted.
@@ -105,7 +107,13 @@ func (s *Stack) ExportFile(path string, opt ExportOptions) error {
 func (s *Stack) Export(w io.Writer, opt ExportOptions) (*Manifest, error) {
 	host, _ := os.Hostname()
 	m := &Manifest{Format: FullFormat, Version: opt.Version, Created: time.Now().UTC(),
-		Hostname: host, Arch: runtime.GOARCH, Addons: []string{}}
+		Hostname: host, Addresses: []string{}, Arch: runtime.GOARCH, Addons: []string{}}
+	_, ips := deviceNames()
+	for _, ip := range ips {
+		if !ip.IsLoopback() {
+			m.Addresses = append(m.Addresses, ip.String())
+		}
+	}
 	order := s.Order()
 	for _, a := range order {
 		m.Addons = append(m.Addons, a.ID)
