@@ -18,6 +18,7 @@ import (
 	"gopkg.in/yaml.v3"
 
 	"github.com/Goral64/SuplaOS/internal/acme"
+	"github.com/Goral64/SuplaOS/internal/fan"
 	"github.com/Goral64/SuplaOS/internal/stack"
 )
 
@@ -36,6 +37,8 @@ type Config struct {
 type Settings struct {
 	Lang      string `yaml:"lang" json:"lang"`
 	SetupDone bool   `yaml:"setup_done" json:"setupDone"`
+	// Fan of a Raspberry Pi case; nil before it is set.
+	Fan *fan.Settings `yaml:"fan,omitempty" json:"-"`
 }
 
 type Server struct {
@@ -52,6 +55,7 @@ type Server struct {
 
 	mu       sync.Mutex
 	settings Settings
+	fan      fanState
 }
 
 func New(cfg Config) *Server {
@@ -112,6 +116,9 @@ func (s *Server) Handler() http.Handler {
 	api("POST /api/domain/addresses", s.useDomain)
 	api("DELETE /api/domain", s.deleteDomain)
 	api("POST /api/password", s.changePassword)
+	api("GET /api/ssh-keys", s.getSSHKeys)
+	api("POST /api/ssh-keys", s.addSSHKey)
+	api("POST /api/ssh-keys/delete", s.deleteSSHKey)
 
 	api("GET /api/system", s.getSystem)
 	api("POST /api/system/{action}", s.power)
@@ -128,6 +135,8 @@ func (s *Server) Handler() http.Handler {
 	api("PUT /api/wifi/saved/{name}", s.putSavedWifi)
 	api("DELETE /api/wifi/saved/{name}", s.forgetWifi)
 	api("GET /api/serial", s.getSerial)
+	api("GET /api/fan", s.getFan)
+	api("PUT /api/fan", s.putFan)
 
 	api("GET /api/addons", s.getAddons)
 	api("POST /api/addons/{id}/install", s.installAddon)

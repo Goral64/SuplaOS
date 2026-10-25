@@ -277,6 +277,35 @@
     "lastFailed": "failed: {error}",
     "next": "Next: {date}."
   },
+  "sshKeys": {
+    "title": "SSH keys",
+    "intro": "Public keys that log in over SSH as {user} without the password.",
+    "none": "No keys yet.",
+    "noComment": "no name",
+    "add": "Add a public key",
+    "help": "One line from a .pub file, e.g. ~/.ssh/id_ed25519.pub on your computer (ssh-keygen -t ed25519 makes one).",
+    "addButton": "Add key",
+    "deleteConfirm": "Delete the key {name}? It will no longer log in."
+  },
+  "fan": {
+    "title": "Fan",
+    "temperature": "CPU {temp} °C",
+    "speed": "fan {speed}%",
+    "error": "The fan does not answer: {error}",
+    "pi5": "The fan connector of the Pi 5 (Active Cooler) is controlled by the firmware, it needs nothing here.",
+    "kind": "Case fan",
+    "none": "None or controlled by itself",
+    "gpio": "Fan on a GPIO pin",
+    "start": "Starts at (°C)",
+    "full": "Full speed at (°C)",
+    "argonHelp": "It starts at 30% and speeds up to 100%. It stops a few degrees below the start, so that it does not start and stop all the time.",
+    "button": "Power button of the case",
+    "buttonHelp": "Pressing it twice quickly restarts the system, holding it for about 3 s shuts it down properly, then the case cuts the power.",
+    "pin": "GPIO pin",
+    "on": "On from (°C)",
+    "gpioHelp": "The official Raspberry Pi 4 case fan is on GPIO 14, the Pimoroni Fan SHIM on GPIO 18. The fan goes off 10 °C below. The kernel switches it, also when the panel does not run.",
+    "rebootNeeded": "Restart the device to apply the fan settings."
+  },
   "changelog": {
     "title": "Changes in SuplaOS",
     "show": "Changes",

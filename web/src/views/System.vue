@@ -8,6 +8,8 @@ import DomainCard from '../components/DomainCard.vue'
 import WifiCard from '../components/WifiCard.vue'
 import FullBackupCard from '../components/FullBackupCard.vue'
 import AutoBackupCard from '../components/AutoBackupCard.vue'
+import SshKeysCard from '../components/SshKeysCard.vue'
+import FanCard from '../components/FanCard.vue'
 
 const { t, locale } = useI18n()
 const router = useRouter()
@@ -144,6 +146,10 @@ const power = (action) => call(async () => {
     <h2>{{ $t('system.password') }}</h2>
     <router-link to="/password" class="button">{{ $t('system.changePassword') }}</router-link>
   </div>
+
+  <SshKeysCard />
+
+  <FanCard @reboot="power('reboot')" />
 
   <div class="card">
     <h2>{{ $t('system.power') }}</h2>

@@ -1,0 +1,5 @@
+#!/bin/sh
+# Argon ONE case: after the system has shut down, tell the case to cut the
+# power, as its own power button would. Set on the System page of the panel.
+[ "$1" = poweroff ] && [ -f /etc/suplaos/argon ] || exit 0
+exec /usr/bin/suplaos argon-poweroff

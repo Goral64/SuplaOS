@@ -42,6 +42,7 @@ func main() {
 	go s.WatchImages()
 	go s.WatchCertificates()
 	go s.WatchBackups()
+	go s.WatchFan()
 	go func() {
 		if err := system.ApplyWifiCountry(); err != nil {
 			log.Printf("wifi country: %v", err)

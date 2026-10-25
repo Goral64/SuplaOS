@@ -32,6 +32,8 @@ actions:
       - linux-image-rpi-2712
       - raspi-firmware
       - firmware-brcm80211
+      # Power button of an Argon ONE case.
+      - gpiod
 
   - action: recipe
     recipe: common.yaml

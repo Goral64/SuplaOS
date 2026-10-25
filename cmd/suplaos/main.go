@@ -13,6 +13,7 @@ import (
 	"text/tabwriter"
 
 	"github.com/Goral64/SuplaOS/internal/addon"
+	"github.com/Goral64/SuplaOS/internal/fan"
 	"github.com/Goral64/SuplaOS/internal/stack"
 	"github.com/Goral64/SuplaOS/internal/system"
 )
@@ -73,6 +74,11 @@ func run(args []string) error {
 	if len(args) == 0 || args[0] == "-h" || args[0] == "--help" || args[0] == "help" {
 		fmt.Print(usage)
 		return nil
+	}
+	// Run by the shutdown hook of the Argon ONE case, when the data
+	// directory may be gone already.
+	if args[0] == "argon-poweroff" {
+		return fan.ArgonPowerOff()
 	}
 	s, err := stack.Open(getenv("SUPLAOS_ROOT", "/srv/suplaos"), getenv("SUPLAOS_ADDONS", "/usr/share/suplaos/addons"))
 	if err != nil {

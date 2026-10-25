@@ -277,6 +277,35 @@
     "lastFailed": "nieudana: {error}",
     "next": "Następna: {date}."
   },
+  "sshKeys": {
+    "title": "Klucze SSH",
+    "intro": "Klucze publiczne, które logują się przez SSH jako {user} bez hasła.",
+    "none": "Nie ma jeszcze kluczy.",
+    "noComment": "bez nazwy",
+    "add": "Dodaj klucz publiczny",
+    "help": "Jeden wiersz z pliku .pub, np. ~/.ssh/id_ed25519.pub na Twoim komputerze (tworzy go ssh-keygen -t ed25519).",
+    "addButton": "Dodaj klucz",
+    "deleteConfirm": "Usunąć klucz {name}? Przestanie się logować."
+  },
+  "fan": {
+    "title": "Wentylator",
+    "temperature": "procesor {temp} °C",
+    "speed": "wentylator {speed}%",
+    "error": "Wentylator nie odpowiada: {error}",
+    "pi5": "Złączem wentylatora Pi 5 (Active Cooler) steruje firmware, nie trzeba tu nic ustawiać.",
+    "kind": "Wentylator obudowy",
+    "none": "Brak albo sterowany sam",
+    "gpio": "Wentylator na pinie GPIO",
+    "start": "Włącza się od (°C)",
+    "full": "Pełne obroty od (°C)",
+    "argonHelp": "Rusza od 30% i przyspiesza do 100%. Zatrzymuje się kilka stopni poniżej progu, żeby nie włączał się i nie wyłączał w kółko.",
+    "button": "Przycisk zasilania obudowy",
+    "buttonHelp": "Dwa szybkie naciśnięcia uruchamiają system ponownie, przytrzymanie przez ok. 3 s porządnie go wyłącza, potem obudowa odcina zasilanie.",
+    "pin": "Pin GPIO",
+    "on": "Włącza się od (°C)",
+    "gpioHelp": "Oficjalny wentylator obudowy Raspberry Pi 4 jest na GPIO 14, Pimoroni Fan SHIM na GPIO 18. Wyłącza się 10 °C niżej. Steruje nim jądro, także gdy panel nie działa.",
+    "rebootNeeded": "Uruchom urządzenie ponownie, żeby zastosować ustawienia wentylatora."
+  },
   "changelog": {
     "title": "Zmiany w SuplaOS",
     "show": "Zmiany",

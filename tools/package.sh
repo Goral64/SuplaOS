@@ -31,9 +31,13 @@ done
 cp -r addons "$root/usr/share/suplaos/addons"
 echo "$version" > "$root/usr/share/suplaos/version"
 
+recommends=""
+if [ "$arch" = arm64 ]; then
+  # gpiomon reads the power button of an Argon ONE case.
+  recommends=$'\nRecommends: gpiod'
+fi
 # Firmware of common Wi-Fi cards in x86-64 computers, so that it comes with
 # an update too. The Raspberry Pi image has its own.
-recommends=""
 if [ "$arch" = amd64 ]; then
   recommends=$'\nRecommends: firmware-iwlwifi, firmware-atheros, firmware-realtek'
 fi
