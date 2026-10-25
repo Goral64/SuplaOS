@@ -51,7 +51,10 @@
     "repeatPassword": "Powtórz hasło",
     "passwordsDiffer": "Hasła się różnią.",
     "skip": "Pomiń",
-    "done": "Gotowe."
+    "done": "Gotowe.",
+    "restoreHint": "Przenosisz się z innego urządzenia z SuplaOS?",
+    "restore": "Przywróć z pełnej kopii",
+    "restoreIntro": "Wybierz pełną kopię tamtego urządzenia. Dodatki i ich dane wrócą takie, jak były tam, a ustawienia wybrane przed chwilą zostaną."
   },
   "dashboard": {
     "title": "Pulpit",
@@ -209,6 +212,34 @@
     "disconnectAsync": "Rozłączam. Panel był otwarty przez Wi-Fi, więc pod tym adresem przestanie odpowiadać.",
     "autoconnect": "Łącz automatycznie",
     "autoconnectHelp": "Gdy sieć jest w zasięgu, także po restarcie."
+  },
+  "fullBackup": {
+    "title": "Pełna kopia",
+    "intro": "Wszystkie dodatki z ustawieniami i danymi oraz certyfikat CA urządzenia w jednym pliku. Do przeniesienia na inne urządzenie albo żeby mieć kopię poza urządzeniem.",
+    "password": "Hasło kopii",
+    "passwordHelp": "Co najmniej 8 znaków. Bez niego kopii nie da się przywrócić, przechowuj je bezpiecznie.",
+    "repeat": "Powtórz hasło",
+    "passwordsDiffer": "Hasła się różnią.",
+    "noPassword": "Bez hasła",
+    "noPasswordWarn": "Plik zawiera hasła dodatków, konta Supla Cloud i klucz CA. Każdy, kto go dostanie, może je odczytać.",
+    "create": "Zrób kopię",
+    "created": "Kopia zapisana, pobierz ją z listy.",
+    "list": "Kopie na urządzeniu",
+    "none": "Nie ma jeszcze pełnych kopii.",
+    "encrypted": "zaszyfrowana",
+    "plain": "bez hasła",
+    "upload": "Wyślij kopię",
+    "uploading": "Wysyłanie...",
+    "restore": "Przywróć",
+    "checking": "Sprawdzam...",
+    "restoring": "Przywróć {name}",
+    "backupPassword": "Hasło kopii",
+    "info": "Kopia {host} z {date}, SuplaOS {version}.\nDodatki: {addons}.",
+    "noAddons": "brak",
+    "restoreConfirm": "{info}\n\nWszystkie dodatki i ich dane na tym urządzeniu zostaną zastąpione. Najpierw zrobi się pełna kopia obecnego stanu. Przywrócić?",
+    "restoreSetupConfirm": "{info}\n\nObrazy dodatków zostaną pobrane z internetu, to potrwa kilka minut. Przywrócić?",
+    "setupIntro": "Plik suplaos-....tar.gz albo .tar.gz.age, zrobiony na stronie System tamtego urządzenia.",
+    "restored": "Przywrócono. Urządzenia Supli łączą się z zapisanym w nich adresem serwera: jeśli był to adres starego urządzenia, daj temu ten sam adres albo zmień go w nich."
   },
   "changelog": {
     "title": "Zmiany w SuplaOS",

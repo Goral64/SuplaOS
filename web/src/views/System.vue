@@ -6,6 +6,7 @@ import { api, panelUrl } from '../api'
 import { ask } from '../components/dialog'
 import DomainCard from '../components/DomainCard.vue'
 import WifiCard from '../components/WifiCard.vue'
+import FullBackupCard from '../components/FullBackupCard.vue'
 
 const { t, locale } = useI18n()
 const router = useRouter()
@@ -132,6 +133,8 @@ const power = (action) => call(async () => {
   </div>
 
   <DomainCard />
+
+  <FullBackupCard />
 
   <div class="card">
     <h2>{{ $t('system.password') }}</h2>

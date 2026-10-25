@@ -116,13 +116,21 @@ func (s *Stack) Unlock() {
 // Save writes state.yaml. It holds secrets, so it is readable only by the
 // owner.
 func (s *Stack) Save() error {
+	data, err := s.stateYAML()
+	if err != nil {
+		return err
+	}
+	return s.writeFile(s.statePath(), data, 0o600)
+}
+
+func (s *Stack) stateYAML() ([]byte, error) {
 	var buf bytes.Buffer
 	enc := yaml.NewEncoder(&buf)
 	enc.SetIndent(2)
 	if err := enc.Encode(s.State); err != nil {
-		return err
+		return nil, err
 	}
-	return s.writeFile(s.statePath(), buf.Bytes(), 0o600)
+	return buf.Bytes(), nil
 }
 
 // IsInstalled tells whether the add-on is installed.

@@ -68,6 +68,11 @@ func FullBackupName(host string, t time.Time, encrypted bool) string {
 	return name
 }
 
+// IsFullBackup tells by its name whether a file is a full backup.
+func IsFullBackup(name string) bool {
+	return strings.HasPrefix(name, "suplaos-") && (strings.HasSuffix(name, ".tar.gz") || strings.HasSuffix(name, ".tar.gz.age"))
+}
+
 // SaveFullBackup writes a full backup to the backup directory and returns
 // its path. It holds secrets, so it is readable only by the owner.
 func (s *Stack) SaveFullBackup(opt ExportOptions) (string, error) {
@@ -161,7 +166,11 @@ func (s *Stack) exportTo(tw *tar.Writer, m *Manifest, order []*addon.Addon) erro
 	if err := addBytes(tw, "manifest.json", data); err != nil {
 		return err
 	}
-	if err := addFile(tw, s.statePath(), "state.yaml"); err != nil {
+	state, err := s.stateYAML()
+	if err != nil {
+		return err
+	}
+	if err := addBytes(tw, "state.yaml", state); err != nil {
 		return err
 	}
 	// The certificate of the panel is made anew for the new name.

@@ -980,6 +980,8 @@ func (s *Server) getBackups(w http.ResponseWriter, r *http.Request) {
 		Addon string    `json:"addon"`
 		Size  int64     `json:"size"`
 		Time  time.Time `json:"time"`
+		// Full: a full backup of the device.
+		Full bool `json:"full"`
 	}
 	st, err := s.openStack()
 	if err != nil {
@@ -993,7 +995,7 @@ func (s *Server) getBackups(w http.ResponseWriter, r *http.Request) {
 			continue // upload in progress
 		}
 		if info, err := e.Info(); err == nil && info.Mode().IsRegular() {
-			list = append(list, entry{e.Name(), st.Catalog.BackupOwner(e.Name()), info.Size(), info.ModTime()})
+			list = append(list, entry{e.Name(), st.Catalog.BackupOwner(e.Name()), info.Size(), info.ModTime(), stack.IsFullBackup(e.Name())})
 		}
 	}
 	sort.Slice(list, func(i, j int) bool { return list[i].Time.After(list[j].Time) })

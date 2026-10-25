@@ -7,6 +7,7 @@ import { languages, setLanguage } from '../i18n'
 import { runJob } from '../components/jobs'
 import AccountFields from '../components/AccountFields.vue'
 import WifiCard from '../components/WifiCard.vue'
+import FullBackupCard from '../components/FullBackupCard.vue'
 
 const router = useRouter()
 const { locale } = useI18n()
@@ -18,6 +19,8 @@ const timezones = ref([])
 const error = ref('')
 const busy = ref(false)
 const account = ref({ email: '', password: '', repeat: '' })
+// Step 3 restores a full backup of another device instead.
+const restoreMode = ref(false)
 
 onMounted(async () => {
   const s = await api('GET', '/settings')
@@ -66,9 +69,13 @@ async function finish(installSupla) {
       return
     }
   }
+  await done(installSupla ? '/addons/supla' : '/')
+}
+
+async function done(path) {
   await api('PUT', '/settings', { setupDone: true })
   session.setupDone = true
-  router.push(installSupla ? '/addons/supla' : '/')
+  router.push(path)
 }
 </script>
 
@@ -107,6 +114,14 @@ async function finish(installSupla) {
       </div>
     </form>
 
+    <template v-else-if="restoreMode">
+      <p>{{ $t('setup.restoreIntro') }}</p>
+      <FullBackupCard setup @restored="done('/')" />
+      <div class="row mt">
+        <button type="button" @click="restoreMode = false">{{ $t('common.back') }}</button>
+      </div>
+    </template>
+
     <form v-else @submit.prevent="finish(true)">
       <p>{{ $t('setup.suplaIntro') }}</p>
       <AccountFields v-model="account" />
@@ -116,6 +131,10 @@ async function finish(installSupla) {
         <button type="button" @click="finish(false)">{{ $t('setup.skip') }}</button>
         <button class="primary">{{ $t('setup.installSupla') }}</button>
       </div>
+      <p class="muted small mt">
+        {{ $t('setup.restoreHint') }}
+        <button type="button" class="link" @click="restoreMode = true">{{ $t('setup.restore') }}</button>
+      </p>
     </form>
     <WifiCard v-if="step === 2" embedded class="mt" />
   </div>

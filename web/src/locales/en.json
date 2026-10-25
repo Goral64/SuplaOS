@@ -51,7 +51,10 @@
     "repeatPassword": "Repeat the password",
     "passwordsDiffer": "The passwords differ.",
     "skip": "Skip",
-    "done": "All set."
+    "done": "All set.",
+    "restoreHint": "Moving from another SuplaOS device?",
+    "restore": "Restore from a full backup",
+    "restoreIntro": "Choose a full backup of the other device. The add-ons and their data come back as they were there, the settings you just chose stay."
   },
   "dashboard": {
     "title": "Dashboard",
@@ -209,6 +212,34 @@
     "disconnectAsync": "Disconnecting. The panel was opened over Wi-Fi, so it stops responding at this address.",
     "autoconnect": "Connect automatically",
     "autoconnectHelp": "When the network is in range, also after a restart."
+  },
+  "fullBackup": {
+    "title": "Full backup",
+    "intro": "All add-ons with their settings and data, and the CA certificate of the device, in one file. Use it to move to another device or to keep a copy off the device.",
+    "password": "Backup password",
+    "passwordHelp": "At least 8 characters. Without it the backup cannot be restored, keep it safe.",
+    "repeat": "Repeat the password",
+    "passwordsDiffer": "The passwords differ.",
+    "noPassword": "Without a password",
+    "noPasswordWarn": "The file holds the passwords of the add-ons, the accounts of the Supla Cloud and the key of the CA. Anyone who gets it can read them.",
+    "create": "Make a backup",
+    "created": "Backup saved, download it from the list.",
+    "list": "Backups on the device",
+    "none": "No full backups yet.",
+    "encrypted": "encrypted",
+    "plain": "no password",
+    "upload": "Send a backup",
+    "uploading": "Sending...",
+    "restore": "Restore",
+    "checking": "Checking...",
+    "restoring": "Restore {name}",
+    "backupPassword": "Password of the backup",
+    "info": "Backup of {host} from {date}, SuplaOS {version}.\nAdd-ons: {addons}.",
+    "noAddons": "none",
+    "restoreConfirm": "{info}\n\nAll add-ons and their data on this device are replaced. A full backup of the current state is made first. Restore?",
+    "restoreSetupConfirm": "{info}\n\nThe images of the add-ons are downloaded from the internet, it takes a few minutes. Restore?",
+    "setupIntro": "A file suplaos-....tar.gz or .tar.gz.age, made on the System page of the other device.",
+    "restored": "Restored. Supla devices connect to the server address they have: if it was the address of the old device, give this one the same address or change it in them."
   },
   "changelog": {
     "title": "Changes in SuplaOS",
