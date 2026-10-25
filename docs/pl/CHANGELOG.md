@@ -2,7 +2,7 @@
 
 [In English](../../CHANGELOG.md)
 
-## 0.9.3
+## 0.9.4
 
 - Bez sieci (bez kabla i bez znanego Wi-Fi w zasięgu przez 2 minuty)
   urządzenie z Wi-Fi tworzy własną sieć, `SuplaOS-XXXX` z hasłem

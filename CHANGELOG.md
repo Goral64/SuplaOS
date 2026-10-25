@@ -2,7 +2,7 @@
 
 [Po polsku](docs/pl/CHANGELOG.md)
 
-## 0.9.3
+## 0.9.4
 
 - Without a network (no cable, no known Wi-Fi in range for 2 minutes) a
   device with Wi-Fi makes its own network, `SuplaOS-XXXX` with the password
