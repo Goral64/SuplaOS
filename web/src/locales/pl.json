@@ -202,7 +202,13 @@
     "saved": "Zapamiętane sieci",
     "forget": "Zapomnij",
     "forgetConfirm": "Zapomnieć sieć {name}? Jeśli urządzenie jest z nią połączone, rozłączy się.",
-    "forgetAsync": "Sieć zapomniana. Panel był otwarty przez nią, więc może przestać odpowiadać."
+    "forgetAsync": "Sieć zapomniana. Panel był otwarty przez nią, więc może przestać odpowiadać.",
+    "disconnect": "Rozłącz",
+    "disconnecting": "Rozłączam...",
+    "disconnectConfirm": "Rozłączyć z {ssid}? Urządzenie nie połączy się samo z żadną siecią Wi-Fi, dopóki nie połączysz go ponownie albo nie uruchomisz od nowa.",
+    "disconnectAsync": "Rozłączam. Panel był otwarty przez Wi-Fi, więc pod tym adresem przestanie odpowiadać.",
+    "autoconnect": "Łącz automatycznie",
+    "autoconnectHelp": "Gdy sieć jest w zasięgu, także po restarcie."
   },
   "changelog": {
     "title": "Zmiany w SuplaOS",

@@ -259,8 +259,32 @@ func (s *Server) scanWifi(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, list)
 }
 
-// connectWifi joins a network and answers when the device is connected,
-// or right away when the panel is opened over Wi-Fi (async in the answer).
+// wifiChange runs a change of the Wi-Fi and answers when it is done, or
+// right away when the panel is opened over Wi-Fi (async in the answer):
+// the change may cut it off.
+func wifiChange(w http.ResponseWriter, r *http.Request, change func(dev string) error) {
+	dev, over, err := wifiDevice(r)
+	if err != nil {
+		jsonError(w, http.StatusBadRequest, err)
+		return
+	}
+	if over {
+		go func() {
+			time.Sleep(time.Second)
+			if err := change(dev); err != nil {
+				log.Printf("wifi: %v", err)
+			}
+		}()
+		writeJSON(w, http.StatusOK, map[string]any{"async": true})
+		return
+	}
+	if err := change(dev); err != nil {
+		jsonError(w, http.StatusBadRequest, err)
+		return
+	}
+	writeJSON(w, http.StatusOK, map[string]any{})
+}
+
 func (s *Server) connectWifi(w http.ResponseWriter, r *http.Request) {
 	var c system.WifiConnect
 	if err := readJSON(r, &c); err != nil {
@@ -271,22 +295,27 @@ func (s *Server) connectWifi(w http.ResponseWriter, r *http.Request) {
 		jsonError(w, http.StatusBadRequest, err)
 		return
 	}
-	dev, over, err := wifiDevice(r)
-	if err != nil {
+	wifiChange(w, r, func(dev string) error { return system.ConnectWifi(dev, &c) })
+}
+
+func (s *Server) disconnectWifi(w http.ResponseWriter, r *http.Request) {
+	wifiChange(w, r, system.DisconnectWifi)
+}
+
+func (s *Server) connectSavedWifi(w http.ResponseWriter, r *http.Request) {
+	name := r.PathValue("name")
+	wifiChange(w, r, func(dev string) error { return system.ConnectSavedWifi(dev, name) })
+}
+
+func (s *Server) putSavedWifi(w http.ResponseWriter, r *http.Request) {
+	var req struct {
+		Autoconnect bool `json:"autoconnect"`
+	}
+	if err := readJSON(r, &req); err != nil {
 		jsonError(w, http.StatusBadRequest, err)
 		return
 	}
-	if over {
-		go func() {
-			time.Sleep(time.Second)
-			if err := system.ConnectWifi(dev, &c); err != nil {
-				log.Printf("wifi: %v", err)
-			}
-		}()
-		writeJSON(w, http.StatusOK, map[string]any{"async": true})
-		return
-	}
-	if err := system.ConnectWifi(dev, &c); err != nil {
+	if err := system.SetWifiAutoconnect(r.PathValue("name"), req.Autoconnect); err != nil {
 		jsonError(w, http.StatusBadRequest, err)
 		return
 	}
@@ -295,26 +324,7 @@ func (s *Server) connectWifi(w http.ResponseWriter, r *http.Request) {
 
 func (s *Server) forgetWifi(w http.ResponseWriter, r *http.Request) {
 	name := r.PathValue("name")
-	_, over, err := wifiDevice(r)
-	if err != nil {
-		jsonError(w, http.StatusBadRequest, err)
-		return
-	}
-	if over {
-		go func() {
-			time.Sleep(time.Second)
-			if err := system.ForgetWifi(name); err != nil {
-				log.Printf("wifi: %v", err)
-			}
-		}()
-		writeJSON(w, http.StatusOK, map[string]any{"async": true})
-		return
-	}
-	if err := system.ForgetWifi(name); err != nil {
-		jsonError(w, http.StatusBadRequest, err)
-		return
-	}
-	writeJSON(w, http.StatusOK, map[string]any{})
+	wifiChange(w, r, func(string) error { return system.ForgetWifi(name) })
 }
 
 // getSerial lists serial devices for the ZigBee coordinator, by id first.

@@ -123,7 +123,10 @@ func (s *Server) Handler() http.Handler {
 	api("GET /api/wifi", s.getWifi)
 	api("POST /api/wifi/scan", s.scanWifi)
 	api("POST /api/wifi/connect", s.connectWifi)
-	api("DELETE /api/wifi/{name}", s.forgetWifi)
+	api("POST /api/wifi/disconnect", s.disconnectWifi)
+	api("POST /api/wifi/saved/{name}/connect", s.connectSavedWifi)
+	api("PUT /api/wifi/saved/{name}", s.putSavedWifi)
+	api("DELETE /api/wifi/saved/{name}", s.forgetWifi)
 	api("GET /api/serial", s.getSerial)
 
 	api("GET /api/addons", s.getAddons)

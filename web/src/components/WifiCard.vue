@@ -11,61 +11,89 @@ const props = defineProps({ embedded: Boolean })
 const { t } = useI18n()
 const wifi = ref(null)
 const networks = ref(null)
-// The network being joined: { ssid, security, hidden }.
+// The network being joined: { ssid, security, hidden, autoconnect }.
 const join = ref(null)
 const password = ref('')
 const error = ref('')
 const message = ref('')
-const busy = ref(false)
+// What is going on: scan, connect... or empty.
+const busy = ref('')
 
 async function load() {
   wifi.value = await api('GET', '/wifi')
 }
 onMounted(load)
 
-async function call(fn) {
-  busy.value = true
+async function call(kind, fn) {
+  busy.value = kind
   error.value = message.value = ''
   try {
     await fn()
   } catch (e) {
     error.value = e.message
   } finally {
-    busy.value = false
+    busy.value = ''
   }
 }
 
-const scan = () => call(async () => {
+// After a change: when the panel is opened over Wi-Fi the answer comes
+// before the change is made.
+async function done(res, asyncText, text) {
+  if (res.async) {
+    message.value = asyncText
+    return
+  }
+  await load()
+  if (text) message.value = text()
+}
+
+const scan = () => call('scan', async () => {
   networks.value = await api('POST', '/wifi/scan')
 })
 
 function pick(n) {
-  join.value = n ? { ssid: n.ssid, security: n.security, hidden: false } : { ssid: '', security: 'WPA2', hidden: true }
+  join.value = n
+    ? { ssid: n.ssid, security: n.security, hidden: false, autoconnect: true }
+    : { ssid: '', security: 'WPA2', hidden: true, autoconnect: true }
   password.value = ''
 }
 
-const connect = () => call(async () => {
-  const { ssid, hidden } = join.value
-  const res = await api('POST', '/wifi/connect', { ssid, password: password.value, hidden })
+const connected = (ssid) => () => t('wifi.connected', { ssid, address: wifi.value.address })
+
+const connect = () => call('connect', async () => {
+  const { ssid, hidden, autoconnect } = join.value
+  const res = await api('POST', '/wifi/connect', { ssid, password: password.value, hidden, autoconnect })
   join.value = null
   networks.value = null
   password.value = ''
-  if (res.async) {
-    message.value = t('wifi.connectingAsync', { ssid })
-    return
-  }
-  await load()
-  message.value = t('wifi.connected', { ssid, address: wifi.value.address })
+  await done(res, t('wifi.connectingAsync', { ssid }), connected(ssid))
 })
 
-const forget = (name) => call(async () => {
-  if (!(await ask(t('wifi.forgetConfirm', { name }), { ok: t('wifi.forget'), danger: true }))) return
-  const res = await api('DELETE', '/wifi/' + encodeURIComponent(name))
-  if (res.async) {
-    message.value = t('wifi.forgetAsync')
-    return
+const saved = (name) => '/wifi/saved/' + encodeURIComponent(name)
+
+const connectSaved = (name) => call('connect', async () => {
+  const res = await api('POST', saved(name) + '/connect')
+  await done(res, t('wifi.connectingAsync', { ssid: name }), connected(name))
+})
+
+const disconnect = () => call('disconnect', async () => {
+  if (!(await ask(t('wifi.disconnectConfirm', { ssid: wifi.value.connection }), { ok: t('wifi.disconnect') }))) return
+  const res = await api('POST', '/wifi/disconnect')
+  await done(res, t('wifi.disconnectAsync'))
+})
+
+const setAutoconnect = (n, on) => call('autoconnect', async () => {
+  try {
+    await api('PUT', saved(n.name), { autoconnect: on })
+  } finally {
+    await load()
   }
-  await load()
+})
+
+const forget = (name) => call('forget', async () => {
+  if (!(await ask(t('wifi.forgetConfirm', { name }), { ok: t('wifi.forget'), danger: true }))) return
+  const res = await api('DELETE', saved(name))
+  await done(res, t('wifi.forgetAsync'))
 })
 
 const signalClass = (s) => (s >= 60 ? 'ok' : s >= 35 ? 'warn' : 'bad')
@@ -83,11 +111,17 @@ const signalClass = (s) => (s >= 60 ? 'ok' : s >= 35 ? 'warn' : 'bad')
 
     <p v-if="!wifi.device" class="muted">{{ $t('wifi.noDevice') }}</p>
     <template v-else>
-      <p class="muted">
-        {{ wifi.device }} ·
-        <template v-if="wifi.connection">{{ $t('wifi.connectedTo', { ssid: wifi.connection, address: wifi.address || '-' }) }}</template>
-        <template v-else>{{ $t('wifi.notConnected') }}</template>
-      </p>
+      <div class="row">
+        <p class="muted">
+          {{ wifi.device }} ·
+          <template v-if="wifi.connection">{{ $t('wifi.connectedTo', { ssid: wifi.connection, address: wifi.address || '-' }) }}</template>
+          <template v-else>{{ $t('wifi.notConnected') }}</template>
+        </p>
+        <span class="spacer"></span>
+        <button v-if="wifi.connection" :disabled="!!busy" @click="disconnect">
+          {{ busy === 'disconnect' ? $t('wifi.disconnecting') : $t('wifi.disconnect') }}
+        </button>
+      </div>
 
       <form v-if="join" @submit.prevent="connect">
         <div v-if="join.hidden" class="field">
@@ -101,9 +135,13 @@ const signalClass = (s) => (s >= 60 ? 'ok' : s >= 35 ? 'warn' : 'bad')
             minlength="8" maxlength="64" :required="!join.hidden">
           <div v-if="join.hidden" class="help">{{ $t('wifi.passwordHelp') }}</div>
         </div>
+        <div class="field">
+          <label class="check"><input v-model="join.autoconnect" type="checkbox"> {{ $t('wifi.autoconnect') }}</label>
+          <div class="help">{{ $t('wifi.autoconnectHelp') }}</div>
+        </div>
         <div class="row">
-          <button type="button" :disabled="busy" @click="join = null">{{ $t('common.cancel') }}</button>
-          <button class="primary" :disabled="busy">{{ busy ? $t('wifi.connecting') : $t('wifi.connect') }}</button>
+          <button type="button" :disabled="!!busy" @click="join = null">{{ $t('common.cancel') }}</button>
+          <button class="primary" :disabled="!!busy">{{ busy === 'connect' ? $t('wifi.connecting') : $t('wifi.connect') }}</button>
         </div>
       </form>
 
@@ -113,22 +151,33 @@ const signalClass = (s) => (s >= 60 ? 'ok' : s >= 35 ? 'warn' : 'bad')
             <td>{{ n.ssid }} <span v-if="n.inUse" class="badge ok">{{ $t('wifi.inUse') }}</span></td>
             <td class="small muted">{{ n.security || $t('wifi.open') }}</td>
             <td><span class="badge" :class="signalClass(n.signal)">{{ n.signal }}%</span></td>
-            <td><button v-if="!n.inUse" :disabled="busy" @click="pick(n)">{{ $t('wifi.connect') }}</button></td>
+            <td><button v-if="!n.inUse" :disabled="!!busy" @click="pick(n)">{{ $t('wifi.connect') }}</button></td>
           </tr>
           <tr v-if="!networks.length"><td class="muted">{{ $t('wifi.none') }}</td></tr>
         </table>
         <div class="row mt">
-          <button :disabled="busy" @click="scan">{{ busy ? $t('wifi.scanning') : $t('wifi.scan') }}</button>
-          <button class="link" :disabled="busy" @click="pick(null)">{{ $t('wifi.hidden') }}</button>
+          <button :disabled="!!busy" @click="scan">{{ busy === 'scan' ? $t('wifi.scanning') : $t('wifi.scan') }}</button>
+          <button class="link" :disabled="!!busy" @click="pick(null)">{{ $t('wifi.hidden') }}</button>
         </div>
       </template>
 
       <template v-if="wifi.saved.length && !props.embedded">
         <h3>{{ $t('wifi.saved') }}</h3>
         <table>
-          <tr v-for="name in wifi.saved" :key="name">
-            <td>{{ name }} <span v-if="name === wifi.connection" class="badge ok">{{ $t('wifi.inUse') }}</span></td>
-            <td><button class="danger" :disabled="busy" @click="forget(name)">{{ $t('wifi.forget') }}</button></td>
+          <tr v-for="n in wifi.saved" :key="n.name">
+            <td>{{ n.name }} <span v-if="n.name === wifi.connection" class="badge ok">{{ $t('wifi.inUse') }}</span></td>
+            <td>
+              <label class="check small">
+                <input type="checkbox" :checked="n.autoconnect" :disabled="!!busy" @change="setAutoconnect(n, $event.target.checked)">
+                {{ $t('wifi.autoconnect') }}
+              </label>
+            </td>
+            <td>
+              <div class="row">
+                <button v-if="n.name !== wifi.connection" :disabled="!!busy" @click="connectSaved(n.name)">{{ $t('wifi.connect') }}</button>
+                <button class="danger" :disabled="!!busy" @click="forget(n.name)">{{ $t('wifi.forget') }}</button>
+              </div>
+            </td>
           </tr>
         </table>
       </template>

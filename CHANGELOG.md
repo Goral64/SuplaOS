@@ -5,8 +5,9 @@
 ## Unreleased
 
 - Wi-Fi in the panel (System, Wi-Fi, and in the setup wizard): search for
-  networks, connect, forget a saved one. The device joins it again after
-  a restart, so the cable can be unplugged.
+  networks, connect, disconnect, saved networks with automatic connecting
+  on or off. The device joins the network again after a restart, so the
+  cable can be unplugged.
 - The images come with wpa_supplicant, which Wi-Fi didn't work without, and
   the x86-64 one with the firmware of Intel and Atheros cards too. An update
   brings the same to an existing installation.

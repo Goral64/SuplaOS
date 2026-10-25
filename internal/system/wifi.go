@@ -22,8 +22,16 @@ type Wifi struct {
 	// Connection is the active connection, Address its IPv4 address.
 	Connection string `json:"connection"`
 	Address    string `json:"address"`
-	// Saved are the Wi-Fi connections NetworkManager remembers.
-	Saved []string `json:"saved"`
+	// Saved are the Wi-Fi connections NetworkManager remembers, without
+	// access points (hotspots).
+	Saved []SavedWifi `json:"saved"`
+}
+
+// SavedWifi is a remembered Wi-Fi connection.
+type SavedWifi struct {
+	Name string `json:"name"`
+	// Autoconnect: joined on its own when in range, also after a restart.
+	Autoconnect bool `json:"autoconnect"`
 }
 
 // WifiNetwork is a network found by a scan.
@@ -89,7 +97,7 @@ func ReadWifi() (*Wifi, error) {
 	if err != nil {
 		return nil, err
 	}
-	w := &Wifi{Saved: []string{}}
+	w := &Wifi{Saved: []SavedWifi{}}
 	for _, d := range devs {
 		if len(d) == 4 && d[1] == "wifi" && !accessPoint(d[3]) {
 			w.Device, w.State, w.Connection = d[0], d[2], d[3]
@@ -107,16 +115,16 @@ func ReadWifi() (*Wifi, error) {
 			w.Address, _, _ = strings.Cut(m["IP4.ADDRESS"], ",")
 		}
 	}
-	conns, err := nmcliFields("-f", "NAME,TYPE", "connection", "show")
+	conns, err := nmcliFields("-f", "NAME,TYPE,AUTOCONNECT", "connection", "show")
 	if err != nil {
 		return nil, err
 	}
 	for _, c := range conns {
-		if len(c) == 2 && c[1] == "802-11-wireless" {
-			w.Saved = append(w.Saved, c[0])
+		if len(c) == 3 && c[1] == "802-11-wireless" && !accessPoint(c[0]) {
+			w.Saved = append(w.Saved, SavedWifi{Name: c[0], Autoconnect: c[2] == "yes"})
 		}
 	}
-	sort.Strings(w.Saved)
+	sort.Slice(w.Saved, func(i, j int) bool { return w.Saved[i].Name < w.Saved[j].Name })
 	return w, nil
 }
 
@@ -126,7 +134,7 @@ func accessPoint(conn string) bool {
 	if conn == "" {
 		return false
 	}
-	out, err := nmcliC("-g", "802-11-wireless.mode", "connection", "show", conn).Output()
+	out, err := nmcliC("-g", "802-11-wireless.mode", "connection", "show", "id", conn).Output()
 	return err == nil && strings.TrimSpace(string(out)) == "ap"
 }
 
@@ -178,6 +186,8 @@ type WifiConnect struct {
 	SSID     string `json:"ssid"`
 	Password string `json:"password"`
 	Hidden   bool   `json:"hidden"`
+	// Autoconnect, on when not given.
+	Autoconnect *bool `json:"autoconnect"`
 }
 
 // Validate checks the SSID and the WPA password (none for an open network).
@@ -212,6 +222,12 @@ func ConnectWifi(device string, c *WifiConnect) error {
 		args = append(args, "hidden", "yes")
 	}
 	out, err := nmcliC(args...).CombinedOutput()
+	if err != nil && strings.Contains(string(out), "No network with SSID") {
+		// The list of networks NetworkManager keeps may be old: scan and
+		// try once more.
+		nmcliC("device", "wifi", "list", "ifname", device, "--rescan", "yes").Run()
+		out, err = nmcliC(args...).CombinedOutput()
+	}
 	if err != nil {
 		// The failed connection stays saved and NetworkManager would keep
 		// trying it.
@@ -223,19 +239,61 @@ func ConnectWifi(device string, c *WifiConnect) error {
 		}
 		return fmt.Errorf("nmcli: %s", msg)
 	}
+	if c.Autoconnect != nil && !*c.Autoconnect {
+		return SetWifiAutoconnect(c.SSID, false)
+	}
 	return nil
 }
 
-// ForgetWifi deletes a saved Wi-Fi connection, disconnecting it first.
-func ForgetWifi(name string) error {
+// savedWifi checks that name is a saved Wi-Fi connection.
+func savedWifi(name string) error {
 	w, err := ReadWifi()
 	if err != nil {
 		return err
 	}
 	for _, s := range w.Saved {
-		if s == name {
-			return run("nmcli", "connection", "delete", "id", name)
+		if s.Name == name {
+			return nil
 		}
 	}
 	return fmt.Errorf("no saved Wi-Fi network %q", name)
+}
+
+// ConnectSavedWifi joins a saved network with its saved password.
+func ConnectSavedWifi(device, name string) error {
+	if err := savedWifi(name); err != nil {
+		return err
+	}
+	nmcliC("radio", "wifi", "on").Run()
+	out, err := nmcliC("--wait", "45", "connection", "up", "id", name, "ifname", device).CombinedOutput()
+	if err != nil {
+		return fmt.Errorf("could not connect to %s: %s", name, strings.TrimSpace(string(out)))
+	}
+	return nil
+}
+
+// DisconnectWifi disconnects the Wi-Fi card. NetworkManager joins no
+// network with it on its own until a connect or the next restart.
+func DisconnectWifi(device string) error {
+	return run("nmcli", "device", "disconnect", device)
+}
+
+// SetWifiAutoconnect turns joining a saved network on its own on or off.
+func SetWifiAutoconnect(name string, on bool) error {
+	if err := savedWifi(name); err != nil {
+		return err
+	}
+	v := "no"
+	if on {
+		v = "yes"
+	}
+	return run("nmcli", "connection", "modify", "id", name, "connection.autoconnect", v)
+}
+
+// ForgetWifi deletes a saved Wi-Fi connection, disconnecting it first.
+func ForgetWifi(name string) error {
+	if err := savedWifi(name); err != nil {
+		return err
+	}
+	return run("nmcli", "connection", "delete", "id", name)
 }

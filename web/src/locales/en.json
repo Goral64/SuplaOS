@@ -202,7 +202,13 @@
     "saved": "Saved networks",
     "forget": "Forget",
     "forgetConfirm": "Forget the network {name}? The device disconnects from it if it is connected.",
-    "forgetAsync": "The network is forgotten. The panel was opened over it, so it may stop responding."
+    "forgetAsync": "The network is forgotten. The panel was opened over it, so it may stop responding.",
+    "disconnect": "Disconnect",
+    "disconnecting": "Disconnecting...",
+    "disconnectConfirm": "Disconnect from {ssid}? The device doesn't join any Wi-Fi network on its own until you connect again or restart it.",
+    "disconnectAsync": "Disconnecting. The panel was opened over Wi-Fi, so it stops responding at this address.",
+    "autoconnect": "Connect automatically",
+    "autoconnectHelp": "When the network is in range, also after a restart."
   },
   "changelog": {
     "title": "Changes in SuplaOS",

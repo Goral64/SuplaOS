@@ -5,8 +5,9 @@
 ## Niewydane
 
 - Wi-Fi w panelu (System, Wi-Fi, i w kreatorze pierwszego uruchomienia):
-  wyszukiwanie sieci, łączenie, usuwanie zapamiętanej. Po restarcie
-  urządzenie łączy się z nią samo, więc kabel można odłączyć.
+  wyszukiwanie sieci, łączenie, rozłączanie, zapamiętane sieci z włączanym
+  albo wyłączanym łączeniem automatycznym. Po restarcie urządzenie łączy się
+  z siecią samo, więc kabel można odłączyć.
 - Obrazy mają wpa_supplicant, bez którego Wi-Fi nie działało, a obraz x86-64
   także firmware kart Intel i Atheros. Aktualizacja dokłada to samo do
   istniejącej instalacji.
