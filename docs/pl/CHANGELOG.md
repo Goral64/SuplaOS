@@ -2,6 +2,12 @@
 
 [In English](../../CHANGELOG.md)
 
+## 0.9.6
+
+- Odczyt konta źródłowego do przeniesienia najpierw sprawdza zakresy tokena
+  i wymienia sekcje bez Odczytu. Gdy źródłowy Cloud mimo to czegoś odmówi,
+  komunikat pokazuje jego powód i zakresy, które widzi w tokenie.
+
 ## 0.9.5
 
 - Zigbee2MQTT startuje od razu z ustawieniami dodatku, bez własnej strony

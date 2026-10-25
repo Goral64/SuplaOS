@@ -2,6 +2,13 @@
 
 [Po polsku](docs/pl/CHANGELOG.md)
 
+## 0.9.6
+
+- Reading the source account for the move first checks the scopes of the
+  token and names the sections that lack Read. When the source Cloud still
+  refuses something, the message shows its reason and the scopes it sees in
+  the token.
+
 ## 0.9.5
 
 - Zigbee2MQTT starts right away with the settings of the add-on, without
