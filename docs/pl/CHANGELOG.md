@@ -2,6 +2,15 @@
 
 [In English](../../CHANGELOG.md)
 
+## 0.9.5
+
+- Zigbee2MQTT startuje od razu z ustawieniami dodatku, bez własnej strony
+  pierwszego uruchomienia (która do tego przekierowywała na localhost). Klucz
+  sieci i identyfikatory losują się przy pierwszym starcie.
+- Typ koordynatora USB (zstack, ember, deconz...) ustawia się w dodatku:
+  Zigbee2MQTT nie rozpozna go ze swojego kontenera. Wcześniejsze instalacje
+  zachowują typ wybrany na stronie pierwszego uruchomienia.
+
 ## 0.9.4
 
 - Bez sieci (bez kabla i bez znanego Wi-Fi w zasięgu przez 2 minuty)

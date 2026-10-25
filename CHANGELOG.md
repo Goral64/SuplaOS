@@ -2,6 +2,15 @@
 
 [Po polsku](docs/pl/CHANGELOG.md)
 
+## 0.9.5
+
+- Zigbee2MQTT starts right away with the settings of the add-on, without
+  its own first start page (which also redirected to localhost). The network
+  key and IDs are generated on the first start.
+- The type of a USB coordinator (zstack, ember, deconz...) is set in the
+  add-on: Zigbee2MQTT cannot recognise it from its container. Installs from
+  before keep the type chosen on the first start page.
+
 ## 0.9.4
 
 - Without a network (no cable, no known Wi-Fi in range for 2 minutes) a
