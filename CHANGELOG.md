@@ -2,6 +2,17 @@
 
 [Po polsku](docs/pl/CHANGELOG.md)
 
+## Unreleased
+
+- Move from another Supla Cloud (Supla add-on page): devices, channels,
+  locations and access IDs of an account on the public Supla Cloud or
+  another own server move here and keep their IDs; each device gets its
+  settings when it is switched to this server.
+- supla-server has a certificate signed by the CA of the device, with its
+  address. Devices can check it with Custom CA, the certificate to paste is
+  on the Supla add-on page. Zigbee2Supla checks it the same way.
+- The Wi-Fi card shows a new connection without reloading the page.
+
 ## 0.8.2
 
 - Fan of Raspberry Pi cases (System, General): the Argon ONE gets its

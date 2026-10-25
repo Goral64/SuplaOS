@@ -79,6 +79,20 @@ Clients connecting to the encrypted port 8883 check the broker with the same
 CA, e.g. `mosquitto_sub --cafile suplaos-<name>-ca.crt ...`. The Mosquitto
 add-on page also offers the file.
 
+## Supla devices
+
+Devices connect to supla-server on the encrypted port 2016, and its
+certificate is signed by the same CA. On the Supla add-on page, card CA
+certificate for devices (Custom CA), copy the certificate. In the settings
+of the device (GUI-Generic, SuplaDevice: Supla protocol) set the address of
+SuplaOS as the server, the security level Custom CA, and paste it there.
+The device then connects only to this server. Use the IP address or the
+.local name of the device as the server, not an own domain: the CA signs
+only local names.
+
+Firmware without the Custom CA option connects with Skip certificate
+verification.
+
 ## New device, new CA
 
 The CA stays the same after changing the name or the address of the device.

@@ -150,7 +150,7 @@ const remove = (b) => call('delete', async () => {
       </div>
       <template v-if="!props.setup">
         <p v-if="!backups.length" class="muted mt">{{ $t('fullBackup.none') }}</p>
-        <table v-else class="mt">
+        <table v-else class="mt stack">
           <tr v-for="b in backups" :key="b.name">
             <td>
               {{ when(b.time) }}

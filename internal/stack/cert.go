@@ -2,9 +2,11 @@ package stack
 
 import (
 	"bytes"
+	"crypto"
 	"crypto/ecdsa"
 	"crypto/elliptic"
 	"crypto/rand"
+	"crypto/rsa"
 	"crypto/sha256"
 	"crypto/tls"
 	"crypto/x509"
@@ -71,7 +73,7 @@ func (s *Stack) CACertFile() string { return filepath.Join(s.CADir(), "ca.crt") 
 func (s *Stack) certificates() error {
 	for _, a := range s.Order() {
 		for _, d := range a.Certificates {
-			replaced, err := s.Certificate(filepath.Join(s.Dir(), d.Dir))
+			replaced, err := s.certificate(filepath.Join(s.Dir(), d.Dir), optionsOf(d))
 			if err != nil {
 				return err
 			}
@@ -131,24 +133,50 @@ func (s *Stack) trustBundle(dir string) (replaced bool, err error) {
 	return err == nil, s.writeFile(file, data, 0o644)
 }
 
+// certOptions are the files and kind of a certificate (addon.CertDir).
+type certOptions struct {
+	cert, key string
+	names     []string
+	rsa       bool
+	deviceCA  bool
+}
+
+func optionsOf(d addon.CertDir) certOptions {
+	o := certOptions{cert: d.Cert, key: d.Key, names: d.Names, rsa: d.KeyType == "rsa", deviceCA: d.DeviceCA}
+	if o.cert == "" {
+		o.cert = "server.crt"
+	}
+	if o.key == "" {
+		o.key = "server.key"
+	}
+	return o
+}
+
 // Certificate makes server.crt and server.key of an add-on in dir: the
 // Let's Encrypt certificate of the domain set in the panel when there is
 // one, else one signed by the CA of the device (DeviceCertificate).
 // replaced tells that an existing certificate was replaced.
 func (s *Stack) Certificate(dir string) (replaced bool, err error) {
+	return s.certificate(dir, optionsOf(addon.CertDir{}))
+}
+
+func (s *Stack) certificate(dir string, o certOptions) (replaced bool, err error) {
+	if o.deviceCA {
+		return s.deviceCertificate(dir, o)
+	}
 	domain, err := domaincert.Load(s.Root, time.Now())
 	if err != nil {
 		// The certificate of the device does until then.
 		fmt.Fprintf(s.stderr(), "certificate of the domain: %v\n", err)
 	}
 	if domain == nil {
-		return s.DeviceCertificate(dir)
+		return s.deviceCertificate(dir, o)
 	}
 	ca, _, err := s.loadCA()
 	if err != nil {
 		return false, err
 	}
-	crtFile, keyFile := filepath.Join(dir, "server.crt"), filepath.Join(dir, "server.key")
+	crtFile, keyFile := filepath.Join(dir, o.cert), filepath.Join(dir, o.key)
 	old, err := os.ReadFile(crtFile)
 	if bytes.Equal(old, domain.Chain) {
 		if key, _ := os.ReadFile(keyFile); bytes.Equal(key, domain.Key) {
@@ -175,14 +203,19 @@ func (s *Stack) Certificate(dir string) (replaced bool, err error) {
 // not expire soon. replaced tells that an existing certificate was
 // replaced.
 func (s *Stack) DeviceCertificate(dir string) (replaced bool, err error) {
+	return s.deviceCertificate(dir, optionsOf(addon.CertDir{}))
+}
+
+func (s *Stack) deviceCertificate(dir string, o certOptions) (replaced bool, err error) {
 	ca, caKey, err := s.loadCA()
 	if err != nil {
 		return false, err
 	}
 	dns, ips := deviceNames()
-	crtFile := filepath.Join(dir, "server.crt")
+	dns = append(slices.Clone(dns), o.names...)
+	crtFile := filepath.Join(dir, o.cert)
 	if data, err := os.ReadFile(crtFile); err == nil {
-		if certValid(data, ca, dns, ips) {
+		if certValid(data, ca, dns, ips) && keyIsRSA(data) == o.rsa {
 			return false, nil
 		}
 		replaced = true
@@ -190,7 +223,13 @@ func (s *Stack) DeviceCertificate(dir string) (replaced bool, err error) {
 		return false, err
 	}
 
-	key, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+	// RSA for old clients that know no other (e.g. devices on supla-server).
+	var key crypto.Signer
+	if o.rsa {
+		key, err = rsa.GenerateKey(rand.Reader, 2048)
+	} else {
+		key, err = ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+	}
 	if err != nil {
 		return false, err
 	}
@@ -205,16 +244,28 @@ func (s *Stack) DeviceCertificate(dir string) (replaced bool, err error) {
 		DNSNames:              dns,
 		IPAddresses:           permittedIPs(ips),
 	}
-	der, err := x509.CreateCertificate(rand.Reader, tmpl, ca, &key.PublicKey, caKey)
+	if o.rsa {
+		tmpl.KeyUsage |= x509.KeyUsageKeyEncipherment
+	}
+	der, err := x509.CreateCertificate(rand.Reader, tmpl, ca, key.Public(), caKey)
 	if err != nil {
 		return false, err
 	}
-	keyDER, err := x509.MarshalECPrivateKey(key)
-	if err != nil {
-		return false, err
+	var keyPEM []byte
+	if k, ok := key.(*ecdsa.PrivateKey); ok {
+		keyDER, err := x509.MarshalECPrivateKey(k)
+		if err != nil {
+			return false, err
+		}
+		keyPEM = pem.EncodeToMemory(&pem.Block{Type: "EC PRIVATE KEY", Bytes: keyDER})
+	} else {
+		keyDER, err := x509.MarshalPKCS8PrivateKey(key)
+		if err != nil {
+			return false, err
+		}
+		keyPEM = pem.EncodeToMemory(&pem.Block{Type: "PRIVATE KEY", Bytes: keyDER})
 	}
-	if err := s.writeFile(filepath.Join(dir, "server.key"),
-		pem.EncodeToMemory(&pem.Block{Type: "EC PRIVATE KEY", Bytes: keyDER}), 0o600); err != nil {
+	if err := s.writeFile(filepath.Join(dir, o.key), keyPEM, 0o600); err != nil {
 		return false, err
 	}
 	chain := append(pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: der}),
@@ -224,6 +275,16 @@ func (s *Stack) DeviceCertificate(dir string) (replaced bool, err error) {
 		return false, err
 	}
 	return replaced, s.writeFile(crtFile, chain, 0o644)
+}
+
+// keyIsRSA tells whether the first certificate in data has an RSA key.
+func keyIsRSA(data []byte) bool {
+	block, _ := pem.Decode(data)
+	if block == nil {
+		return false
+	}
+	crt, err := x509.ParseCertificate(block.Bytes)
+	return err == nil && crt.PublicKeyAlgorithm == x509.RSA
 }
 
 // certValid tells whether the first certificate in data is signed by ca,

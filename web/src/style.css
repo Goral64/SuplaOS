@@ -74,7 +74,7 @@ code { font-size: .9em; }
 }
 .brand { font-weight: 700; font-size: 1.1rem; display: flex; align-items: center; gap: .5rem; color: var(--text); text-decoration: none; }
 .brand-dot { width: 14px; height: 14px; border-radius: 50%; background: var(--accent); }
-.nav { display: flex; gap: .25rem; flex: 1; }
+.nav { display: flex; gap: .25rem; flex: 1; flex-wrap: wrap; }
 .nav a { color: var(--muted); text-decoration: none; padding: .4rem .7rem; border-radius: 8px; }
 .nav a.router-link-active { color: var(--text); background: var(--accent-soft); }
 .nav a:hover { color: var(--text); }
@@ -190,6 +190,7 @@ pre.log {
 .narrow-card { max-width: 560px; margin: 2rem auto; }
 .progress { height: 8px; border-radius: 999px; background: var(--border); overflow: hidden; }
 .progress > div { height: 100%; background: var(--accent); transition: width 1s linear; }
+.pem { font-size: .75rem; white-space: pre-wrap; word-break: break-all; max-height: none; }
 .dialog-text { margin: 0; white-space: pre-line; }
 
 .addon-list .card { display: flex; flex-direction: column; }
@@ -211,3 +212,11 @@ pre.log {
 
 fieldset.account { border: 1px solid var(--border); border-radius: 8px; padding: .5rem 1rem 0; margin: 0 0 1rem; }
 fieldset.account legend { padding: 0 .3rem; font-weight: 600; }
+
+/* Phones: a narrower menu, rows of tables marked stack one under another. */
+@media (max-width: 520px) {
+  .topbar-inner { gap: .5rem; }
+  .nav a { padding: .4rem .45rem; }
+  table.stack tr { display: block; padding: .5rem 0; border-bottom: 1px solid var(--border); }
+  table.stack td { display: block; border: 0; padding: .1rem 0; text-align: left !important; word-break: break-all; }
+}

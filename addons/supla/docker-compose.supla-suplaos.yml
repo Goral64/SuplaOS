@@ -25,6 +25,10 @@ services:
       TZ: ${TZ}
   supla-server:
     env_file: !override [.env.default, supla.env]
+    # The name in its certificate, for zigbee2supla.
+    networks:
+      default:
+        aliases: [supla-server.local]
     volumes:
       - ./ssl/trust/ca-certificates.crt:/etc/ssl/certs/ca-certificates.crt:ro
     # Webhooks may go to <name>.local, e.g. SUPLA Scripts on this device.

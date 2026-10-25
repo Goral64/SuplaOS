@@ -83,6 +83,20 @@ Klienci łączący się z szyfrowanym portem 8883 sprawdzają broker tym samym C
 np. `mosquitto_sub --cafile suplaos-<nazwa>-ca.crt ...`. Plik można też
 pobrać na stronie dodatku Mosquitto.
 
+## Urządzenia Supli
+
+Urządzenia łączą się z supla-server szyfrowanym portem 2016, a jego
+certyfikat jest podpisany tym samym CA. Na stronie dodatku Supla, w karcie
+Certyfikat CA dla urządzeń (Custom CA), skopiuj certyfikat. W ustawieniach
+urządzenia (GUI-Generic, SuplaDevice: protokół Supla) ustaw adres SuplaOS
+jako serwer, poziom bezpieczeństwa Custom CA i wklej go tam. Urządzenie
+połączy się wtedy tylko z tym serwerem. Jako serwer podaj adres IP albo
+nazwę .local urządzenia, nie własną domenę: CA podpisuje tylko nazwy
+lokalne.
+
+Firmware bez opcji Custom CA łączy się z ustawieniem Skip certificate
+verification.
+
 ## Nowe urządzenie, nowe CA
 
 Po zmianie nazwy albo adresu urządzenia CA zostaje to samo. Świeżo wgrany

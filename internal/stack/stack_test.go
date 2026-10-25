@@ -11,6 +11,7 @@ import (
 	"net"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 	"testing"
 	"time"
@@ -251,12 +252,19 @@ func TestMosquitto(t *testing.T) {
 // verify checks server.crt in dir against the CA of the device.
 func verify(t *testing.T, s *Stack, dir, name string) error {
 	t.Helper()
+	return verifyFile(t, s, filepath.Join(dir, "server.crt"), name)
+}
+
+// verifyFile checks the certificate in file with the CA of the device, as
+// a client connecting by name would, name constraints of the CA included.
+func verifyFile(t *testing.T, s *Stack, file, name string) error {
+	t.Helper()
 	roots := x509.NewCertPool()
 	ca, err := os.ReadFile(s.CACertFile())
 	if err != nil || !roots.AppendCertsFromPEM(ca) {
 		t.Fatalf("CA: %v", err)
 	}
-	data, err := os.ReadFile(filepath.Join(dir, "server.crt"))
+	data, err := os.ReadFile(file)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -660,7 +668,9 @@ func TestCertificateRestartsUsers(t *testing.T) {
 	for _, a := range s.after {
 		restarted = append(restarted, a.Restart...)
 	}
-	if strings.Join(restarted, " ") != "supla-cloud" {
+	// The certificates of the Cloud and of supla-server name the address;
+	// the database is not restarted.
+	if strings.Join(restarted, " ") != "supla-cloud supla-server" {
 		t.Errorf("restarted: %v", restarted)
 	}
 }
@@ -708,5 +718,42 @@ func TestDomainEnv(t *testing.T) {
 	}
 	if !strings.Contains(readEnv(t, s, ".env")["COMPOSE_FILE"], "docker-compose.supla-scripts-domain.yml") {
 		t.Error("compose file of the domain not used")
+	}
+}
+
+func TestSuplaServerCertificate(t *testing.T) {
+	s := newStack(t)
+	must(t, s.Install("supla", nil))
+	dir := filepath.Join(s.Dir(), "ssl/server")
+	data, err := os.ReadFile(filepath.Join(dir, "cert.crt"))
+	must(t, err)
+	block, _ := pem.Decode(data)
+	crt, err := x509.ParseCertificate(block.Bytes)
+	must(t, err)
+	if crt.PublicKeyAlgorithm != x509.RSA || !slices.Contains(crt.DNSNames, "supla-server.local") {
+		t.Errorf("key %v, names %v", crt.PublicKeyAlgorithm, crt.DNSNames)
+	}
+	for _, name := range []string{"supla-server.local", "192.168.1.20", "suplaos.local"} {
+		if err := verifyFile(t, s, filepath.Join(dir, "cert.crt"), name); err != nil {
+			t.Errorf("%s: %v", name, err)
+		}
+	}
+	if key, _ := os.ReadFile(filepath.Join(dir, "private.key")); !strings.Contains(string(key), "BEGIN PRIVATE KEY") {
+		t.Error("no private.key")
+	}
+	if _, err := os.Stat(filepath.Join(dir, "ca.crt")); err != nil {
+		t.Error(err)
+	}
+	// The certificate stays while valid, also with an own domain: devices
+	// trust the CA of the device.
+	write(t, filepath.Join(s.CADir(), "acme/settings.yaml"), "domain: supla.example.com\n")
+	replaced, err := s.certificate(dir, optionsOf(s.Catalog["supla"].Certificates[1]))
+	if err != nil || replaced {
+		t.Errorf("replaced %v %v", replaced, err)
+	}
+	// A certificate of supla-docker is replaced.
+	os.WriteFile(filepath.Join(dir, "cert.crt"), []byte("-----BEGIN CERTIFICATE-----\nAA==\n-----END CERTIFICATE-----\n"), 0o644)
+	if replaced, err := s.certificate(dir, optionsOf(s.Catalog["supla"].Certificates[1])); err != nil || !replaced {
+		t.Errorf("old one: %v %v", replaced, err)
 	}
 }

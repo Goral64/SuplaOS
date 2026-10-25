@@ -31,11 +31,20 @@ images:
     version_env: SERVER_VERSION
     changelog: https://github.com/SUPLA/supla-core/releases
 dirs: [ssl/cloud, ssl/server, var]
-# The Cloud uses an existing certificate; ssl/server stays the one made by
-# supla-server, zigbee2supla trusts exactly that one.
 certificates:
   - dir: ssl/cloud
     restart: [supla-cloud]
+  # supla-server (port 2016): always from the CA of the device, which
+  # devices (Custom CA) and zigbee2supla trust. RSA for old devices. The CA
+  # signs only .local names, so no own domain here; zigbee2supla connects
+  # by the alias supla-server.local.
+  - dir: ssl/server
+    cert: cert.crt
+    key: private.key
+    names: [supla-server.local]
+    key_type: rsa
+    device_ca: true
+    restart: [supla-server]
 # supla-server sends state webhooks, e.g. to SUPLA Scripts on this device:
 # it trusts the CA of the device too.
 trust:
@@ -115,6 +124,11 @@ options:
     generate: 64
 
 ports: ["${PORT_HTTPS}", "2015", "2016"]
+# Devices on own servers check the certificate of port 2016 with the CA
+# pasted in their settings (Custom CA).
+downloads:
+  - file: ssl/server/ca.crt
+    label: {en: CA certificate for devices (Custom CA), pl: Certyfikat CA dla urządzeń (Custom CA)}
 
 web:
   scheme: https

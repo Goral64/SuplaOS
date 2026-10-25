@@ -2,6 +2,17 @@
 
 [In English](../../CHANGELOG.md)
 
+## Niewydane
+
+- Przeniesienie z innego Supla Cloud (strona dodatku Supla): urządzenia,
+  kanały, lokalizacje i identyfikatory dostępu konta w publicznym Supla
+  Cloud albo na innym własnym serwerze przechodzą tu z tymi samymi ID; każde
+  urządzenie dostaje swoje ustawienia, gdy przestawi się je na ten serwer.
+- supla-server ma certyfikat podpisany przez CA urządzenia, z jego adresem.
+  Urządzenia mogą go sprawdzać przez Custom CA, certyfikat do wklejenia jest
+  na stronie dodatku Supla. Zigbee2Supla sprawdza go tak samo.
+- Karta Wi-Fi pokazuje nowe połączenie bez odświeżania strony.
+
 ## 0.8.2
 
 - Wentylator obudów Raspberry Pi (System, Ogólne): Argon ONE dostaje obroty

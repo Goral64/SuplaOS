@@ -350,6 +350,14 @@
     "cancelConfirm": "Forget the account read from the source?",
     "cancelPreparedConfirm": "End the move? Devices that connect later do not get their settings any more. What was added to the Supla here stays."
   },
+  "suplaDevices": {
+    "title": "CA certificate for devices (Custom CA)",
+    "intro": "In the settings of a device (GUI-Generic, SuplaDevice: Supla protocol) set the server {server}, the e-mail of your account and the security level Custom CA, and paste this certificate (PEM) there, with the BEGIN and END lines. The device then checks it connects to this server.",
+    "copy": "Copy to clipboard",
+    "copied": "Copied",
+    "help": "Devices without the Custom CA option (older firmware) connect with Skip certificate verification. The certificate stays the same when the address of the device changes and after moving to another device with a full backup.",
+    "show": "Show the certificate"
+  },
   "changelog": {
     "title": "Changes in SuplaOS",
     "show": "Changes",

@@ -350,6 +350,14 @@
     "cancelConfirm": "Zapomnieć konto odczytane ze źródła?",
     "cancelPreparedConfirm": "Zakończyć przenoszenie? Urządzenia, które połączą się później, nie dostaną już swoich ustawień. To, co dodano do Supli tutaj, zostaje."
   },
+  "suplaDevices": {
+    "title": "Certyfikat CA dla urządzeń (Custom CA)",
+    "intro": "W ustawieniach urządzenia (GUI-Generic, SuplaDevice: protokół Supla) ustaw serwer {server}, e-mail swojego konta i poziom bezpieczeństwa Custom CA, i wklej tam ten certyfikat (PEM) razem z wierszami BEGIN i END. Urządzenie sprawdza wtedy, że łączy się z tym serwerem.",
+    "copy": "Kopiuj do schowka",
+    "copied": "Skopiowano",
+    "help": "Urządzenia bez opcji Custom CA (starsze firmware) łączą się z ustawieniem Skip certificate verification. Certyfikat zostaje ten sam po zmianie adresu urządzenia i po przeniesieniu na inne urządzenie pełną kopią.",
+    "show": "Pokaż certyfikat"
+  },
   "changelog": {
     "title": "Zmiany w SuplaOS",
     "show": "Zmiany",

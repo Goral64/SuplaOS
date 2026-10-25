@@ -162,6 +162,19 @@ func (p *Port) UnmarshalYAML(n *yaml.Node) error {
 type CertDir struct {
 	Dir     string   `yaml:"dir"`
 	Restart []string `yaml:"restart"`
+	// Cert and Key are the file names, server.crt and server.key when
+	// empty.
+	Cert string `yaml:"cert"`
+	Key  string `yaml:"key"`
+	// Names are more names the certificate is valid for, e.g. the name of
+	// the service in the compose network.
+	Names []string `yaml:"names"`
+	// KeyType rsa makes an RSA key (for old clients), ECDSA otherwise.
+	KeyType string `yaml:"key_type"`
+	// DeviceCA: always signed by the CA of the device, also with an own
+	// domain (with the domain among the names), for clients that trust
+	// that CA.
+	DeviceCA bool `yaml:"device_ca"`
 }
 
 func (c *CertDir) UnmarshalYAML(n *yaml.Node) error {
@@ -389,6 +402,14 @@ func (a *Addon) validate() error {
 			if !slices.Contains(a.Services, svc) {
 				return fmt.Errorf("%s: %s: restart of unknown service %q", a.ID, c.Dir, svc)
 			}
+		}
+		for _, f := range []string{c.Cert, c.Key} {
+			if f != "" && f != filepath.Base(f) {
+				return fmt.Errorf("%s: %s: certificate file must be a plain name: %q", a.ID, c.Dir, f)
+			}
+		}
+		if c.KeyType != "" && c.KeyType != "rsa" {
+			return fmt.Errorf("%s: %s: unknown key_type %q", a.ID, c.Dir, c.KeyType)
 		}
 	}
 	if a.EnvFile != "" && a.EnvFile != filepath.Base(a.EnvFile) {

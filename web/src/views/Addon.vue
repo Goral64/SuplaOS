@@ -11,6 +11,7 @@ import StateBadge from '../components/StateBadge.vue'
 import LogView from '../components/LogView.vue'
 import AccountFields from '../components/AccountFields.vue'
 import MigrationCard from '../components/MigrationCard.vue'
+import SuplaDevicesCard from '../components/SuplaDevicesCard.vue'
 
 const props = defineProps({ id: String })
 const router = useRouter()
@@ -46,6 +47,8 @@ const suplaRunning = computed(() => {
 // Then the OAuth app comes from Connect with Supla Cloud: its settings are
 // not in the form, which would also overwrite them.
 const connectKeys = ['SUPLA_SCRIPTS_OAUTH_CLOUD', 'SUPLA_SCRIPTS_OAUTH_ID', 'SUPLA_SCRIPTS_OAUTH_SECRET']
+// The CA certificate for devices among the downloads of Supla.
+const deviceCA = computed(() => addon.value?.downloads.findIndex((d) => d.file === 'ssl/server/ca.crt') ?? -1)
 const byConnect = computed(() => addon.value?.id === 'supla-scripts' && suplaRunning.value)
 const cloudLogin = ref({ email: '', password: '' })
 async function connectCloud() {
@@ -233,7 +236,7 @@ function webURL(a) {
         <p v-if="mqttPorts.tls" class="muted small mt">{{ $t('addon.tlsHelp') }}</p>
       </div>
 
-      <div v-else-if="addon.downloads.length" class="card">
+      <div v-else-if="addon.downloads.length && !(addon.id === 'supla' && deviceCA >= 0 && addon.downloads.length === 1)" class="card">
         <h2>{{ $t('addon.files') }}</h2>
         <div class="row">
           <a v-for="(d, i) in addon.downloads" :key="d.file" class="button" :href="`/api/addons/${addon.id}/downloads/${i}`">
@@ -258,6 +261,9 @@ function webURL(a) {
           <button class="primary">{{ $t('addon.cloudConnect') }}</button>
         </form>
       </div>
+
+      <SuplaDevicesCard v-if="addon.id === 'supla' && suplaRunning && deviceCA >= 0"
+        :path="`/addons/supla/downloads/${deviceCA}`" :server="addon.values.SUPLA_HOST_ADDRESS" />
 
       <MigrationCard v-if="addon.id === 'supla' && suplaRunning" />
 
@@ -298,7 +304,7 @@ function webURL(a) {
         </div>
         <p class="muted small mt">{{ $t('addon.backupsHelp') }}</p>
         <p v-if="!backups.length" class="muted mt">{{ $t('addon.noBackups') }}</p>
-        <table v-else class="mt">
+        <table v-else class="mt stack">
           <tr v-for="b in backups" :key="b.name">
             <td>{{ b.name }}</td>
             <td class="muted">{{ new Date(b.time).toLocaleString(locale) }}</td>
