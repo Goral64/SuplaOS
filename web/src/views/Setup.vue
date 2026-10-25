@@ -6,6 +6,7 @@ import { api, panelUrl, session } from '../api'
 import { languages, setLanguage } from '../i18n'
 import { runJob } from '../components/jobs'
 import AccountFields from '../components/AccountFields.vue'
+import WifiCard from '../components/WifiCard.vue'
 
 const router = useRouter()
 const { locale } = useI18n()
@@ -116,5 +117,6 @@ async function finish(installSupla) {
         <button class="primary">{{ $t('setup.installSupla') }}</button>
       </div>
     </form>
+    <WifiCard v-if="step === 2" embedded class="mt" />
   </div>
 </template>

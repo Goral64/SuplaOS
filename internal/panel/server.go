@@ -120,6 +120,10 @@ func (s *Server) Handler() http.Handler {
 	api("GET /api/timezones", s.getTimezones)
 	api("GET /api/network", s.getNetwork)
 	api("PUT /api/network", s.putNetwork)
+	api("GET /api/wifi", s.getWifi)
+	api("POST /api/wifi/scan", s.scanWifi)
+	api("POST /api/wifi/connect", s.connectWifi)
+	api("DELETE /api/wifi/{name}", s.forgetWifi)
 	api("GET /api/serial", s.getSerial)
 
 	api("GET /api/addons", s.getAddons)

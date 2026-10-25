@@ -17,13 +17,15 @@ Images are in [Releases](https://github.com/Goral64/SuplaOS/releases).
 
 ## First start
 
-The device gets its address from your router (DHCP). Open
-https://suplaos.local:8443 in a browser (http://suplaos.local takes you there,
-the IP address is also shown on a screen connected to the device) and log in
-with the password `supla`. The panel asks you to change it first, the new
+Connect the device to your router with a cable, it gets its address by
+DHCP. Open https://suplaos.local:8443 in a browser (http://suplaos.local
+takes you there, the IP address is also shown on a screen connected to the
+device) and log in with the password `supla`. The panel asks you to change it first, the new
 one also works for SSH (`ssh supla@suplaos.local`, which asks for a new
 password too if you log in there first). Then you pick the language, the
-time zone and the name of the device, and you can install Supla right away.
+time zone and the name of the device (and Wi-Fi, if the device has it), and
+you can install Supla right away. Wi-Fi can also be set up later on the
+System page, after that the cable isn't needed.
 
 The browser warns about the certificate at first, because the device makes
 its own. Accept it, or better install the CA certificate of the device once

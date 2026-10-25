@@ -5,6 +5,7 @@ import { useI18n } from 'vue-i18n'
 import { api, panelUrl } from '../api'
 import { ask } from '../components/dialog'
 import DomainCard from '../components/DomainCard.vue'
+import WifiCard from '../components/WifiCard.vue'
 
 const { t, locale } = useI18n()
 const router = useRouter()
@@ -117,6 +118,8 @@ const power = (action) => call(async () => {
       <button class="primary" :disabled="busy">{{ $t('system.apply') }}</button>
     </form>
   </div>
+
+  <WifiCard />
 
   <div v-if="ca" class="card">
     <h2>{{ $t('system.certificate') }}</h2>

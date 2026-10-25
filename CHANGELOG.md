@@ -4,9 +4,12 @@
 
 ## Unreleased
 
-- Wi-Fi: the images come with wpa_supplicant, and the x86-64 one with the
-  firmware of Intel and Atheros cards too. It can be set up over SSH with
-  `sudo nmtui`. An update brings the same to an existing installation.
+- Wi-Fi in the panel (System, Wi-Fi, and in the setup wizard): search for
+  networks, connect, forget a saved one. The device joins it again after
+  a restart, so the cable can be unplugged.
+- The images come with wpa_supplicant, which Wi-Fi didn't work without, and
+  the x86-64 one with the firmware of Intel and Atheros cards too. An update
+  brings the same to an existing installation.
 
 ## 0.6.0
 

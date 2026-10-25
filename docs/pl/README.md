@@ -17,13 +17,15 @@ Obrazy są w [Releases](https://github.com/Goral64/SuplaOS/releases).
 
 ## Pierwsze uruchomienie
 
-Urządzenie pobiera adres z routera (DHCP). Otwórz w przeglądarce
-https://suplaos.local:8443 (http://suplaos.local przekieruje tam, adres IP
-widać też na ekranie podłączonym do urządzenia) i zaloguj się hasłem
-`supla`. Panel najpierw poprosi o jego zmianę, nowe hasło działa też przy
+Podłącz urządzenie kablem do routera, adres dostanie przez DHCP. Otwórz
+w przeglądarce https://suplaos.local:8443 (http://suplaos.local przekieruje
+tam, adres IP widać też na ekranie podłączonym do urządzenia) i zaloguj się
+hasłem `supla`. Panel najpierw poprosi o jego zmianę, nowe hasło działa też przy
 SSH (`ssh supla@suplaos.local`, które też poprosi o nowe hasło, jeśli
-zalogujesz się tam najpierw). Potem wybierasz język, strefę czasową i nazwę
-urządzenia, i od razu możesz zainstalować Suplę.
+zalogujesz się tam najpierw). Potem wybierasz język, strefę czasową, nazwę
+urządzenia (i Wi-Fi, jeśli urządzenie je ma) i od razu możesz zainstalować
+Suplę. Wi-Fi można też ustawić później na stronie System, potem kabel nie
+jest już potrzebny.
 
 Przeglądarka na początku ostrzeże przed certyfikatem, bo urządzenie tworzy
 własny. Zaakceptuj go albo lepiej raz zainstaluj certyfikat CA urządzenia

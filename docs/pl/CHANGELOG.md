@@ -4,9 +4,12 @@
 
 ## Niewydane
 
-- Wi-Fi: obrazy mają wpa_supplicant, a obraz x86-64 także firmware kart Intel
-  i Atheros. Wi-Fi ustawia się przez SSH poleceniem `sudo nmtui`. Aktualizacja
-  dokłada to samo do istniejącej instalacji.
+- Wi-Fi w panelu (System, Wi-Fi, i w kreatorze pierwszego uruchomienia):
+  wyszukiwanie sieci, łączenie, usuwanie zapamiętanej. Po restarcie
+  urządzenie łączy się z nią samo, więc kabel można odłączyć.
+- Obrazy mają wpa_supplicant, bez którego Wi-Fi nie działało, a obraz x86-64
+  także firmware kart Intel i Atheros. Aktualizacja dokłada to samo do
+  istniejącej instalacji.
 
 ## 0.6.0
 

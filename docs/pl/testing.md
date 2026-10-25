@@ -21,9 +21,8 @@ OS”, potem „Użyj własnego”) albo balenaEtcher. Oba biorą plik `.xz` bez
 rozpakowywania. W Raspberry Pi Imager pomiń „ustawienia OS”, SuplaOS z nich
 nie korzysta.
 
-Pierwsze uruchomienie wymaga kabla sieciowego. Panel nie ustawia jeszcze
-Wi-Fi, ale można to zrobić przez SSH poleceniem `sudo nmtui` (Aktywuj
-połączenie, wybierz sieć, wpisz hasło).
+Pierwsze uruchomienie wymaga kabla sieciowego. Wi-Fi ustawia się w panelu:
+w kreatorze pierwszego uruchomienia albo później na stronie System.
 
 ## Pierwsze uruchomienie
 
