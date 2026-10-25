@@ -24,6 +24,12 @@ EOS
   if [ -f /etc/issue ]; then
     sed -i 's|^  Panel: http://.*|  Panel: https://\\n.local:8443   (https://\\4:8443)|' /etc/issue
   fi
+  # nfs-common brings rpcbind for automatic backups to NFS, which listens
+  # on port 111. Mounts with nolock do not need it.
+  systemctl mask rpcbind.service rpcbind.socket >/dev/null 2>&1 || true
+  if [ -d /run/systemd/system ]; then
+    systemctl stop rpcbind.socket rpcbind.service >/dev/null 2>&1 || true
+  fi
   # On a running system (not while the image is built) use the new panel.
   if [ -d /run/systemd/system ]; then
     systemctl try-restart suplaos-panel.service || true

@@ -40,6 +40,7 @@ func main() {
 	}
 	go s.WatchImages()
 	go s.WatchCertificates()
+	go s.WatchBackups()
 	go s.WatchProxies(tlsConfig)
 	go s.ApplyPending()
 	if *redirect != "" {

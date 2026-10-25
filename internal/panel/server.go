@@ -157,6 +157,10 @@ func (s *Server) Handler() http.Handler {
 	api("POST /api/system-backup/upload", s.uploadFullBackup)
 	api("POST /api/system-backup/check", s.checkFullBackup)
 	api("POST /api/system-backup/restore", s.restoreFullBackup)
+	api("GET /api/system-backup/auto", s.getAutoBackup)
+	api("PUT /api/system-backup/auto", s.putAutoBackup)
+	api("POST /api/system-backup/auto/test", s.testAutoBackup)
+	api("POST /api/system-backup/auto/run", s.runAutoBackup)
 
 	api("GET /api/jobs/current", s.currentJob)
 	api("GET /api/jobs/{id}", s.getJob)

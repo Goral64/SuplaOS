@@ -29,6 +29,7 @@ async function load() {
   backups.value = (await api('GET', '/backups')).filter((b) => b.full)
 }
 onMounted(load)
+defineExpose({ load })
 
 async function call(kind, fn) {
   busy.value = kind

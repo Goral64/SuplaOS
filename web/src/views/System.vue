@@ -7,6 +7,7 @@ import { ask } from '../components/dialog'
 import DomainCard from '../components/DomainCard.vue'
 import WifiCard from '../components/WifiCard.vue'
 import FullBackupCard from '../components/FullBackupCard.vue'
+import AutoBackupCard from '../components/AutoBackupCard.vue'
 
 const { t, locale } = useI18n()
 const router = useRouter()
@@ -21,6 +22,7 @@ const dns = ref('')
 const message = ref('')
 const error = ref('')
 const busy = ref(false)
+const fullBackups = ref(null)
 
 onMounted(async () => {
   settings.value = await api('GET', '/settings')
@@ -134,7 +136,9 @@ const power = (action) => call(async () => {
 
   <DomainCard />
 
-  <FullBackupCard />
+  <FullBackupCard ref="fullBackups" />
+
+  <AutoBackupCard @done="fullBackups?.load()" />
 
   <div class="card">
     <h2>{{ $t('system.password') }}</h2>

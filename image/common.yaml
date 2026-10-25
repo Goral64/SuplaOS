@@ -37,6 +37,9 @@ actions:
       - docker-cli
       - docker-compose
       - apparmor
+      # Automatic backups to a network share.
+      - cifs-utils
+      - nfs-common
 
   - action: overlay
     description: SuplaOS configuration files
