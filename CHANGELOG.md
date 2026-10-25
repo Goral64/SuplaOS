@@ -2,6 +2,16 @@
 
 [Po polsku](docs/pl/CHANGELOG.md)
 
+## 0.9.3
+
+- Without a network (no cable, no known Wi-Fi in range for 2 minutes) a
+  device with Wi-Fi makes its own network, `SuplaOS-XXXX` with the password
+  `suplaos-setup`. A phone connected to it opens the panel, where the Wi-Fi
+  to join is picked. So the first start doesn't need a cable any more.
+- Moving the newer measurement history skips channels deleted in the
+  source meanwhile, instead of stopping at the first one.
+- The Open button of a stopped or not working add-on is greyed out.
+
 ## 0.9.2
 
 - Moving from Supla Cloud can also move SUPLA Scripts: scenes, scene groups,

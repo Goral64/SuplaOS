@@ -2,6 +2,16 @@
 
 [In English](../../CHANGELOG.md)
 
+## 0.9.3
+
+- Bez sieci (bez kabla i bez znanego Wi-Fi w zasięgu przez 2 minuty)
+  urządzenie z Wi-Fi tworzy własną sieć, `SuplaOS-XXXX` z hasłem
+  `suplaos-setup`. Telefon z nią połączony otwiera panel, w którym wybiera
+  się Wi-Fi. Pierwsze uruchomienie nie wymaga już kabla.
+- Dociąganie nowszej historii pomiarów pomija kanały usunięte w międzyczasie
+  w źródle, zamiast zatrzymywać się na pierwszym z nich.
+- Przycisk Otwórz zatrzymanego albo niedziałającego dodatku jest wyszarzony.
+
 ## 0.9.2
 
 - Przeniesienie z Supla Cloud przenosi też SUPLA Scripts: sceny, grupy scen,
