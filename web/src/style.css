@@ -127,7 +127,7 @@ button.link { border: none; background: none; color: var(--muted); padding: .3re
 label { display: block; font-weight: 500; margin-bottom: .25rem; }
 .field { margin-bottom: 1rem; }
 .field .help { color: var(--muted); font-size: .85rem; margin-top: .25rem; }
-input, select {
+input, select, textarea {
   font: inherit;
   width: 100%;
   padding: .5rem .65rem;
@@ -136,7 +136,8 @@ input, select {
   background: var(--bg);
   color: var(--text);
 }
-input:focus, select:focus { outline: 2px solid var(--accent); outline-offset: -1px; }
+textarea { font-family: monospace; font-size: .85rem; resize: vertical; word-break: break-all; }
+input:focus, select:focus, textarea:focus { outline: 2px solid var(--accent); outline-offset: -1px; }
 input[type=checkbox], input[type=radio] { width: auto; }
 .check { display: flex; align-items: center; gap: .5rem; font-weight: normal; }
 .required::after { content: " *"; color: var(--danger); }
