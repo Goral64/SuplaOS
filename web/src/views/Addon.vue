@@ -66,6 +66,8 @@ const host = window.location.hostname
 // Start only when something is not running, stop and restart only when
 // something is.
 const allRunning = computed(() => addon.value?.containers.every((c) => c.State === 'running'))
+// Open leads nowhere while the add-on is stopped or not working.
+const canOpen = computed(() => !!addon.value?.installed && addon.value.containers.length > 0 && allRunning.value)
 const anyRunning = computed(() => addon.value?.containers.some((c) => ['running', 'restarting', 'paused'].includes(c.State)))
 
 async function load() {
@@ -161,7 +163,10 @@ function webURL(a) {
     <div class="row">
       <h1 style="margin: 0">{{ name }}</h1>
       <span class="spacer"></span>
-      <a v-if="addon.web" class="button primary" :href="webURL(addon)" target="_blank" rel="noopener">{{ $t('addons.open') }}</a>
+      <template v-if="addon.web">
+        <a v-if="canOpen" class="button primary" :href="webURL(addon)" target="_blank" rel="noopener">{{ $t('addons.open') }}</a>
+        <button v-else class="primary" disabled>{{ $t('addons.open') }}</button>
+      </template>
     </div>
     <p class="muted mt">{{ text(addon.description, locale) }}</p>
     <div v-if="error" class="alert error">{{ error }}</div>

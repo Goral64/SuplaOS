@@ -34,6 +34,11 @@ const uptime = computed(() => {
 const memUsed = computed(() => info.value && (1 - info.value.memFree / info.value.memTotal) * 100)
 const diskUsed = computed(() => info.value && (1 - info.value.diskFree / info.value.diskTotal) * 100)
 
+// Open leads nowhere while the add-on is stopped or not working.
+function running(a) {
+  return a.containers.length > 0 && a.containers.every((c) => c.State === 'running')
+}
+
 function webURL(a) {
   return `${a.web.scheme}://${window.location.hostname}:${a.web.port}${a.web.path || '/'}`
 }
@@ -90,7 +95,10 @@ function webURL(a) {
       <StateBadge v-for="c in a.containers" :key="c.Service" :container="c" />
       <span v-if="a.update === 'available'" class="badge warn">{{ $t('addon.updateAvailable') }}</span>
       <span class="spacer"></span>
-      <a v-if="a.web" class="button" :href="webURL(a)" target="_blank" rel="noopener">{{ $t('addons.open') }}</a>
+      <template v-if="a.web">
+        <a v-if="running(a)" class="button" :href="webURL(a)" target="_blank" rel="noopener">{{ $t('addons.open') }}</a>
+        <button v-else disabled>{{ $t('addons.open') }}</button>
+      </template>
     </div>
   </div>
 </template>
