@@ -4,10 +4,12 @@
 
 ## Unreleased
 
-- Move from another Supla Cloud (Supla add-on page): devices, channels,
-  locations and access IDs of an account on the public Supla Cloud or
-  another own server move here and keep their IDs; each device gets its
-  settings when it is switched to this server.
+- Move from another Supla Cloud (Supla add-on page): an account on the
+  public Supla Cloud or another own server moves here with its devices,
+  channels, locations, access IDs, channel groups, scenes, schedules,
+  reactions, direct links, icons and measurement history. Devices and
+  channels keep their IDs, each device gets its settings when it is
+  switched to this server. See [moving from Supla Cloud](docs/migration.md).
 - supla-server has a certificate signed by the CA of the device, with its
   address. Devices can check it with Custom CA, the certificate to paste is
   on the Supla add-on page. Zigbee2Supla checks it the same way.

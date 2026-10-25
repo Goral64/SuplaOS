@@ -45,6 +45,10 @@ run wizard), or created later on the Supla add-on page. The Zigbee2MQTT
 interface is at https://<device address>:8080, served by the panel after
 logging in to it.
 
+An account on the public Supla Cloud can be moved here with its devices,
+scenes and measurement history, the devices and channels keep their IDs:
+see [moving from Supla Cloud](docs/migration.md).
+
 [SUPLA Scripts](https://github.com/fracz/supla-scripts) is at
 https://<device address>:8444. You log in there with a personal access
 token from Supla Cloud (Account, Security, Personal access tokens) with

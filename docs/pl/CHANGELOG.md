@@ -4,10 +4,13 @@
 
 ## Niewydane
 
-- Przeniesienie z innego Supla Cloud (strona dodatku Supla): urządzenia,
-  kanały, lokalizacje i identyfikatory dostępu konta w publicznym Supla
-  Cloud albo na innym własnym serwerze przechodzą tu z tymi samymi ID; każde
-  urządzenie dostaje swoje ustawienia, gdy przestawi się je na ten serwer.
+- Przeniesienie z innego Supla Cloud (strona dodatku Supla): konto
+  w publicznym Supla Cloud albo na innym własnym serwerze przechodzi tu
+  razem z urządzeniami, kanałami, lokalizacjami, identyfikatorami dostępu,
+  grupami kanałów, scenami, harmonogramami, reakcjami, linkami
+  bezpośrednimi, ikonami i historią pomiarów. Urządzenia i kanały zachowują
+  swoje ID, każde urządzenie dostaje swoje ustawienia, gdy przestawi się je
+  na ten serwer. Zobacz [przeniesienie z Supla Cloud](migration.md).
 - supla-server ma certyfikat podpisany przez CA urządzenia, z jego adresem.
   Urządzenia mogą go sprawdzać przez Custom CA, certyfikat do wklejenia jest
   na stronie dodatku Supla. Zigbee2Supla sprawdza go tak samo.

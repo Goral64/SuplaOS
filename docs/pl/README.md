@@ -45,6 +45,10 @@ pierwszego uruchomienia) albo założyć później na stronie dodatku Supla.
 Interfejs Zigbee2MQTT jest pod https://<adres urządzenia>:8080, udostępnia
 go panel po zalogowaniu.
 
+Konto z publicznego Supla Cloud można tu przenieść razem z urządzeniami,
+scenami i historią pomiarów, a urządzenia i kanały zachowują swoje ID:
+zobacz [przeniesienie z Supla Cloud](migration.md).
+
 [SUPLA Scripts](https://github.com/fracz/supla-scripts) jest pod
 https://<adres urządzenia>:8444. Loguje się tam tokenem osobistym z Supla
 Cloud (Konto, Bezpieczeństwo, Osobiste tokeny dostępowe) z dostępem do
