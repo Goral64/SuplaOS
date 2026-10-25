@@ -22,7 +22,7 @@ rozpakowywania. W Raspberry Pi Imager pomiń „ustawienia OS”, SuplaOS z nich
 nie korzysta.
 
 Pierwsze uruchomienie wymaga kabla sieciowego. Wi-Fi ustawia się w panelu:
-w kreatorze pierwszego uruchomienia albo później na stronie System.
+w kreatorze pierwszego uruchomienia albo później w System, Sieć.
 
 ## Pierwsze uruchomienie
 
@@ -48,7 +48,7 @@ w kreatorze pierwszego uruchomienia albo później na stronie System.
 - ZigBee (jeśli masz koordynator): zainstaluj Mosquitto, Zigbee2MQTT
   i Zigbee2Supla. Koordynator USB powinien być na liście urządzeń
   w ustawieniach Zigbee2MQTT.
-- Certyfikat: zainstaluj CA ze strony System ([jak](certificate.md)), czy
+- Certyfikat: zainstaluj CA z System, Dostęp ([jak](certificate.md)), czy
   panel, Supla Cloud i Zigbee2MQTT otwierają się bez ostrzeżeń?
 - Uruchom urządzenie ponownie z panelu (System), wszystko powinno wstać samo.
 - Gdy wyjdzie nowa wersja: zaktualizuj system z panelu (Aktualizacje)

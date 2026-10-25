@@ -56,7 +56,7 @@ async function submit() {
       </div>
       <div class="row">
         <button class="primary" :disabled="busy">{{ $t('common.save') }}</button>
-        <router-link v-if="!session.mustChange" to="/system" class="button">{{ $t(message ? 'common.back' : 'common.cancel') }}</router-link>
+        <router-link v-if="!session.mustChange" to="/system/access" class="button">{{ $t(message ? 'common.back' : 'common.cancel') }}</router-link>
       </div>
     </form>
   </div>

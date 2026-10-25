@@ -1,15 +1,17 @@
 <script setup>
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { api, panelUrl } from '../api'
 import { ask } from '../components/dialog'
 import DomainCard from '../components/DomainCard.vue'
 import WifiCard from '../components/WifiCard.vue'
-import FullBackupCard from '../components/FullBackupCard.vue'
-import AutoBackupCard from '../components/AutoBackupCard.vue'
 import SshKeysCard from '../components/SshKeysCard.vue'
 import FanCard from '../components/FanCard.vue'
+
+// The part of the page shown, from the address: /system/general...
+const props = defineProps({ tab: { type: String, default: 'general' } })
+const tabs = ['general', 'network', 'access']
 
 const { t, locale } = useI18n()
 const router = useRouter()
@@ -24,7 +26,8 @@ const dns = ref('')
 const message = ref('')
 const error = ref('')
 const busy = ref(false)
-const fullBackups = ref(null)
+// A message of another part does not stay on the page.
+watch(() => props.tab, () => { message.value = error.value = '' })
 
 onMounted(async () => {
   settings.value = await api('GET', '/settings')
@@ -75,87 +78,86 @@ const power = (action) => call(async () => {
 
 <template>
   <h1>{{ $t('system.title') }}</h1>
+  <nav class="tabs">
+    <router-link v-for="name in tabs" :key="name" :to="'/system/' + name">{{ $t('system.tabs.' + name) }}</router-link>
+  </nav>
   <div v-if="error" class="alert error">{{ error }}</div>
   <div v-if="message" class="alert ok">{{ message }}</div>
 
-  <div class="card">
-    <h2>{{ $t('system.general') }}</h2>
-    <form @submit.prevent="saveGeneral">
-      <div class="field">
-        <label for="tz">{{ $t('system.timezone') }}</label>
-        <select id="tz" v-model="settings.timezone">
-          <option v-for="z in timezones" :key="z" :value="z">{{ z }}</option>
-        </select>
-      </div>
-      <div class="field">
-        <label for="host">{{ $t('system.hostname') }}</label>
-        <input id="host" v-model="settings.hostname" pattern="[a-z0-9]([a-z0-9-]*[a-z0-9])?" required>
-        <div class="help">{{ $t('setup.hostnameHelp', { name: settings.hostname }) }}</div>
-      </div>
-      <button class="primary" :disabled="busy">{{ $t('common.save') }}</button>
-    </form>
-  </div>
-
-  <div v-if="net" class="card">
-    <h2>{{ $t('system.network') }}</h2>
-    <p class="muted">{{ net.device }} · {{ $t('system.current', { address: net.address }) }}</p>
-    <form @submit.prevent="saveNetwork">
-      <div class="field">
-        <label class="check"><input v-model="net.method" type="radio" value="auto"> {{ $t('system.dhcp') }}</label>
-        <label class="check"><input v-model="net.method" type="radio" value="manual"> {{ $t('system.static') }}</label>
-      </div>
-      <template v-if="net.method === 'manual'">
+  <template v-if="props.tab === 'general'">
+    <div class="card">
+      <h2>{{ $t('system.general') }}</h2>
+      <form @submit.prevent="saveGeneral">
         <div class="field">
-          <label for="addr" class="required">{{ $t('system.address') }}</label>
-          <input id="addr" v-model="net.address" required>
-          <div class="help">{{ $t('system.addressHelp') }}</div>
+          <label for="tz">{{ $t('system.timezone') }}</label>
+          <select id="tz" v-model="settings.timezone">
+            <option v-for="z in timezones" :key="z" :value="z">{{ z }}</option>
+          </select>
         </div>
         <div class="field">
-          <label for="gw">{{ $t('system.gateway') }}</label>
-          <input id="gw" v-model="net.gateway">
+          <label for="host">{{ $t('system.hostname') }}</label>
+          <input id="host" v-model="settings.hostname" pattern="[a-z0-9]([a-z0-9-]*[a-z0-9])?" required>
+          <div class="help">{{ $t('setup.hostnameHelp', { name: settings.hostname }) }}</div>
         </div>
-        <div class="field">
-          <label for="dns">{{ $t('system.dns') }}</label>
-          <input id="dns" v-model="dns">
-          <div class="help">{{ $t('system.dnsHelp') }}</div>
-        </div>
-      </template>
-      <button class="primary" :disabled="busy">{{ $t('system.apply') }}</button>
-    </form>
-  </div>
-
-  <WifiCard />
-
-  <div v-if="ca" class="card">
-    <h2>{{ $t('system.certificate') }}</h2>
-    <p>{{ $t('system.certificateIntro') }}</p>
-    <p class="muted small">{{ $t('system.fingerprint') }}<br><code class="fingerprint">{{ ca.sha256 }}</code></p>
-    <div class="row">
-      <a class="button" href="/api/ca.crt" download>{{ $t('system.downloadCA') }}</a>
-      <a :href="certificateHelp" target="_blank" rel="noopener">{{ $t('system.certificateHow') }}</a>
+        <button class="primary" :disabled="busy">{{ $t('common.save') }}</button>
+      </form>
     </div>
-  </div>
-
-  <DomainCard />
-
-  <FullBackupCard ref="fullBackups" />
-
-  <AutoBackupCard @done="fullBackups?.load()" />
-
-  <div class="card">
-    <h2>{{ $t('system.password') }}</h2>
-    <router-link to="/password" class="button">{{ $t('system.changePassword') }}</router-link>
-  </div>
-
-  <SshKeysCard />
-
-  <FanCard @reboot="power('reboot')" />
-
-  <div class="card">
-    <h2>{{ $t('system.power') }}</h2>
-    <div class="row">
-      <button :disabled="busy" @click="power('reboot')">{{ $t('system.reboot') }}</button>
-      <button class="danger" :disabled="busy" @click="power('poweroff')">{{ $t('system.poweroff') }}</button>
+    <FanCard @reboot="power('reboot')" />
+    <div class="card">
+      <h2>{{ $t('system.power') }}</h2>
+      <div class="row">
+        <button :disabled="busy" @click="power('reboot')">{{ $t('system.reboot') }}</button>
+        <button class="danger" :disabled="busy" @click="power('poweroff')">{{ $t('system.poweroff') }}</button>
+      </div>
     </div>
-  </div>
+  </template>
+
+  <template v-else-if="props.tab === 'network'">
+    <div v-if="net" class="card">
+      <h2>{{ $t('system.network') }}</h2>
+      <p class="muted">{{ net.device }} · {{ $t('system.current', { address: net.address }) }}</p>
+      <form @submit.prevent="saveNetwork">
+        <div class="field">
+          <label class="check"><input v-model="net.method" type="radio" value="auto"> {{ $t('system.dhcp') }}</label>
+          <label class="check"><input v-model="net.method" type="radio" value="manual"> {{ $t('system.static') }}</label>
+        </div>
+        <template v-if="net.method === 'manual'">
+          <div class="field">
+            <label for="addr" class="required">{{ $t('system.address') }}</label>
+            <input id="addr" v-model="net.address" required>
+            <div class="help">{{ $t('system.addressHelp') }}</div>
+          </div>
+          <div class="field">
+            <label for="gw">{{ $t('system.gateway') }}</label>
+            <input id="gw" v-model="net.gateway">
+          </div>
+          <div class="field">
+            <label for="dns">{{ $t('system.dns') }}</label>
+            <input id="dns" v-model="dns">
+            <div class="help">{{ $t('system.dnsHelp') }}</div>
+          </div>
+        </template>
+        <button class="primary" :disabled="busy">{{ $t('system.apply') }}</button>
+      </form>
+    </div>
+    <WifiCard />
+  </template>
+
+  <template v-else>
+    <div class="card">
+      <h2>{{ $t('system.password') }}</h2>
+      <router-link to="/password" class="button">{{ $t('system.changePassword') }}</router-link>
+    </div>
+    <SshKeysCard />
+    <div v-if="ca" class="card">
+      <h2>{{ $t('system.certificate') }}</h2>
+      <p>{{ $t('system.certificateIntro') }}</p>
+      <p class="muted small">{{ $t('system.fingerprint') }}<br><code class="fingerprint">{{ ca.sha256 }}</code></p>
+      <div class="row">
+        <a class="button" href="/api/ca.crt" download>{{ $t('system.downloadCA') }}</a>
+        <a :href="certificateHelp" target="_blank" rel="noopener">{{ $t('system.certificateHow') }}</a>
+      </div>
+    </div>
+    <DomainCard />
+  </template>
 </template>

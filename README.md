@@ -24,12 +24,12 @@ device) and log in with the password `supla`. The panel asks you to change it fi
 one also works for SSH (`ssh supla@suplaos.local`, which asks for a new
 password too if you log in there first). Then you pick the language, the
 time zone and the name of the device (and Wi-Fi, if the device has it), and
-you can install Supla right away. Wi-Fi can also be set up later on the
-System page, after that the cable isn't needed.
+you can install Supla right away. Wi-Fi can also be set up later in
+System, Network, after that the cable isn't needed.
 
 The browser warns about the certificate at first, because the device makes
 its own. Accept it, or better install the CA certificate of the device once
-(System page in the panel, [how](docs/certificate.md)). Plain HTTP isn't
+(System, Access in the panel, [how](docs/certificate.md)). Plain HTTP isn't
 used, also not in the local network.
 
 With your own domain (or a free one from DuckDNS or deSEC) the device can
@@ -97,7 +97,7 @@ Other `docker compose` commands work as `suplaos compose ...` (e.g.
 
 ## Backups
 
-A full backup on the System page holds all add-ons with their data and the
+A full backup on the Backups page holds all add-ons with their data and the
 CA of the device, encrypted with a password. It can be made automatically
 every day or week, also to a network share (SMB or NFS). To move to another
 device or a fresh SD card, restore it in the setup wizard there. See

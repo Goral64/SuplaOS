@@ -13,7 +13,7 @@ pierwszego uruchomienia.
 
 ## Robienie kopii
 
-Strona System, Pełna kopia. Podaj hasło i zrób kopię, potem pobierz ją
+Strona Kopie, Pełna kopia. Podaj hasło i zrób kopię, potem pobierz ją
 z listy poniżej. Bez hasła kopii nie da się przywrócić, więc trzymaj je
 w bezpiecznym miejscu. Można też zrobić kopię bez hasła, ale wtedy każdy,
 kto dostanie plik, odczyta z niego hasła dodatków i klucz CA.
@@ -27,7 +27,7 @@ jeśli ma hasło (`.tar.gz.age`). Na komputerze otworzysz go poleceniem
 
 ## Kopie automatyczne
 
-Strona System, Kopie automatyczne: codziennie albo co tydzień o podanej
+Strona Kopie, Kopie automatyczne: codziennie albo co tydzień o podanej
 godzinie. Jeśli urządzenie jest wtedy wyłączone, kopia zrobi się po jego
 włączeniu. Zostaje kilka najnowszych, starsze kopie automatyczne są usuwane
 (zrobione ręcznie zostają).
@@ -83,7 +83,7 @@ SuplaOS niż ten, który ją zrobił: najpierw zaktualizuj.
 
 ## Przywracanie na tym samym urządzeniu
 
-Strona System, Pełna kopia, Przywróć przy kopii na liście albo Wyślij kopię,
+Strona Kopie, Pełna kopia, Przywróć przy kopii na liście albo Wyślij kopię,
 żeby wgrać plik z komputera. Wszystko, co mają dodatki, zostanie zastąpione.
 Najpierw robi się pełna kopia obecnego stanu i pojawia się na liście, więc
 przywrócenie można cofnąć.

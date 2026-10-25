@@ -13,7 +13,7 @@ setup wizard.
 
 ## Making a backup
 
-System page, Full backup. Give a password and make a backup, then download
+Backups page, Full backup. Give a password and make a backup, then download
 it from the list below. Without the password the backup can't be restored,
 so keep it somewhere safe. A backup without a password is possible too, but
 anyone who gets the file can read the passwords of the add-ons and the key
@@ -28,7 +28,7 @@ when it has a password (`.tar.gz.age`). On a computer it can be opened with
 
 ## Automatic backups
 
-System page, Automatic backups: every day or every week at a given time.
+Backups page, Automatic backups: every day or every week at a given time.
 If the device is off then, the backup is made when it's on again. The
 newest few are kept, older automatic ones are deleted (backups made by hand
 stay).
@@ -82,7 +82,7 @@ an older SuplaOS than the one that made it: update first.
 
 ## Restoring on the same device
 
-System page, Full backup, Restore next to a backup on the list, or Send a
+Backups page, Full backup, Restore next to a backup on the list, or Send a
 backup to upload one from your computer. Everything the add-ons have is
 replaced. A full backup of the current state is made first and shows up on
 the list, so a restore can be undone.

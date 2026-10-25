@@ -4,7 +4,8 @@
     "addons": "Dodatki",
     "system": "System",
     "logout": "Wyloguj",
-    "updates": "Aktualizacje"
+    "updates": "Aktualizacje",
+    "backups": "Kopie"
   },
   "common": {
     "save": "Zapisz",
@@ -179,12 +180,17 @@
     "poweroff": "Wyłącz",
     "rebootConfirm": "Uruchomić urządzenie ponownie?",
     "poweroffConfirm": "Wyłączyć urządzenie? Włączenie wymaga fizycznego dostępu.",
-    "backups": "Kopie zapasowe"
+    "backups": "Kopie zapasowe",
+    "tabs": {
+      "general": "Ogólne",
+      "network": "Sieć",
+      "access": "Dostęp"
+    }
   },
   "wifi": {
     "title": "Wi-Fi",
     "setupTitle": "Wi-Fi (opcjonalnie)",
-    "setupIntro": "Połącz urządzenie z Wi-Fi już teraz, jeśli chcesz później odłączyć kabel. Można to też zrobić później na stronie System.",
+    "setupIntro": "Połącz urządzenie z Wi-Fi już teraz, jeśli chcesz później odłączyć kabel. Można to też zrobić później w System, Sieć.",
     "noDevice": "Nie znaleziono karty Wi-Fi. Jeśli urządzenie ją ma, może potrzebować firmware, którego system nie ma.",
     "connectedTo": "Połączono z {ssid}, adres {address}",
     "notConnected": "Brak połączenia",
@@ -238,8 +244,12 @@
     "noAddons": "brak",
     "restoreConfirm": "{info}\n\nWszystkie dodatki i ich dane na tym urządzeniu zostaną zastąpione. Najpierw zrobi się pełna kopia obecnego stanu. Przywrócić?",
     "restoreSetupConfirm": "{info}\n\nObrazy dodatków zostaną pobrane z internetu, to potrwa kilka minut. Przywrócić?",
-    "setupIntro": "Plik suplaos-....tar.gz albo .tar.gz.age, zrobiony na stronie System tamtego urządzenia.",
+    "setupIntro": "Plik suplaos-....tar.gz albo .tar.gz.age, zrobiony na stronie Kopie tamtego urządzenia.",
     "restored": "Przywrócono. Urządzenia Supli łączą się z zapisanym w nich adresem serwera: jeśli był to adres starego urządzenia, daj temu ten sam adres albo zmień go w nich."
+  },
+  "backups": {
+    "title": "Kopie zapasowe",
+    "addons": "Kopie samej bazy jednego dodatku (Supla, SUPLA Scripts) są na stronie tego dodatku."
   },
   "autoBackup": {
     "title": "Kopie automatyczne",

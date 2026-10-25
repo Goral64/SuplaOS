@@ -46,7 +46,7 @@ SuplaOS tego nie potrzebuje.
 
 ## Ustawienie
 
-1. W panelu wejdź w System, Własna domena (Let's Encrypt), Ustaw domenę.
+1. W panelu wejdź w System, Dostęp, Własna domena (Let's Encrypt), Ustaw domenę.
 2. Wpisz domenę, wybierz dostawcę DNS i uzupełnij jego klucze (niżej).
    E-mail jest opcjonalny.
 3. Kliknij Zapisz i pobierz certyfikat. Trwa to od kilku sekund do kilku

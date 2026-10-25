@@ -20,7 +20,7 @@ Encrypt, zobacz [własna domena](domain.md).
 
 ## Pobranie
 
-W panelu wejdź w System, Certyfikat i kliknij Pobierz certyfikat CA. Plik
+W panelu wejdź w System, Dostęp, Certyfikat i kliknij Pobierz certyfikat CA. Plik
 nazywa się `suplaos-<nazwa>-ca.crt`. Na tej samej karcie jest jego odcisk
 SHA-256, porównaj go z tym, który pokaże system przy instalacji.
 

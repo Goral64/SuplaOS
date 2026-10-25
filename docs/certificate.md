@@ -18,7 +18,7 @@ instead, see [own domain](domain.md).
 
 ## Download
 
-In the panel go to System, Certificate and click Download CA certificate.
+In the panel go to System, Access, Certificate and click Download CA certificate.
 The file is called `suplaos-<name>-ca.crt`. The same card shows its SHA-256
 fingerprint, compare it with the one your system shows when installing.
 

@@ -8,6 +8,7 @@ import Addons from './views/Addons.vue'
 import Addon from './views/Addon.vue'
 import System from './views/System.vue'
 import Updates from './views/Updates.vue'
+import Backups from './views/Backups.vue'
 import Power from './views/Power.vue'
 
 export const router = createRouter({
@@ -19,7 +20,9 @@ export const router = createRouter({
     { path: '/', component: Dashboard },
     { path: '/addons', component: Addons },
     { path: '/addons/:id', component: Addon, props: true },
-    { path: '/system', component: System },
+    { path: '/system', redirect: '/system/general' },
+    { path: '/system/:tab(general|network|access)', component: System, props: true },
+    { path: '/backups', component: Backups },
     { path: '/updates', component: Updates },
     // Works while the panel is down, without a session check.
     { path: '/power/:action(reboot|poweroff)', component: Power, props: true, meta: { standalone: true } },

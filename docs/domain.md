@@ -46,7 +46,7 @@ certificate.
 
 ## Setting it up
 
-1. In the panel go to System, Own domain (Let's Encrypt), Set a domain.
+1. In the panel go to System, Access, Own domain (Let's Encrypt), Set a domain.
 2. Enter the domain, pick the DNS provider and fill in its keys (see
    below). The e-mail is optional.
 3. Click Save and get the certificate. It takes from a few seconds to a few

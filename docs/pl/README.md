@@ -24,12 +24,12 @@ hasłem `supla`. Panel najpierw poprosi o jego zmianę, nowe hasło działa też
 SSH (`ssh supla@suplaos.local`, które też poprosi o nowe hasło, jeśli
 zalogujesz się tam najpierw). Potem wybierasz język, strefę czasową, nazwę
 urządzenia (i Wi-Fi, jeśli urządzenie je ma) i od razu możesz zainstalować
-Suplę. Wi-Fi można też ustawić później na stronie System, potem kabel nie
+Suplę. Wi-Fi można też ustawić później w System, Sieć, potem kabel nie
 jest już potrzebny.
 
 Przeglądarka na początku ostrzeże przed certyfikatem, bo urządzenie tworzy
 własny. Zaakceptuj go albo lepiej raz zainstaluj certyfikat CA urządzenia
-(strona System w panelu, [jak](certificate.md)). Zwykłe HTTP nie jest
+(System, Dostęp w panelu, [jak](certificate.md)). Zwykłe HTTP nie jest
 używane, także w sieci lokalnej.
 
 Z własną domeną (albo darmową z DuckDNS lub deSEC) urządzenie może zamiast
@@ -96,7 +96,7 @@ Inne polecenia `docker compose` działają jako `suplaos compose ...` (np.
 
 ## Kopie zapasowe
 
-Pełna kopia na stronie System zawiera wszystkie dodatki z danymi i CA
+Pełna kopia na stronie Kopie zawiera wszystkie dodatki z danymi i CA
 urządzenia, zaszyfrowane hasłem. Może się robić sama codziennie albo co
 tydzień, także na udział sieciowy (SMB albo NFS). Żeby przenieść się na inne
 urządzenie albo nową kartę SD, przywróć ją tam w kreatorze pierwszego

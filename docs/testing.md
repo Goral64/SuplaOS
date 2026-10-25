@@ -22,7 +22,7 @@ directly. In Raspberry Pi Imager skip the "OS customisation", SuplaOS
 doesn't use it.
 
 The first start needs a network cable. Wi-Fi is set up in the panel: in
-the setup wizard or later on the System page.
+the setup wizard or later in System, Network.
 
 ## First start
 
@@ -49,7 +49,7 @@ the setup wizard or later on the System page.
 - ZigBee (if you have a coordinator): install Mosquitto, Zigbee2MQTT and
   Zigbee2Supla. A USB coordinator should show up in the list of devices in
   the Zigbee2MQTT settings.
-- The certificate: install the CA from the System page
+- The certificate: install the CA from System, Access
   ([how](certificate.md)), do the panel, Supla Cloud and Zigbee2MQTT open
   without warnings?
 - Restart the device from the panel (System), everything should come back
