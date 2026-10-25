@@ -81,7 +81,7 @@ To samo można zrobić przez SSH poleceniem `suplaos`:
 ZigBee z koordynatorem USB:
 
     suplaos install mosquitto
-    suplaos install zigbee2mqtt ZIGBEE_ADAPTER=/dev/serial/by-id/usb-...
+    suplaos install zigbee2mqtt ZIGBEE_ADAPTER=/dev/serial/by-id/usb-... ZIGBEE2MQTT_USB_ADAPTER=zstack
     suplaos install zigbee2supla Z2S_SUPLA_EMAIL=ty@example.com
 
 Ustawienia zmienia się później przez `suplaos config <dodatek> KLUCZ=WARTOŚĆ`.

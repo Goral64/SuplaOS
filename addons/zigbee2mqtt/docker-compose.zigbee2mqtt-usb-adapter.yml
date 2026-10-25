@@ -1,0 +1,6 @@
+# Type of the USB ZigBee coordinator: zigbee2mqtt cannot discover it from a
+# container (it sees /dev/zigbee only).
+services:
+  zigbee2mqtt:
+    environment:
+      ZIGBEE2MQTT_CONFIG_SERIAL_ADAPTER: ${ZIGBEE2MQTT_USB_ADAPTER}

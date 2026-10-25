@@ -49,8 +49,9 @@ set up in the panel: in the setup wizard or later in System, Network.
   add-on page later), log in to
   Supla Cloud at https://<device address> and connect a Supla device.
 - ZigBee (if you have a coordinator): install Mosquitto, Zigbee2MQTT and
-  Zigbee2Supla. A USB coordinator should show up in the list of devices in
-  the Zigbee2MQTT settings.
+  Zigbee2Supla. Pick the USB coordinator from the list and its type
+  (zstack, ember, deconz), Zigbee2MQTT then starts without its own first
+  start page.
 - The certificate: install the CA from System, Access
   ([how](certificate.md)), do the panel, Supla Cloud and Zigbee2MQTT open
   without warnings?

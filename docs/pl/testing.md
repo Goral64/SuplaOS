@@ -48,8 +48,9 @@ w kreatorze pierwszego uruchomienia albo później w System, Sieć.
   dodatku Supla), zaloguj się do
   Supla Cloud pod https://<adres urządzenia> i podłącz jakieś urządzenie Supla.
 - ZigBee (jeśli masz koordynator): zainstaluj Mosquitto, Zigbee2MQTT
-  i Zigbee2Supla. Koordynator USB powinien być na liście urządzeń
-  w ustawieniach Zigbee2MQTT.
+  i Zigbee2Supla. Wybierz koordynator USB z listy i jego typ (zstack,
+  ember, deconz), Zigbee2MQTT startuje wtedy bez własnej strony pierwszego
+  uruchomienia.
 - Certyfikat: zainstaluj CA z System, Dostęp ([jak](certificate.md)), czy
   panel, Supla Cloud i Zigbee2MQTT otwierają się bez ostrzeżeń?
 - Uruchom urządzenie ponownie z panelu (System), wszystko powinno wstać samo.

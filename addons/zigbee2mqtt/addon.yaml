@@ -9,6 +9,9 @@ compose:
   - docker-compose.zigbee2mqtt.yml
   - file: docker-compose.zigbee2mqtt-usb.yml
     when: {option: ZIGBEE2MQTT_COORDINATOR, equals: usb}
+  # Before the network file: its adapter type wins over one left from USB.
+  - file: docker-compose.zigbee2mqtt-usb-adapter.yml
+    when: {option: ZIGBEE2MQTT_USB_ADAPTER, in: [zstack, ember, deconz, zigate, zboss]}
   - file: docker-compose.zigbee2mqtt-network.yml
     when: {option: ZIGBEE2MQTT_COORDINATOR, equals: network}
 services: [zigbee2mqtt]
@@ -35,6 +38,21 @@ options:
       en: Preferably /dev/serial/by-id/..., the name does not change between restarts.
       pl: Najlepiej /dev/serial/by-id/..., ta nazwa nie zmienia się po restarcie.
     type: serial
+    required: true
+    when: {option: ZIGBEE2MQTT_COORDINATOR, equals: usb}
+  - key: ZIGBEE2MQTT_USB_ADAPTER
+    label: {en: Coordinator type, pl: Typ koordynatora}
+    help:
+      en: zstack - TI CC2652/CC1352 (e.g. Sonoff ZBDongle-P), ember - Silicon Labs (e.g. Sonoff ZBDongle-E), deconz - ConBee, RaspBee
+      pl: zstack - TI CC2652/CC1352 (np. Sonoff ZBDongle-P), ember - Silicon Labs (np. Sonoff ZBDongle-E), deconz - ConBee, RaspBee
+    type: select
+    choices: [zstack, ember, deconz, zigate, zboss, keep]
+    choice_labels:
+      keep: {en: As set in Zigbee2MQTT, pl: Jak ustawiono w Zigbee2MQTT}
+    default: zstack
+    # Installs from before the option chose the type on the first start
+    # page of Zigbee2MQTT: it stays.
+    upgrade_default: keep
     required: true
     when: {option: ZIGBEE2MQTT_COORDINATOR, equals: usb}
   - key: ZIGBEE2MQTT_SERIAL_PORT

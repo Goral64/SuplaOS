@@ -132,9 +132,21 @@ func TestZigbeeSetup(t *testing.T) {
 
 	env := readEnv(t, s, ".env")
 	if got, want := env["COMPOSE_FILE"], "docker-compose.mosquitto.yml:docker-compose.yml:docker-compose.standalone.yml:docker-compose.supla-suplaos.yml:"+
-		"docker-compose.zigbee2mqtt.yml:docker-compose.zigbee2mqtt-usb.yml:"+
+		"docker-compose.zigbee2mqtt.yml:docker-compose.zigbee2mqtt-usb.yml:docker-compose.zigbee2mqtt-usb-adapter.yml:"+
 		"docker-compose.zigbee2supla.yml:docker-compose.zigbee2supla-supla.yml:docker-compose.zigbee2supla-mosquitto.yml"; got != want {
 		t.Errorf("COMPOSE_FILE = %s", got)
+	}
+	if env["ZIGBEE2MQTT_USB_ADAPTER"] != "zstack" {
+		t.Errorf("USB adapter type = %q", env["ZIGBEE2MQTT_USB_ADAPTER"])
+	}
+	// Installed before the option: the type chosen in zigbee2mqtt stays.
+	delete(s.State.Addons["zigbee2mqtt"].Options, "ZIGBEE2MQTT_USB_ADAPTER")
+	if v := s.Values(s.Catalog["zigbee2mqtt"])["ZIGBEE2MQTT_USB_ADAPTER"]; v != "keep" {
+		t.Errorf("USB adapter type of an older install = %q", v)
+	}
+	must(t, s.Apply())
+	if f := readEnv(t, s, ".env")["COMPOSE_FILE"]; strings.Contains(f, "usb-adapter") {
+		t.Errorf("older install: COMPOSE_FILE = %s", f)
 	}
 	if own := readEnv(t, s, "supla.env"); own["ZIGBEE_ADAPTER"] != "" {
 		t.Error("supla.env has variables of other add-ons")

@@ -101,12 +101,15 @@ func (c *ComposeFile) UnmarshalYAML(n *yaml.Node) error {
 // Option is a setting the user fills in. Its value goes to the .env of the
 // compose project (compose variables) or to the env file named in File.
 type Option struct {
-	Key     string   `yaml:"key" json:"key"`
-	Label   Text     `yaml:"label" json:"label"`
-	Help    Text     `yaml:"help" json:"help,omitempty"`
-	Type    string   `yaml:"type" json:"type"`
-	Default string   `yaml:"default" json:"default"`
-	Choices []string `yaml:"choices" json:"choices,omitempty"`
+	Key     string `yaml:"key" json:"key"`
+	Label   Text   `yaml:"label" json:"label"`
+	Help    Text   `yaml:"help" json:"help,omitempty"`
+	Type    string `yaml:"type" json:"type"`
+	Default string `yaml:"default" json:"default"`
+	// UpgradeDefault is the value for an add-on installed before the
+	// option was added, when it should differ from the one for new ones.
+	UpgradeDefault string   `yaml:"upgrade_default" json:"-"`
+	Choices        []string `yaml:"choices" json:"choices,omitempty"`
 	// ChoiceLabels are shown instead of the choices of a select.
 	ChoiceLabels map[string]Text `yaml:"choice_labels" json:"choiceLabels,omitempty"`
 	Required     bool            `yaml:"required" json:"required"`

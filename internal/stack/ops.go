@@ -36,7 +36,7 @@ func (s *Stack) Install(id string, set map[string]string) error {
 		switch {
 		case o.Generate > 0:
 			inst.Options[o.Key] = randomString(o.Generate)
-		case strings.Contains(o.Default, "{"):
+		case strings.Contains(o.Default, "{"), o.UpgradeDefault != "":
 			inst.Options[o.Key] = expand(o.Default, vars)
 		}
 	}
@@ -179,7 +179,7 @@ func (s *Stack) setOptions(a *addon.Addon, inst *Installed, set map[string]strin
 	}
 	values := map[string]string{}
 	for i := range a.Options {
-		values[a.Options[i].Key] = DefaultValue(&a.Options[i])
+		values[a.Options[i].Key] = installedDefault(&a.Options[i])
 	}
 	for k, v := range inst.Options {
 		values[k] = v
@@ -256,6 +256,15 @@ func DefaultValue(o *addon.Option) string {
 		return expand(o.Default, systemVars())
 	}
 	return o.Default
+}
+
+// installedDefault is the value of an option an installed add-on has no
+// value of: it was installed before the option was added.
+func installedDefault(o *addon.Option) string {
+	if o.UpgradeDefault != "" {
+		return o.UpgradeDefault
+	}
+	return DefaultValue(o)
 }
 
 // systemVars are the placeholders allowed in option defaults.

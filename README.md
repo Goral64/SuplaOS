@@ -83,7 +83,7 @@ The same can be done from SSH with `suplaos`:
 For ZigBee with a USB coordinator:
 
     suplaos install mosquitto
-    suplaos install zigbee2mqtt ZIGBEE_ADAPTER=/dev/serial/by-id/usb-...
+    suplaos install zigbee2mqtt ZIGBEE_ADAPTER=/dev/serial/by-id/usb-... ZIGBEE2MQTT_USB_ADAPTER=zstack
     suplaos install zigbee2supla Z2S_SUPLA_EMAIL=you@example.com
 
 Settings can be changed later with `suplaos config <add-on> KEY=VALUE`.

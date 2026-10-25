@@ -67,10 +67,15 @@ func (s *Stack) Order() []*addon.Addon {
 // over defaults.
 func (s *Stack) Values(a *addon.Addon) map[string]string {
 	v := map[string]string{}
+	inst := s.State.Addons[a.ID]
 	for i := range a.Options {
-		v[a.Options[i].Key] = DefaultValue(&a.Options[i])
+		if inst != nil {
+			v[a.Options[i].Key] = installedDefault(&a.Options[i])
+		} else {
+			v[a.Options[i].Key] = DefaultValue(&a.Options[i])
+		}
 	}
-	if inst := s.State.Addons[a.ID]; inst != nil {
+	if inst != nil {
 		for k, val := range inst.Options {
 			v[k] = val
 		}
@@ -151,8 +156,19 @@ func (s *Stack) Plan() (*Plan, error) {
 				return nil, err
 			}
 		}
+		// An option not in use (its condition does not hold) picks no
+		// files, as it gets no variable either.
+		inUse := map[string]string{}
+		for k, v := range values {
+			inUse[k] = v
+		}
+		for i := range a.Options {
+			if !s.Active(&a.Options[i], values) {
+				delete(inUse, a.Options[i].Key)
+			}
+		}
 		for _, c := range a.Compose {
-			if !c.When.Match(s.IsInstalled, s.withOthers(values)) {
+			if !c.When.Match(s.IsInstalled, s.withOthers(inUse)) {
 				continue
 			}
 			data, err := s.source(a, c.File)

@@ -5,7 +5,7 @@ services:
     restart: unless-stopped
     depends_on:
       - mosquitto
-    # The web interface (first start setup, pairing, device list) is served
+    # The web interface (pairing, device list, settings) is served
     # by the SuplaOS panel on ZIGBEE2MQTT_PORT, over HTTPS and after
     # logging in; no port is published.
     volumes:
@@ -14,6 +14,9 @@ services:
       - /run/udev:/run/udev:ro
     environment:
       TZ: ${TZ}
+      # No first start page: the settings come from the add-on, the
+      # network key and IDs are generated on the first start.
+      Z2M_ONBOARD_NO_SERVER: "1"
       ZIGBEE2MQTT_CONFIG_MQTT_SERVER: mqtt://mosquitto:1883
       # Login to the mosquitto add-on.
       ZIGBEE2MQTT_CONFIG_MQTT_USER: ${MOSQUITTO_USERNAME}
