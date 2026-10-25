@@ -27,6 +27,14 @@ time zone and the name of the device (and Wi-Fi, if the device has it), and
 you can install Supla right away. Wi-Fi can also be set up later in
 System, Network, after that the cable isn't needed.
 
+Without a cable it works too, if the device has Wi-Fi: when it finds no
+network for 2 minutes, it makes its own, `SuplaOS-XXXX` with the password
+`suplaos-setup`. Connect a phone to it, the panel opens on its own (or open
+https://192.168.4.1:8443), and pick your Wi-Fi. The device then joins it
+and the phone goes back to your network. The same happens later when the
+device loses its network, e.g. after the Wi-Fi password is changed in the
+router.
+
 The browser warns about the certificate at first, because the device makes
 its own. Accept it, or better install the CA certificate of the device once
 (System, Access in the panel, [how](docs/certificate.md)). Plain HTTP isn't

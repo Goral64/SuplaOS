@@ -27,6 +27,13 @@ urządzenia (i Wi-Fi, jeśli urządzenie je ma) i od razu możesz zainstalować
 Suplę. Wi-Fi można też ustawić później w System, Sieć, potem kabel nie
 jest już potrzebny.
 
+Bez kabla też się da, jeśli urządzenie ma Wi-Fi: gdy przez 2 minuty nie
+znajdzie sieci, tworzy własną, `SuplaOS-XXXX` z hasłem `suplaos-setup`.
+Połącz z nią telefon, panel otworzy się sam (albo otwórz
+https://192.168.4.1:8443), i wybierz swoje Wi-Fi. Urządzenie się z nim
+połączy, a telefon wraca do Twojej sieci. Tak samo dzieje się później, gdy
+urządzenie straci sieć, np. po zmianie hasła Wi-Fi w routerze.
+
 Przeglądarka na początku ostrzeże przed certyfikatem, bo urządzenie tworzy
 własny. Zaakceptuj go albo lepiej raz zainstaluj certyfikat CA urządzenia
 (System, Dostęp w panelu, [jak](certificate.md)). Zwykłe HTTP nie jest

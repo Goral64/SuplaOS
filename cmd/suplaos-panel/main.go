@@ -49,6 +49,7 @@ func main() {
 			log.Printf("wifi country: %v", err)
 		}
 	}()
+	go system.WatchHotspot()
 	go s.WatchProxies(tlsConfig)
 	go s.ApplyPending()
 	if *redirect != "" {

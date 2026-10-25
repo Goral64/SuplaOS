@@ -22,6 +22,9 @@ type Wifi struct {
 	// Connection is the active connection, Address its IPv4 address.
 	Connection string `json:"connection"`
 	Address    string `json:"address"`
+	// Hotspot is the name of the network the device makes when it has
+	// none (see WatchHotspot), empty when it is off.
+	Hotspot string `json:"hotspot"`
 	// Saved are the Wi-Fi connections NetworkManager remembers, without
 	// access points (hotspots).
 	Saved []SavedWifi `json:"saved"`
@@ -99,8 +102,17 @@ func ReadWifi() (*Wifi, error) {
 	}
 	w := &Wifi{Saved: []SavedWifi{}}
 	for _, d := range devs {
-		if len(d) == 4 && d[1] == "wifi" && !accessPoint(d[3]) {
-			w.Device, w.State, w.Connection = d[0], d[2], d[3]
+		if len(d) != 4 || d[1] != "wifi" {
+			continue
+		}
+		if d[3] == HotspotConnection {
+			if w.Device == "" {
+				w.Device, w.State, w.Hotspot = d[0], d[2], HotspotSSID()
+			}
+			continue
+		}
+		if !accessPoint(d[3]) {
+			w.Device, w.State, w.Connection, w.Hotspot = d[0], d[2], d[3], ""
 			break
 		}
 	}
@@ -110,7 +122,7 @@ func ReadWifi() (*Wifi, error) {
 	if radio, err := nmcliFields("radio", "wifi"); err == nil && len(radio) > 0 {
 		w.Enabled = radio[0][0] == "enabled"
 	}
-	if w.Connection != "" {
+	if w.Connection != "" || w.Hotspot != "" {
 		if m, err := nmcli("-f", "IP4.ADDRESS", "device", "show", w.Device); err == nil {
 			w.Address, _, _ = strings.Cut(m["IP4.ADDRESS"], ",")
 		}
@@ -139,8 +151,14 @@ func accessPoint(conn string) bool {
 }
 
 // ScanWifi lists the networks in range, the strongest first, each SSID
-// once. Hidden networks are left out.
+// once. Hidden networks are left out. While the hotspot is on, these are
+// the networks found before it went on.
 func ScanWifi(device string) ([]WifiNetwork, error) {
+	if hotspotActive() {
+		scanMu.Lock()
+		defer scanMu.Unlock()
+		return append([]WifiNetwork{}, scanBefore...), nil
+	}
 	nmcliC("radio", "wifi", "on").Run()
 	rows, err := nmcliFields("-f", "IN-USE,SSID,SIGNAL,SECURITY", "device", "wifi", "list", "ifname", device, "--rescan", "yes")
 	if err != nil {
@@ -211,6 +229,7 @@ func ConnectWifi(device string, c *WifiConnect) error {
 	if out, err := nmcliC("radio", "wifi", "on").CombinedOutput(); err != nil {
 		return fmt.Errorf("nmcli: %s", strings.TrimSpace(string(out)))
 	}
+	leaveHotspot(device)
 	// nmcli fails on a saved connection of the same name ("key-mgmt:
 	// property is missing"), and the password is entered anew anyway.
 	nmcliC("connection", "delete", "id", c.SSID).Run()
@@ -265,6 +284,7 @@ func ConnectSavedWifi(device, name string) error {
 		return err
 	}
 	nmcliC("radio", "wifi", "on").Run()
+	leaveHotspot(device)
 	out, err := nmcliC("--wait", "45", "connection", "up", "id", name, "ifname", device).CombinedOutput()
 	if err != nil {
 		return fmt.Errorf("could not connect to %s: %s", name, strings.TrimSpace(string(out)))

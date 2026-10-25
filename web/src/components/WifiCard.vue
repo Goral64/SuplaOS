@@ -18,9 +18,12 @@ const error = ref('')
 const message = ref('')
 // What is going on: scan, connect... or empty.
 const busy = ref('')
+// The name of the device, for the address the phone finds it at later.
+const host = ref('suplaos')
 
 async function load() {
   wifi.value = await api('GET', '/wifi')
+  if (wifi.value.hotspot) host.value = (await api('GET', '/settings').catch(() => ({}))).hostname || host.value
 }
 
 // The state is read again every 10 s, after a change made in the
@@ -91,6 +94,9 @@ function pick(n) {
 }
 
 const connected = (ssid) => () => t('wifi.connected', { ssid, address: wifi.value.address })
+// Over the hotspot the phone loses the panel when the device joins a
+// network: it has to go back to that network.
+const connectingAsync = (ssid) => t(wifi.value.hotspot ? 'wifi.connectingHotspot' : 'wifi.connectingAsync', { ssid, hotspot: wifi.value.hotspot, host: host.value })
 
 const connect = () => call('connect', async () => {
   const { ssid, hidden, autoconnect } = join.value
@@ -98,14 +104,14 @@ const connect = () => call('connect', async () => {
   join.value = null
   networks.value = null
   password.value = ''
-  await done(res, t('wifi.connectingAsync', { ssid }), connected(ssid), ssid)
+  await done(res, connectingAsync(ssid), connected(ssid), ssid)
 })
 
 const saved = (name) => '/wifi/saved/' + encodeURIComponent(name)
 
 const connectSaved = (name) => call('connect', async () => {
   const res = await api('POST', saved(name) + '/connect')
-  await done(res, t('wifi.connectingAsync', { ssid: name }), connected(name), name)
+  await done(res, connectingAsync(name), connected(name), name)
 })
 
 const disconnect = () => call('disconnect', async () => {
@@ -147,6 +153,7 @@ const signalClass = (s) => (s >= 60 ? 'ok' : s >= 35 ? 'warn' : 'bad')
         <p class="muted">
           {{ wifi.device }} ·
           <template v-if="wifi.connection">{{ $t('wifi.connectedTo', { ssid: wifi.connection, address: wifi.address || '-' }) }}</template>
+          <template v-else-if="wifi.hotspot">{{ $t('wifi.hotspotOn', { ssid: wifi.hotspot }) }}</template>
           <template v-else>{{ $t('wifi.notConnected') }}</template>
         </p>
         <span class="spacer"></span>

@@ -17,6 +17,7 @@ import (
 	"time"
 
 	"github.com/Goral64/SuplaOS/internal/domaincert"
+	"github.com/Goral64/SuplaOS/internal/system"
 )
 
 // Port is the HTTPS port of the panel; 443 belongs to the Supla Cloud.
@@ -146,7 +147,14 @@ func Redirect() http.Handler {
 			host, _ = os.Hostname()
 			host += ".local"
 		}
-		w.Header().Set("Location", "https://"+net.JoinHostPort(host, Port)+r.URL.RequestURI())
+		uri := r.URL.RequestURI()
+		// On the hotspot every name leads here, also the address a phone
+		// checks the internet with: it opens the panel then.
+		if local, ok := r.Context().Value(http.LocalAddrContextKey).(*net.TCPAddr); ok &&
+			local.IP.String() == system.HotspotAddress && host != system.HotspotAddress {
+			host, uri = system.HotspotAddress, "/"
+		}
+		w.Header().Set("Location", "https://"+net.JoinHostPort(host, Port)+uri)
 		w.Header().Set("Connection", "close")
 		w.WriteHeader(http.StatusMovedPermanently)
 	})

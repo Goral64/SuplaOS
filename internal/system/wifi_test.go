@@ -56,3 +56,20 @@ func TestCountryOf(t *testing.T) {
 		}
 	}
 }
+
+func TestOnlineIn(t *testing.T) {
+	for _, c := range []struct {
+		rows string
+		want bool
+	}{
+		{"", false},
+		{"suplaos-hotspot:802-11-wireless:activated\nlo:loopback:activated\n", false},
+		{"Wired connection 1:802-3-ethernet:activated\n", true},
+		{"Dom:802-11-wireless:activating\n", true},
+		{"docker0:bridge:activated\n", false},
+	} {
+		if got := onlineIn(parseTerse(c.rows)); got != c.want {
+			t.Errorf("%q: %v", c.rows, got)
+		}
+	}
+}

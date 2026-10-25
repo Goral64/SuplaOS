@@ -12,6 +12,7 @@ import (
 	"encoding/pem"
 	"io"
 	"math/big"
+	"net"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -284,6 +285,22 @@ func TestRedirect(t *testing.T) {
 		Redirect().ServeHTTP(w, r)
 		if w.Code != http.StatusMovedPermanently || w.Header().Get("Location") != want || w.Body.Len() != 0 {
 			t.Errorf("%s: %d %s %q", host, w.Code, w.Header().Get("Location"), w.Body)
+		}
+	}
+}
+
+func TestRedirectHotspot(t *testing.T) {
+	for host, want := range map[string]string{
+		"connectivitycheck.gstatic.com": "https://192.168.4.1:8443/",
+		"192.168.4.1":                   "https://192.168.4.1:8443/setup?a=1",
+	} {
+		r := httptest.NewRequest("GET", "/setup?a=1", nil)
+		r.Host = host
+		r = r.WithContext(context.WithValue(r.Context(), http.LocalAddrContextKey, &net.TCPAddr{IP: net.ParseIP("192.168.4.1"), Port: 80}))
+		w := httptest.NewRecorder()
+		Redirect().ServeHTTP(w, r)
+		if w.Header().Get("Location") != want {
+			t.Errorf("%s: %s", host, w.Header().Get("Location"))
 		}
 	}
 }

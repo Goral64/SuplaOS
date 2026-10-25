@@ -21,7 +21,9 @@ OS”, potem „Użyj własnego”) albo balenaEtcher. Oba biorą plik `.xz` bez
 rozpakowywania. W Raspberry Pi Imager pomiń „ustawienia OS”, SuplaOS z nich
 nie korzysta.
 
-Pierwsze uruchomienie wymaga kabla sieciowego. Wi-Fi ustawia się w panelu:
+Pierwsze uruchomienie działa z kablem sieciowym albo przez Wi-Fi: bez sieci
+urządzenie tworzy własną, `SuplaOS-XXXX` z hasłem `suplaos-setup`, a panel
+otwiera się na telefonie z nią połączonym. Wi-Fi ustawia się w panelu:
 w kreatorze pierwszego uruchomienia albo później w System, Sieć.
 
 ## Pierwsze uruchomienie
