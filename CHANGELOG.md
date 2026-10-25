@@ -2,6 +2,18 @@
 
 [Po polsku](docs/pl/CHANGELOG.md)
 
+## 0.8.0
+
+- Full backup of the device (System, Full backup): all add-ons with their
+  settings and data, the CA and the own domain in one file, encrypted with
+  a password (age). Restore it on the same device or, in the setup wizard,
+  on another one to move there. See [full backup](docs/backup.md).
+- Automatic full backups every day or week, to the disk of the device or
+  to an SMB or NFS share, keeping the newest few.
+- `suplaos export` and `suplaos import` do the same over SSH.
+- The images and the update bring cifs-utils and nfs-common; rpcbind,
+  which comes with them, is turned off.
+
 ## 0.7.0
 
 - Wi-Fi in the panel (System, Wi-Fi, and in the setup wizard): search for

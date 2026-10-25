@@ -97,12 +97,15 @@ Other `docker compose` commands work as `suplaos compose ...` (e.g.
 
 ## Backups
 
-Backups of the Supla database are on the Supla add-on page. Back up now
-makes one, and the panel also makes one before every update of Supla.
-Download a backup now and then to keep it off the device. Restore loads a
-backup back: the current data is backed up first, and if loading fails,
-it goes back in. To move to a new device or a fresh SD card, install Supla
-there, upload the downloaded file with Upload backup and restore it.
+A full backup on the System page holds all add-ons with their data and the
+CA of the device, encrypted with a password. It can be made automatically
+every day or week, also to a network share (SMB or NFS). To move to another
+device or a fresh SD card, restore it in the setup wizard there. See
+[full backup](docs/backup.md).
+
+Backups of the Supla database alone are on the Supla add-on page, and the
+panel makes one before every update of Supla. Restore loads one back: the
+current data is backed up first, and if loading fails, it goes back in.
 
 Over SSH:
 

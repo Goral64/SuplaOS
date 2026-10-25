@@ -2,6 +2,18 @@
 
 [In English](../../CHANGELOG.md)
 
+## 0.8.0
+
+- Pełna kopia urządzenia (System, Pełna kopia): wszystkie dodatki
+  z ustawieniami i danymi, CA i własna domena w jednym pliku, zaszyfrowane
+  hasłem (age). Przywraca się ją na tym samym urządzeniu albo, w kreatorze,
+  na innym, żeby się tam przenieść. Zobacz [pełna kopia](backup.md).
+- Kopie automatyczne codziennie albo co tydzień, na dysk urządzenia albo
+  udział SMB lub NFS, z kilkoma najnowszymi.
+- `suplaos export` i `suplaos import` robią to samo przez SSH.
+- Obrazy i aktualizacja dokładają cifs-utils i nfs-common; dołączony do nich
+  rpcbind jest wyłączony.
+
 ## 0.7.0
 
 - Wi-Fi w panelu (System, Wi-Fi, i w kreatorze pierwszego uruchomienia):

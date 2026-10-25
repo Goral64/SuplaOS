@@ -96,13 +96,16 @@ Inne polecenia `docker compose` działają jako `suplaos compose ...` (np.
 
 ## Kopie zapasowe
 
-Kopie bazy Supli są na stronie dodatku Supla. Zrób kopię robi ją od razu,
-a panel robi ją też przed każdą aktualizacją Supli. Od czasu do czasu warto
-pobrać kopię i trzymać ją poza urządzeniem. Przywróć wczytuje kopię z
-powrotem: najpierw powstaje kopia bieżących danych, a jeśli wczytanie się
-nie uda, wracają one na miejsce. Żeby przenieść dane na nowe urządzenie albo
-nową kartę SD, zainstaluj tam Suplę, wgraj pobrany plik przyciskiem Wgraj
-kopię i przywróć go.
+Pełna kopia na stronie System zawiera wszystkie dodatki z danymi i CA
+urządzenia, zaszyfrowane hasłem. Może się robić sama codziennie albo co
+tydzień, także na udział sieciowy (SMB albo NFS). Żeby przenieść się na inne
+urządzenie albo nową kartę SD, przywróć ją tam w kreatorze pierwszego
+uruchomienia. Zobacz [pełna kopia](backup.md).
+
+Same kopie bazy Supli są na stronie dodatku Supla, a panel robi je też przed
+każdą aktualizacją Supli. Przywróć wczytuje kopię z powrotem: najpierw
+powstaje kopia bieżących danych, a jeśli wczytanie się nie uda, wracają one
+na miejsce.
 
 Przez SSH:
 
