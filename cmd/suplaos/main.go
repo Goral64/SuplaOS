@@ -44,6 +44,9 @@ Containers:
 
 System:
   upgrade                      update the system and SuplaOS (as root)
+  export [-o file]             full backup of the device: add-ons with their data
+                               and the CA, to backups/ by default (as root);
+                               encrypted with SUPLAOS_BACKUP_PASSWORD when set
 
 Environment: SUPLAOS_ROOT (default /srv/suplaos), SUPLAOS_ADDONS
 (default /usr/share/suplaos/addons).
@@ -121,6 +124,8 @@ func run(args []string) error {
 		return logs(s, args)
 	case "update":
 		return update(s, args)
+	case "export":
+		return export(s, args)
 	case "backup":
 		if err := s.Lock(); err != nil {
 			return err
@@ -499,6 +504,37 @@ func backup(s *stack.Stack, ids []string, skip bool) error {
 		}
 		fmt.Printf("%s: backup saved to %s\n", id, path)
 	}
+	return nil
+}
+
+// export writes a full backup of the device.
+func export(s *stack.Stack, args []string) error {
+	fs := flag.NewFlagSet("export", flag.ContinueOnError)
+	out := fs.String("o", "", "output file")
+	if err := fs.Parse(args); err != nil {
+		return err
+	}
+	if fs.NArg() > 0 {
+		return errors.New("usage: suplaos export [-o file]")
+	}
+	if err := s.Lock(); err != nil {
+		return err
+	}
+	opt := stack.ExportOptions{Version: system.Version(), Password: os.Getenv("SUPLAOS_BACKUP_PASSWORD")}
+	if opt.Password == "" {
+		fmt.Fprintln(os.Stderr, "Warning: SUPLAOS_BACKUP_PASSWORD is not set, the backup is not encrypted. It holds the passwords of the add-ons and the key of the CA.")
+	}
+	path := *out
+	var err error
+	if path == "" {
+		path, err = s.SaveFullBackup(opt)
+	} else {
+		err = s.ExportFile(path, opt)
+	}
+	if err != nil {
+		return err
+	}
+	fmt.Printf("Full backup saved to %s\n", path)
 	return nil
 }
 

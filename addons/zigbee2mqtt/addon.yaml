@@ -17,6 +17,10 @@ images:
     changelog: https://github.com/Koenkk/zigbee2mqtt/releases
 dirs: [var/zigbee2mqtt]
 data: [var/zigbee2mqtt]
+# Its files change while it runs: stopped for a full backup.
+full_backup:
+  skip: [var/zigbee2mqtt/log]
+  stop: true
 
 options:
   - key: ZIGBEE2MQTT_COORDINATOR

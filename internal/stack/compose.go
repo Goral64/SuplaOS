@@ -45,6 +45,9 @@ func (s *Stack) compose(stdin io.Reader, stdout io.Writer, args ...string) error
 	if len(s.State.Addons) == 0 {
 		return fmt.Errorf("no add-ons installed")
 	}
+	if s.composeHook != nil {
+		return s.composeHook(stdin, stdout, args...)
+	}
 	cmd := exec.Command("docker", append([]string{"compose"}, args...)...)
 	cmd.Dir = s.Dir()
 	cmd.Env = s.environ()
@@ -179,8 +182,7 @@ func (s *Stack) Backup(id string) (string, error) {
 	}
 	s.chown(path)
 	gz := gzip.NewWriter(f)
-	args := append([]string{"exec", "-T", a.Backup.Service}, a.Backup.Command...)
-	err = s.compose(nil, gz, args...)
+	err = s.dump(a, gz)
 	if cerr := gz.Close(); err == nil {
 		err = cerr
 	}
@@ -192,6 +194,11 @@ func (s *Stack) Backup(id string) (string, error) {
 		return "", err
 	}
 	return path, nil
+}
+
+// dump writes the database dump of an add-on to w.
+func (s *Stack) dump(a *addon.Addon, w io.Writer) error {
+	return s.compose(nil, w, append([]string{"exec", "-T", a.Backup.Service}, a.Backup.Command...)...)
 }
 
 // Restore loads a backup of an add-on made by Backup. The current data is

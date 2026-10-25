@@ -42,6 +42,9 @@ trust:
   - dir: ssl/trust
     restart: [supla-server]
 data: [ssl/cloud, ssl/server, var/mysql, var/cloud-local, var/cloud-logs]
+# The database goes into a full backup as a dump (backup below).
+full_backup:
+  skip: [var/mysql, var/cloud-logs]
 
 options:
   - key: SUPLA_HOST_ADDRESS

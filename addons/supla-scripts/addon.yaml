@@ -15,6 +15,8 @@ images:
     changelog: https://github.com/fracz/supla-scripts/releases
 dirs: [ssl/supla-scripts, var/supla-scripts, var/supla-scripts-db]
 data: [ssl/supla-scripts, var/supla-scripts, var/supla-scripts-db]
+full_backup:
+  skip: [var/supla-scripts-db]
 certificates:
   - dir: ssl/supla-scripts
     restart: [supla-scripts]

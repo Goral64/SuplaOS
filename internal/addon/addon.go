@@ -197,6 +197,16 @@ type Backup struct {
 	Restore []string `yaml:"restore"`
 }
 
+// FullBackup tells how the data of the add-on goes into a full backup of
+// the device: Skip are directories of Data left out (raw database files,
+// the dump of Backup stands for them, or logs); with Stop the services are
+// stopped while their files are copied, for files that are not consistent
+// while they run.
+type FullBackup struct {
+	Skip []string `yaml:"skip"`
+	Stop bool     `yaml:"stop"`
+}
+
 // Command is an add-on specific command run in one of its containers.
 type Command struct {
 	Help    Text     `yaml:"help"`
@@ -255,14 +265,15 @@ type Addon struct {
 	// Trust are directories that get ca-certificates.crt: the CAs of the
 	// system with the CA of the device, for containers that connect to
 	// services of the device over HTTPS.
-	Trust     []CertDir          `yaml:"trust"`
-	Downloads []Download         `yaml:"downloads"`
-	Dirs      []string           `yaml:"dirs"`
-	Data      []string           `yaml:"data"`
-	Web       *Web               `yaml:"web"`
-	Backup    *Backup            `yaml:"backup"`
-	Commands  map[string]Command `yaml:"commands"`
-	Images    map[string]Image   `yaml:"images"`
+	Trust      []CertDir          `yaml:"trust"`
+	Downloads  []Download         `yaml:"downloads"`
+	Dirs       []string           `yaml:"dirs"`
+	Data       []string           `yaml:"data"`
+	Web        *Web               `yaml:"web"`
+	Backup     *Backup            `yaml:"backup"`
+	FullBackup FullBackup         `yaml:"full_backup"`
+	Commands   map[string]Command `yaml:"commands"`
+	Images     map[string]Image   `yaml:"images"`
 
 	// Dir is the catalog directory of the add-on.
 	Dir string `yaml:"-"`
@@ -402,11 +413,22 @@ func (a *Addon) validate() error {
 	if a.Backup != nil && (a.Backup.Service == "" || len(a.Backup.Command) == 0 || a.Backup.File == "") {
 		return fmt.Errorf("%s: backup needs service, command and file", a.ID)
 	}
+	for _, d := range a.FullBackup.Skip {
+		if !local(d) || !slices.ContainsFunc(a.Data, func(data string) bool { return within(d, data) }) {
+			return fmt.Errorf("%s: full_backup skip %q is not in data", a.ID, d)
+		}
+	}
 	return nil
 }
 
 func local(p string) bool {
 	return p != "" && filepath.IsLocal(p)
+}
+
+// within tells whether the path p is dir or inside it.
+func within(p, dir string) bool {
+	p, dir = filepath.Clean(p), filepath.Clean(dir)
+	return p == dir || strings.HasPrefix(p, dir+"/")
 }
 
 // Catalog is the set of available add-ons.

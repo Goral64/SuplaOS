@@ -16,6 +16,9 @@ images:
     changelog: https://github.com/Goral64/ZigBee2Supla/releases
 dirs: [var/zigbee2supla]
 data: [var/zigbee2supla]
+# Its files change while it runs: stopped for a full backup.
+full_backup:
+  stop: true
 
 options:
   - key: Z2S_SUPLA_EMAIL

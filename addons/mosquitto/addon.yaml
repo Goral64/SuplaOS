@@ -17,6 +17,9 @@ images:
     changelog: https://github.com/eclipse-mosquitto/mosquitto/blob/master/ChangeLog.txt
 dirs: [var/mosquitto]
 data: [var/mosquitto, ssl/mosquitto]
+# Its files change while it runs: stopped for a full backup.
+full_backup:
+  stop: true
 certificates: [ssl/mosquitto]
 downloads:
   - file: ssl/mosquitto/ca.crt

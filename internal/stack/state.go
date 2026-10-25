@@ -47,6 +47,8 @@ type Stack struct {
 	// after are the option actions Up runs, queued by Install and
 	// Configure.
 	after []addon.After
+	// composeHook runs docker compose in tests.
+	composeHook func(stdin io.Reader, stdout io.Writer, args ...string) error
 }
 
 // Open loads the catalog and the state.
