@@ -2,6 +2,17 @@
 
 [Po polsku](docs/pl/CHANGELOG.md)
 
+## 0.8.2
+
+- Fan of Raspberry Pi cases (System, General): the Argon ONE gets its
+  speed by the temperature and its power button restarts (double press)
+  or shuts down (held) the system; a fan on a GPIO pin (official Pi 4
+  case fan, Fan SHIM) is switched by the kernel. The Pi 5 Active Cooler
+  needs nothing.
+- SSH keys in the panel (System, Access): add a public key, delete one.
+- Backups have their own page, System is split into General, Network and
+  Access.
+
 ## 0.8.1
 
 - Wi-Fi follows the rules of the country of the time zone, so 5 GHz

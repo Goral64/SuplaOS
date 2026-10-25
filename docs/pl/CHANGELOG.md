@@ -2,6 +2,17 @@
 
 [In English](../../CHANGELOG.md)
 
+## 0.8.2
+
+- Wentylator obudów Raspberry Pi (System, Ogólne): Argon ONE dostaje obroty
+  według temperatury, a jego przycisk zasilania uruchamia system ponownie
+  (dwa naciśnięcia) albo go wyłącza (przytrzymanie); wentylatorem na pinie
+  GPIO (oficjalny wentylator obudowy Pi 4, Fan SHIM) steruje jądro. Active
+  Cooler w Pi 5 nie potrzebuje niczego.
+- Klucze SSH w panelu (System, Dostęp): dodawanie klucza publicznego
+  i usuwanie.
+- Kopie mają własną stronę, System jest podzielony na Ogólne, Sieć i Dostęp.
+
 ## 0.8.1
 
 - Wi-Fi działa według przepisów kraju ze strefy czasowej, więc działają
