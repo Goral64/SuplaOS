@@ -85,6 +85,41 @@ UNION ALL SELECT 'channel', id FROM supla_dev_channel WHERE id IN (%s);
 		ids(channels, func(c Channel) int { return c.ID })), nil
 }
 
+// LimitsSQL raises the limits of the local account so that the objects
+// of the bundle fit with room to spare: an account of the public Cloud may
+// have higher limits than a new one, and on an own server they only get
+// in the way. The skeleton goes past them in the database, and a device
+// added later would be refused. Limits are never lowered.
+func LimitsSQL(b *Bundle, userID int) string {
+	perGroup, perScene := 0, 0
+	for _, g := range b.ChannelGroups {
+		perGroup = max(perGroup, len(g.ChannelIDs))
+	}
+	for _, s := range b.Scenes {
+		perScene = max(perScene, len(s.Operations))
+	}
+	limits := []struct {
+		col        string
+		have, base int
+	}{
+		{"limit_iodev", len(b.Devices), 500},
+		{"limit_loc", len(b.Locations), 100},
+		{"limit_aid", len(b.AccessIDs), 100},
+		{"limit_channel_group", len(b.ChannelGroups), 200},
+		{"limit_channel_per_group", perGroup, 50},
+		{"limit_scene", len(b.Scenes), 200},
+		{"limit_operations_per_scene", perScene, 50},
+		{"limit_schedule", len(b.Schedules), 200},
+		{"limit_direct_link", len(b.DirectLinks), 200},
+		{"limit_value_based_triggers", len(b.Reactions), 200},
+	}
+	var set []string
+	for _, l := range limits {
+		set = append(set, fmt.Sprintf("%s = GREATEST(%s, %d)", l.col, l.col, max(l.base, 2*l.have)))
+	}
+	return fmt.Sprintf("UPDATE supla_user SET %s WHERE id = %d;\n", strings.Join(set, ", "), userID)
+}
+
 // SkeletonSQL puts the locations, access IDs, devices and channels of the
 // bundle in the database of this server with their IDs, for the user.
 // Devices get no auth key: supla-server lets the device in with any key
@@ -94,6 +129,7 @@ func SkeletonSQL(b *Bundle, userID int) (string, error) {
 	var sb strings.Builder
 	w := func(format string, args ...any) { fmt.Fprintf(&sb, format, args...) }
 	w("START TRANSACTION;\n")
+	sb.WriteString(LimitsSQL(b, userID))
 	for _, l := range b.Locations {
 		w("INSERT INTO supla_location (id, user_id, password, caption, enabled) VALUES (%d, %d, %s, %s, %s);\n",
 			l.ID, userID, str(l.Password), strp(l.Caption), boolean(l.Enabled))

@@ -194,6 +194,13 @@ func (s *Server) prepareMigration(w http.ResponseWriter, r *http.Request) {
 			// next to those of the source.
 			migrate.RemoveDefaults(cloudCaller{cloud}, b)
 		}
+		// Times of schedules and of the history are shown in it.
+		if b.Timezone != "" {
+			if err := cloud.call("PATCH", "/api/v3/users/current",
+				map[string]string{"action": "change:userTimezone", "timezone": b.Timezone}, nil); err != nil {
+				j.Logf("Time zone of the account: %v", err)
+			}
+		}
 		state.Prepared, state.Token = time.Now().UTC(), token.Token
 		if err := store.SaveState(state); err != nil {
 			return err

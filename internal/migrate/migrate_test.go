@@ -35,7 +35,8 @@ func TestSkeletonSQL(t *testing.T) {
 		t.Fatal(err)
 	}
 	for _, want := range []string{
-		"START TRANSACTION;\n",
+		"START TRANSACTION;\nUPDATE supla_user SET limit_iodev = GREATEST(limit_iodev, 500), ",
+		"limit_aid = GREATEST(limit_aid, 100), ",
 		"INSERT INTO supla_location (id, user_id, password, caption, enabled) VALUES (50, 3, _utf8mb4 X'616263', _utf8mb4 X'446f6d202767c582c3b3776e7927', 1);",
 		"INSERT INTO supla_rel_aidloc (location_id, access_id) VALUES (50, 60);",
 		"(700, 50, NULL, 3, X'0011AABBCCDDEEFF0011223344556677', _utf8mb4 X'",
@@ -152,5 +153,16 @@ func TestNewSource(t *testing.T) {
 		if _, err := NewSource(bad); err == nil {
 			t.Errorf("%q accepted", bad)
 		}
+	}
+}
+
+func TestLimitsSQL(t *testing.T) {
+	b := bundle()
+	for i := 0; i < 300; i++ {
+		b.Devices = append(b.Devices, Device{ID: 1000 + i})
+	}
+	q := LimitsSQL(b, 3)
+	if !strings.Contains(q, "limit_iodev = GREATEST(limit_iodev, 602)") || !strings.HasSuffix(q, "WHERE id = 3;\n") {
+		t.Errorf("limits: %s", q)
 	}
 }

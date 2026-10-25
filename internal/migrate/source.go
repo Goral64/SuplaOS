@@ -159,9 +159,10 @@ type DirectLink struct {
 
 // Bundle is what is read from the source account.
 type Bundle struct {
-	Server  string    `json:"server"`
-	Fetched time.Time `json:"fetched"`
-	Email   string    `json:"email"`
+	Server   string    `json:"server"`
+	Fetched  time.Time `json:"fetched"`
+	Email    string    `json:"email"`
+	Timezone string    `json:"timezone"`
 
 	Locations     []Location     `json:"locations"`
 	AccessIDs     []AccessID     `json:"accessIds"`
@@ -232,12 +233,13 @@ func (s *Source) get(path string, out any) error {
 func (s *Source) Fetch() (*Bundle, error) {
 	b := &Bundle{Server: s.Server, Fetched: time.Now().UTC()}
 	var user struct {
-		Email string `json:"email"`
+		Email    string `json:"email"`
+		Timezone string `json:"timezone"`
 	}
 	if err := s.get("users/current", &user); err != nil {
 		return nil, err
 	}
-	b.Email = user.Email
+	b.Email, b.Timezone = user.Email, user.Timezone
 	if err := s.get("locations?include=accessids,password", &b.Locations); err != nil {
 		return nil, err
 	}
