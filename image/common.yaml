@@ -30,6 +30,8 @@ actions:
       # Radio rules of the country for Wi-Fi.
       - wireless-regdb
       - iw
+      # DHCP and DNS on the Wi-Fi hotspot.
+      - dnsmasq-base
       - openssh-server
       - avahi-daemon
       - libnss-mdns
