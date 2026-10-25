@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted, ref } from 'vue'
+import { onMounted, onUnmounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { api } from '../api'
 import { ask } from './dialog'
@@ -22,7 +22,36 @@ const busy = ref('')
 async function load() {
   wifi.value = await api('GET', '/wifi')
 }
-onMounted(load)
+
+// The state is read again every 10 s, after a change made in the
+// background every 3 s for a while: the panel shows the new connection
+// without reloading the page.
+let timer
+let fast = 0
+let waitFor = null
+function schedule() {
+  clearTimeout(timer)
+  timer = setTimeout(tick, fast > 0 ? 3000 : 10000)
+}
+async function tick() {
+  try {
+    await load()
+    if (waitFor && wifi.value.state === 'connected' && wifi.value.connection === waitFor) {
+      message.value = t('wifi.connected', { ssid: waitFor, address: wifi.value.address })
+      waitFor = null
+      fast = 0
+    }
+  } catch {
+    // Not reachable for a moment while the network changes.
+  }
+  if (fast > 0) fast--
+  schedule()
+}
+onMounted(async () => {
+  await load()
+  schedule()
+})
+onUnmounted(() => clearTimeout(timer))
 
 async function call(kind, fn) {
   busy.value = kind
@@ -38,9 +67,12 @@ async function call(kind, fn) {
 
 // After a change: when the panel is opened over Wi-Fi the answer comes
 // before the change is made.
-async function done(res, asyncText, text) {
+async function done(res, asyncText, text, ssid) {
   if (res.async) {
     message.value = asyncText
+    waitFor = ssid || null
+    fast = 20
+    schedule()
     return
   }
   await load()
@@ -66,14 +98,14 @@ const connect = () => call('connect', async () => {
   join.value = null
   networks.value = null
   password.value = ''
-  await done(res, t('wifi.connectingAsync', { ssid }), connected(ssid))
+  await done(res, t('wifi.connectingAsync', { ssid }), connected(ssid), ssid)
 })
 
 const saved = (name) => '/wifi/saved/' + encodeURIComponent(name)
 
 const connectSaved = (name) => call('connect', async () => {
   const res = await api('POST', saved(name) + '/connect')
-  await done(res, t('wifi.connectingAsync', { ssid: name }), connected(name))
+  await done(res, t('wifi.connectingAsync', { ssid: name }), connected(name), name)
 })
 
 const disconnect = () => call('disconnect', async () => {
