@@ -60,8 +60,9 @@ const moveScripts = () => call(async () => {
 })
 
 const cancel = () => call(async () => {
-  if (!(await ask(t(view.value.prepared ? 'migration.cancelPreparedConfirm' : 'migration.cancelConfirm'),
-    { ok: t('migration.cancel'), danger: true }))) return
+  const prepared = view.value.prepared
+  if (!(await ask(t(prepared ? 'migration.cancelPreparedConfirm' : 'migration.cancelConfirm'),
+    { ok: t(prepared ? 'migration.finish' : 'migration.forget'), danger: true }))) return
   await api('DELETE', '/migration')
   await load()
 })

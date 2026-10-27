@@ -2,6 +2,11 @@
 
 [Po polsku](docs/pl/CHANGELOG.md)
 
+## 0.9.7
+
+- The dialogs that end the move and forget the source account had Cancel on
+  both buttons. The confirm button now says End the move or Forget.
+
 ## 0.9.6
 
 - Reading the source account for the move first checks the scopes of the

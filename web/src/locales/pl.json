@@ -342,6 +342,7 @@
     },
     "cancel": "Anuluj",
     "finish": "Zakończ przenoszenie",
+    "forget": "Zapomnij",
     "cancelConfirm": "Zapomnieć konto odczytane ze źródła?",
     "cancelPreparedConfirm": "Zakończyć przenoszenie? Urządzenia, które połączą się później, nie dostaną już swoich ustawień. To, co dodano do Supli tutaj, zostaje.",
     "also": "Do tego",

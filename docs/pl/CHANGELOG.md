@@ -2,6 +2,12 @@
 
 [In English](../../CHANGELOG.md)
 
+## 0.9.7
+
+- Okna zakończenia przenoszenia i zapomnienia konta źródłowego miały
+  Anuluj na obu przyciskach. Przycisk potwierdzenia mówi teraz Zakończ
+  przenoszenie albo Zapomnij.
+
 ## 0.9.6
 
 - Odczyt konta źródłowego do przeniesienia najpierw sprawdza zakresy tokena

@@ -342,6 +342,7 @@
     },
     "cancel": "Cancel",
     "finish": "End the move",
+    "forget": "Forget",
     "cancelConfirm": "Forget the account read from the source?",
     "cancelPreparedConfirm": "End the move? Devices that connect later do not get their settings any more. What was added to the Supla here stays.",
     "also": "Also",
