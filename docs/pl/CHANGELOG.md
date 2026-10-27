@@ -2,6 +2,12 @@
 
 [In English](../../CHANGELOG.md)
 
+## 0.9.9
+
+- Własna domena: router, który odpowiada na zapytania DNS zamiast serwerów
+  dostawcy DNS, jest rozpoznawany także wtedy, gdy oznacza odpowiedzi jako
+  autorytatywne (nadal oferuje rekurencję, której te serwery nie mają).
+
 ## 0.9.8
 
 - Własna domena: pobieranie certyfikatu za routerem, który sam odpowiada na

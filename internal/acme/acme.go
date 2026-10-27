@@ -539,6 +539,11 @@ func authoritative(domain, fqdn, value string) (bool, error) {
 		if !in.Authoritative {
 			return false, fmt.Errorf("the answer of %s is %w, something on the way answers DNS queries itself", ns.Host, errNotAuthoritative)
 		}
+		// The servers of a zone do not offer recursion. A router that
+		// answers in their place may still mark the answer authoritative.
+		if in.RecursionAvailable {
+			return false, fmt.Errorf("the answer of %s offers recursion, so it is %w, something on the way answers DNS queries itself", ns.Host, errNotAuthoritative)
+		}
 		found := false
 		for _, rr := range in.Answer {
 			if txt, ok := rr.(*dns.TXT); ok && strings.Join(txt.Txt, "") == value {

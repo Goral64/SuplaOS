@@ -2,6 +2,12 @@
 
 [Po polsku](docs/pl/CHANGELOG.md)
 
+## 0.9.9
+
+- Own domain: a router that answers DNS queries in place of the servers of
+  the DNS provider is also recognised when it marks its answers as
+  authoritative (it still offers recursion, which those servers do not).
+
 ## 0.9.8
 
 - Own domain: getting the certificate behind a router that answers DNS
