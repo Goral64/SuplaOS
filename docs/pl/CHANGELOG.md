@@ -2,6 +2,14 @@
 
 [In English](../../CHANGELOG.md)
 
+## 0.9.8
+
+- Własna domena: pobieranie certyfikatu za routerem, który sam odpowiada na
+  zapytania DNS (także wysłane prosto do serwerów dostawcy DNS), kończyło
+  się błędem „time limit exceeded”, nawet z dobrym tokenem. Teraz SuplaOS
+  czeka na rekord w jednym kroku i sprawdzenie zostawia Let's Encrypt.
+  Trwa to ok. 2 minuty (z OVH 5).
+
 ## 0.9.7
 
 - Okna zakończenia przenoszenia i zapomnienia konta źródłowego miały

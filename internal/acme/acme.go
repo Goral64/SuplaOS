@@ -492,22 +492,29 @@ var errNotAuthoritative = errors.New("not authoritative")
 // resolver first and follows a CNAME, also one of a wildcard the resolver
 // got before the record was there. When something on the way answers DNS
 // queries itself (some routers, WSL), the servers cannot be asked: then it
-// waits wait and leaves the check to Let's Encrypt.
+// waits wait and leaves the check to Let's Encrypt. Such a router may also
+// answer later queries as if it were the server, without the record, so
+// the servers are not asked again. The wait is done in one go: lego looks
+// at its own time limit (60 seconds for some providers) only between
+// checks.
 func exactCheck(domain string, wait time.Duration, w io.Writer) dns01.WrapPreCheckFunc {
 	start := time.Now()
-	told := false
 	return func(_, fqdn, value string, _ dns01.PreCheckFunc) (bool, error) {
-		found, err := authoritative(domain, fqdn, value)
+		found, err := askAuthoritative(domain, fqdn, value)
 		if !errors.Is(err, errNotAuthoritative) {
 			return found, err
 		}
-		if !told {
-			fmt.Fprintf(w, "%v: waiting %s for the record instead\n", err, wait)
-			told = true
-		}
-		return time.Since(start) >= wait, nil
+		fmt.Fprintf(w, "%v: waiting %s for the record instead\n", err, wait)
+		sleep(wait - time.Since(start))
+		return true, nil
 	}
 }
+
+// askAuthoritative and sleep are replaced in tests.
+var (
+	askAuthoritative = authoritative
+	sleep            = time.Sleep
+)
 
 func authoritative(domain, fqdn, value string) (bool, error) {
 	// The zone of the domain, not of fqdn: a lookup of fqdn would leave

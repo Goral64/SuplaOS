@@ -2,6 +2,14 @@
 
 [Po polsku](docs/pl/CHANGELOG.md)
 
+## 0.9.8
+
+- Own domain: getting the certificate behind a router that answers DNS
+  queries itself (also ones sent straight to the servers of the DNS
+  provider) failed with "time limit exceeded", even with a good token. Now
+  it waits for the record in one go and leaves the check to Let's Encrypt.
+  This takes about 2 minutes (5 with OVH).
+
 ## 0.9.7
 
 - The dialogs that end the move and forget the source account had Cancel on

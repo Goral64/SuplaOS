@@ -216,6 +216,49 @@ func TestFollowCNAME(t *testing.T) {
 	}
 }
 
+func TestExactCheckIntercepted(t *testing.T) {
+	// Something on the way answers the queries: wait in one go, longer
+	// than the time limit of lego, and do not ask again.
+	var slept time.Duration
+	askAuthoritative = func(string, string, string) (bool, error) { return false, errNotAuthoritative }
+	sleep = func(d time.Duration) { slept += d }
+	defer func() { askAuthoritative, sleep = authoritative, time.Sleep }()
+	check := exactCheck("supla.example.pl", 2*time.Minute, io.Discard)
+	done, err := check("", "_acme-challenge.supla.example.pl.", "v", nil)
+	if !done || err != nil {
+		t.Errorf("check: %v, %v", done, err)
+	}
+	if slept < time.Minute+50*time.Second || slept > 2*time.Minute {
+		t.Errorf("waited %s", slept)
+	}
+}
+
+// slowProvider gives lego a time limit shorter than the wait.
+type slowProvider struct{ *dnsProvider }
+
+func (p slowProvider) Timeout() (timeout, interval time.Duration) {
+	return 200 * time.Millisecond, 10 * time.Millisecond
+}
+
+func TestObtainIntercepted(t *testing.T) {
+	m, p := testManager(t)
+	m.provider = slowProvider{p}
+	m.dnsOptions = m.dnsOptions[:1]
+	askAuthoritative = func(string, string, string) (bool, error) { return false, errNotAuthoritative }
+	sleep = func(time.Duration) { time.Sleep(400 * time.Millisecond) }
+	defer func() { askAuthoritative, sleep = authoritative, time.Sleep }()
+	if err := m.SaveSettings(Settings{Domain: "supla.example.com", Provider: "cloudflare", Fields: map[string]string{"CF_DNS_API_TOKEN": "x"}}); err != nil {
+		t.Fatal(err)
+	}
+	var out bytes.Buffer
+	if err := m.Obtain(&out); err != nil {
+		t.Fatalf("Obtain: %v\n%s", err, out.String())
+	}
+	if !strings.Contains(out.String(), "waiting 2m0s for the record instead") {
+		t.Errorf("output:\n%s", out.String())
+	}
+}
+
 func TestSaveSettings(t *testing.T) {
 	m := New(t.TempDir())
 	if s, err := m.Settings(); s != nil || err != nil {
