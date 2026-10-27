@@ -32,6 +32,9 @@ pasuje:
 
 - Lokalny wpis DNS dla tej nazwy w routerze, Pi-hole albo AdGuard Home,
   wskazujący na urządzenie. Nic o twojej sieci nie trafia do publicznego DNS.
+  Jeśli na routerze działa reverse proxy (np. Nginx Proxy Manager), nazwa
+  musi wskazywać na sam SuplaOS, nie na proxy, inaczej odpowie ono swoim
+  certyfikatem.
 - Plik hosts na komputerze (np. `192.168.1.20 supla.example.pl`), dobry na
   próbę, ale na telefonach zwykle się tego nie da zrobić.
 - Rekord A w publicznym DNS z adresem urządzenia, np.
@@ -44,13 +47,22 @@ Dostęp z zewnątrz wymaga rekordu A z twoim publicznym adresem
 i przekierowania portów na routerze. To twoja decyzja, do certyfikatu
 SuplaOS tego nie potrzebuje.
 
+Bez stałego publicznego adresu da się też przez tunel Cloudflare: dodaj
+Public Hostname z domeną, usługą HTTPS i adresem urządzenia w sieci
+lokalnej z portem 443, a w ustawieniach TLS wpisz domenę jako Origin Server
+Name. Tunel przenosi tylko Supla Cloud w przeglądarce. Urządzenia
+i aplikacja Supla łączą się po porcie 2016, którego tunel nie przeniesie;
+w domu i tak łączą się z urządzeniem bezpośrednio.
+
 ## Ustawienie
 
 1. W panelu wejdź w System, Dostęp, Własna domena (Let's Encrypt), Ustaw domenę.
 2. Wpisz domenę, wybierz dostawcę DNS i uzupełnij jego klucze (niżej).
    E-mail jest opcjonalny.
 3. Kliknij Zapisz i pobierz certyfikat. Trwa to od kilku sekund do kilku
-   minut, w logu widać, co się dzieje.
+   minut, w logu widać, co się dzieje. Gdy router sam odpowiada na
+   zapytania DNS (wiele tak robi), SuplaOS nie widzi rekordu i po prostu
+   czeka: ok. 2 minuty, z OVH 5.
 
 Gdy certyfikat jest gotowy, karta proponuje ustawić adresy Supla Cloud
 i SUPLA Scripts na domenę (Użyj domeny). Potem Cloud pokazuje też brokera
@@ -96,6 +108,8 @@ Rekord wildcard w strefie (`*.example.pl`) nie przeszkadza.
 
 ## Co się zmienia
 
+- Supla Cloud otwiera się pod `https://supla.example.pl`, panel pod
+  `https://supla.example.pl:8443`.
 - Panel pod nazwą domeny odpowiada certyfikatem domeny, a pod `<nazwa>.local`
   i adresem IP jak dotąd certyfikatem urządzenia.
 - Supla Cloud, SUPLA Scripts i szyfrowany port MQTT mają po jednym

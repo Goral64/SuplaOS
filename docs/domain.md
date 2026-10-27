@@ -32,6 +32,9 @@ suits you:
 
 - A local DNS entry for the name in the router, Pi-hole or AdGuard Home,
   pointing to the device. Nothing about your network ends up in public DNS.
+  If a reverse proxy (e.g. Nginx Proxy Manager) runs on the router, the
+  name has to point to SuplaOS itself, not to the proxy, or the proxy
+  answers with its own certificate.
 - The hosts file on a computer (e.g. `192.168.1.20 supla.example.com`), good
   for a try, but phones usually can't do that.
 - An A record in public DNS with the address of the device, e.g.
@@ -44,13 +47,22 @@ Access from outside needs an A record with your public address and ports
 forwarded on the router. That's up to you, SuplaOS doesn't need it for the
 certificate.
 
+Without a fixed public address a Cloudflare Tunnel works too: add a public
+hostname with the domain, service HTTPS, the address of the device in the
+local network with port 443, and in its TLS settings set Origin Server Name
+to the domain. The tunnel only carries Supla Cloud in the browser. Devices
+and the Supla app connect on port 2016, which the tunnel doesn't carry; at
+home they connect to the device directly anyway.
+
 ## Setting it up
 
 1. In the panel go to System, Access, Own domain (Let's Encrypt), Set a domain.
 2. Enter the domain, pick the DNS provider and fill in its keys (see
    below). The e-mail is optional.
 3. Click Save and get the certificate. It takes from a few seconds to a few
-   minutes, the log shows what's going on.
+   minutes, the log shows what's going on. When the router answers DNS
+   queries itself (many do), SuplaOS can't see the record and just waits:
+   about 2 minutes, 5 with OVH.
 
 When the certificate is there, the card offers to set the addresses of
 Supla Cloud and SUPLA Scripts to the domain (Use the domain). After that
@@ -99,6 +111,8 @@ A wildcard record in the zone (`*.example.com`) doesn't get in the way.
 
 ## What changes
 
+- Supla Cloud opens at `https://supla.example.com`, the panel at
+  `https://supla.example.com:8443`.
 - The panel answers with the certificate of the domain at the domain name,
   and at `<name>.local` and the IP address with the certificate of the
   device, as before.
