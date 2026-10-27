@@ -38,6 +38,13 @@ jobs:
           built=false
           docker manifest inspect "$IMAGE:$version" >/dev/null 2>&1 && built=true
           echo "supla-scripts $version (add-on: $current, image built: $built)"
+          # The release archive is uploaded by hand and is sometimes missing
+          # or late; the image cannot be built without it, try again tomorrow.
+          if [ "$built" = false ] && ! gh release view "v$version" -R fracz/supla-scripts --json assets \
+              -q '.assets[].name' | grep -qx "supla-scripts-$version.tar.gz"; then
+            echo "::warning::supla-scripts $version has no supla-scripts-$version.tar.gz in its release yet"
+            exit 0
+          fi
           echo "version=$version" >> "$GITHUB_OUTPUT"
           echo "built=$built" >> "$GITHUB_OUTPUT"
           [ "$version" = "$current" ] || echo "update=true" >> "$GITHUB_OUTPUT"
