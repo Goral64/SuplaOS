@@ -154,7 +154,7 @@ func (u *upstream) forget() {
 // proxyHandler serves ps on listen, or through the router at a name of its
 // own when listen is empty.
 func (s *Server) proxyHandler(ps *proxyServer, listen string) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	return s.guard(ps.addon, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path == handoffPath {
 			s.takeHandoff(w, r)
 			return
@@ -195,7 +195,7 @@ func (s *Server) proxyHandler(ps *proxyServer, listen string) http.Handler {
 			},
 		}
 		rp.ServeHTTP(w, r)
-	})
+	}))
 }
 
 // dropCookie removes the cookie from the request headers: the session of

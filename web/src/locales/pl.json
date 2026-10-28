@@ -487,5 +487,12 @@
     "addressesOAuth": "SUPLA Scripts loguje się przez Supla Cloud: po zmianie połącz je ponownie.",
     "useDomain": "Użyj domeny",
     "reconnect": "Gotowe. Teraz połącz ponownie SUPLA Scripts z Supla Cloud: Dodatki, SUPLA Scripts, Połącz z Supla Cloud."
+  },
+  "internet": {
+    "title": "Dostęp z internetu",
+    "intro": "Panel i dodatki, które obsługuje (np. Zigbee2MQTT), odpowiadają tylko w sieci lokalnej, chyba że włączysz je tutaj. Supla Cloud i SUPLA Scripts mają własne logowanie i działają zawsze.",
+    "help": "Po włączeniu do panelu da się zalogować z każdego miejsca, z którego przekierowano jego port: zmień domyślne hasło i użyj długiego. Do dodatku logujesz się przez panel, więc panel też musi być włączony. Żądanie liczy się jako z internetu także wtedy, gdy tak podaje pośrednik w sieci lokalnej (np. tunel Cloudflare).",
+    "offConfirm": "Łączysz się z internetu: panel od razu przestanie odpowiadać i włączyć go znów da się tylko z sieci lokalnej. Wyłączyć?",
+    "turnOff": "Wyłącz"
   }
 }

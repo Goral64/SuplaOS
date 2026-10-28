@@ -37,6 +37,9 @@ type Config struct {
 type Settings struct {
 	Lang      string `yaml:"lang" json:"lang"`
 	SetupDone bool   `yaml:"setup_done" json:"setupDone"`
+	// Internet are the web interfaces served by the panel ("panel" or an
+	// add-on) that answer requests from the internet.
+	Internet []string `yaml:"internet,omitempty" json:"-"`
 	// Fan of a Raspberry Pi case; nil before it is set.
 	Fan *fan.Settings `yaml:"fan,omitempty" json:"-"`
 }
@@ -114,6 +117,8 @@ func (s *Server) Handler() http.Handler {
 	mux.HandleFunc("POST /api/login", s.login)
 	mux.HandleFunc("POST /api/logout", s.logout)
 	api("POST /api/session/handoff", s.postHandoff)
+	api("GET /api/internet", s.getInternet)
+	api("PUT /api/internet", s.putInternet)
 	mux.HandleFunc("GET "+handoffPath, s.takeHandoff)
 	mux.HandleFunc("GET /api/ca.crt", s.getCA)
 	api("GET /api/ca", s.getCAInfo)
@@ -189,7 +194,7 @@ func (s *Server) Handler() http.Handler {
 	api("GET /api/jobs/{id}/events", s.jobEvents)
 
 	mux.Handle("/", s.static())
-	return mux
+	return s.guard("panel", mux)
 }
 
 // auth lets through requests of logged-in users. Changes also need the

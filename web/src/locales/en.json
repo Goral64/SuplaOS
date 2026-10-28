@@ -487,5 +487,12 @@
     "addressesOAuth": "SUPLA Scripts logs in with Supla Cloud: after the change connect them again.",
     "useDomain": "Use the domain",
     "reconnect": "Done. Now connect SUPLA Scripts with Supla Cloud again: Add-ons, SUPLA Scripts, Connect with Supla Cloud."
+  },
+  "internet": {
+    "title": "Access from the internet",
+    "intro": "The panel and the add-ons it serves (e.g. Zigbee2MQTT) answer only in the local network, unless they are turned on here. Supla Cloud and SUPLA Scripts have their own logins and are always reachable.",
+    "help": "Turned on, the panel lets you log in from anywhere where its port is forwarded: change the default password and use a long one. An add-on is logged in to through the panel, so it needs the panel turned on too. A request counts as from the internet also when a proxy in the local network (e.g. a Cloudflare Tunnel) says so.",
+    "offConfirm": "You are connected from the internet: the panel stops answering at once and can be turned on again only from the local network. Turn it off?",
+    "turnOff": "Turn off"
   }
 }

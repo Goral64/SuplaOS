@@ -16,9 +16,11 @@ import (
 const (
 	cookieName     = "suplaos_session"
 	sessionTimeout = 12 * time.Hour
-	// After maxFailures wrong passwords in a row logins wait failDelay.
-	maxFailures = 5
-	failDelay   = 30 * time.Second
+	// After maxFailures wrong passwords in a row logins wait failDelay,
+	// twice as long after each next one, up to maxFailDelay.
+	maxFailures  = 5
+	failDelay    = 30 * time.Second
+	maxFailDelay = time.Hour
 )
 
 type session struct {
@@ -31,12 +33,17 @@ type session struct {
 // sessions are kept in memory and in a file, so that they survive panel
 // restarts (e.g. updates). They are stored by the hash of the token.
 type sessions struct {
-	mu       sync.Mutex
-	file     string
-	list     map[string]*session
-	saved    time.Time
-	failures int
-	lastFail time.Time
+	mu    sync.Mutex
+	file  string
+	list  map[string]*session
+	saved time.Time
+	// failed are the wrong passwords in a row by address.
+	failed map[string]*failures
+}
+
+type failures struct {
+	count int
+	last  time.Time
 }
 
 func newToken() string {
@@ -144,22 +151,45 @@ func (s *sessions) passwordChanged(r *http.Request) {
 	s.save()
 }
 
-// throttled tells whether logins have to wait after wrong passwords.
-func (s *sessions) throttled() bool {
+// throttled tells whether logins from ip have to wait after wrong
+// passwords. Counted by address, so that wrong passwords sent from the
+// internet do not keep the owner out.
+func (s *sessions) throttled(ip string) bool {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	return s.failures >= maxFailures && time.Since(s.lastFail) < failDelay
+	f := s.failed[ip]
+	if f == nil || f.count < maxFailures {
+		return false
+	}
+	wait := failDelay
+	for i := maxFailures; i < f.count && wait < maxFailDelay; i++ {
+		wait *= 2
+	}
+	return time.Since(f.last) < min(wait, maxFailDelay)
 }
 
-func (s *sessions) result(ok bool) {
+func (s *sessions) result(ip string, ok bool) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	if ok {
-		s.failures = 0
+		delete(s.failed, ip)
 		return
 	}
-	s.failures++
-	s.lastFail = time.Now()
+	if s.failed == nil {
+		s.failed = map[string]*failures{}
+	}
+	for k, f := range s.failed {
+		if time.Since(f.last) > maxFailDelay {
+			delete(s.failed, k)
+		}
+	}
+	f := s.failed[ip]
+	if f == nil {
+		f = &failures{}
+		s.failed[ip] = f
+	}
+	f.count++
+	f.last = time.Now()
 }
 
 func setCookie(w http.ResponseWriter, token string, maxAge int) {

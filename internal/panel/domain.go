@@ -51,6 +51,8 @@ func (s *Server) webInterfaces() ([]acme.Interface, error) {
 	return interfacesOf(st), nil
 }
 
+var panelLabel = addon.Text{"en": "SuplaOS panel", "pl": "Panel SuplaOS"}
+
 func interfacesOf(st *stack.Stack) []acme.Interface {
 	out := []acme.Interface{panelInterface}
 	for _, a := range st.Order() {
@@ -130,7 +132,7 @@ func (s *Server) getDomain(w http.ResponseWriter, r *http.Request) {
 	v.Addresses = s.addressChanges(st)
 	v.Names = []domainName{}
 	for _, i := range interfacesOf(st) {
-		n := domainName{ID: i.ID, Label: addon.Text{"en": "SuplaOS panel", "pl": "Panel SuplaOS"}}
+		n := domainName{ID: i.ID, Label: panelLabel}
 		if a := st.Catalog[i.ID]; a != nil {
 			n.Label = a.Name
 		}

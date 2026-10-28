@@ -43,7 +43,8 @@ func (s *Server) login(w http.ResponseWriter, r *http.Request) {
 		jsonError(w, http.StatusBadRequest, err)
 		return
 	}
-	if s.sessions.throttled() {
+	ip := clientIP(r)
+	if s.sessions.throttled(ip) {
 		jsonError(w, http.StatusTooManyRequests, errors.New("too many attempts, wait a moment"))
 		return
 	}
@@ -52,7 +53,7 @@ func (s *Server) login(w http.ResponseWriter, r *http.Request) {
 		jsonError(w, http.StatusInternalServerError, err)
 		return
 	}
-	s.sessions.result(ok)
+	s.sessions.result(ip, ok)
 	if !ok {
 		jsonError(w, http.StatusUnauthorized, errors.New("wrong password"))
 		return

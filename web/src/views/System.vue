@@ -5,6 +5,7 @@ import { useI18n } from 'vue-i18n'
 import { api, panelUrl } from '../api'
 import { ask } from '../components/dialog'
 import DomainCard from '../components/DomainCard.vue'
+import InternetCard from '../components/InternetCard.vue'
 import WifiCard from '../components/WifiCard.vue'
 import SshKeysCard from '../components/SshKeysCard.vue'
 import FanCard from '../components/FanCard.vue'
@@ -159,5 +160,6 @@ const power = (action) => call(async () => {
       </div>
     </div>
     <DomainCard />
+    <InternetCard />
   </template>
 </template>
