@@ -50,7 +50,8 @@ Po instalacji Supli Supla Cloud jest pod https://<adres urządzenia>.
 Pierwsze konto można podać już przy instalacji Supli (także w kreatorze
 pierwszego uruchomienia) albo założyć później na stronie dodatku Supla.
 Interfejs Zigbee2MQTT jest pod https://<adres urządzenia>:8080, udostępnia
-go panel po zalogowaniu.
+go panel po zalogowaniu. Z [własną domeną](domain.md) panel i dodatki mają
+też własne nazwy na porcie 443.
 
 Konto z publicznego Supla Cloud można tu przenieść razem z urządzeniami,
 scenami i historią pomiarów, a urządzenia i kanały zachowują swoje ID:

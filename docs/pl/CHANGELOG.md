@@ -2,8 +2,22 @@
 
 [In English](../../CHANGELOG.md)
 
-## 0.9.9
+## 0.10.0
 
+- Własna domena: panel i dodatki z interfejsem WWW (Zigbee2MQTT, SUPLA
+  Scripts) dostają własne nazwy obok domeny, np. suplaos.example.pl,
+  i wszystkie odpowiadają na porcie 443, więc z internetu wystarczy
+  przekierować jeden port. Nazwy można zmienić na karcie domeny, certyfikat
+  ma je wszystkie. Logujesz się raz, w panelu. Port 443 obsługuje teraz
+  panel, połączenia do Supla Cloud przekazuje bez zmian. Opis we
+  [własnej domenie](domain.md).
+- Panel i Zigbee2MQTT odpowiadają tylko w sieci lokalnej, dopóki nie
+  włączysz im dostępu z internetu w System, Dostęp. Jeśli korzystasz
+  z panelu z internetu przez przekierowany port, po aktualizacji włącz go
+  tam z domu.
+- Złe hasła do panelu liczą się osobno dla każdego adresu, a po pięciu
+  czekanie rośnie z każdym kolejnym, najwyżej do godziny. Złe hasła wysyłane
+  z internetu już cię nie odetną.
 - Własna domena: router, który odpowiada na zapytania DNS zamiast serwerów
   dostawcy DNS, jest rozpoznawany także wtedy, gdy oznacza odpowiedzi jako
   autorytatywne (nadal oferuje rekurencję, której te serwery nie mają).

@@ -27,32 +27,27 @@ opened on the router. The certificate is renewed on its own.
 ## The name has to point to the device
 
 The certificate alone isn't enough, browsers have to find the device by
-that name. The DNS record isn't needed for the certificate, so pick what
-suits you:
+that name, and by the names of the panel and the add-ons (see below). The
+DNS records aren't needed for the certificate, so pick what suits you:
 
 - A local DNS entry for the name in the router, Pi-hole or AdGuard Home,
   pointing to the device. Nothing about your network ends up in public DNS.
   If a reverse proxy (e.g. Nginx Proxy Manager) runs on the router, the
   name has to point to SuplaOS itself, not to the proxy, or the proxy
   answers with its own certificate.
-- The hosts file on a computer (e.g. `192.168.1.20 supla.example.com`), good
-  for a try, but phones usually can't do that.
+- The hosts file on a computer (e.g.
+  `192.168.1.20 supla.example.com suplaos.example.com`), good for a try, but
+  phones usually can't do that.
 - An A record in public DNS with the address of the device, e.g.
-  `supla.example.com A 192.168.1.20`. Works everywhere at home without
+  `supla.example.com A 192.168.1.20`, or one wildcard record
+  `*.example.com` for all the names. Works everywhere at home without
   setting anything else. Some routers (e.g. Fritz!Box, OpenWrt) block names
   in public DNS that point to private addresses (DNS rebinding protection),
   then add the domain as an exception there.
 
-Access from outside needs an A record with your public address and ports
-forwarded on the router. That's up to you, SuplaOS doesn't need it for the
-certificate.
-
-Without a fixed public address a Cloudflare Tunnel works too: add a public
-hostname with the domain, service HTTPS, the address of the device in the
-local network with port 443, and in its TLS settings set Origin Server Name
-to the domain. The tunnel only carries Supla Cloud in the browser. Devices
-and the Supla app connect on port 2016, which the tunnel doesn't carry; at
-home they connect to the device directly anyway.
+SUPLA Scripts gets the changes of channels from Supla Cloud at its address,
+so its name has to work on the device itself too, in the DNS the device
+uses (usually the router).
 
 ## Setting it up
 
@@ -65,14 +60,61 @@ home they connect to the device directly anyway.
    about 2 minutes, 5 with OVH.
 
 When the certificate is there, the card offers to set the addresses of
-Supla Cloud and SUPLA Scripts to the domain (Use the domain). After that
-the Cloud also shows the MQTT broker at the domain. If SUPLA Scripts logs in
-with Supla Cloud, connect them again on the SUPLA Scripts page (Connect with
-Supla Cloud).
+Supla Cloud and SUPLA Scripts to the domain and the name of SUPLA Scripts
+(Use the domain). After that the Cloud also shows the MQTT broker at the
+domain. If SUPLA Scripts logs in with Supla Cloud, connect them again on
+the SUPLA Scripts page (Connect with Supla Cloud).
 
 The test server of Let's Encrypt is for trying the setup out: browsers don't
 trust its certificate, but it doesn't count towards the limits of Let's
 Encrypt.
+
+## Names of the panel and the add-ons
+
+Supla Cloud answers at the domain. The panel and the add-ons with a web
+interface get names of their own next to it: for `supla.example.com` the
+panel is `suplaos.example.com`, Zigbee2MQTT `supla-z2m.example.com` and
+SUPLA Scripts `supla-scripts.example.com`. When the domain is right below a
+public suffix (`example.com`, `myname.duckdns.org`), they go under it:
+`suplaos.example.com`, `z2m.myname.duckdns.org`. The names can be changed on
+the card, an empty field is the default one. The certificate has all of
+them, an add-on installed later gets its name in a new certificate on its
+own.
+
+At DuckDNS and deSEC a name next to the domain is another name to make
+there (DuckDNS gives five for free), a name under it is not.
+
+All of them are on port 443: the device looks at the name the browser asks
+for and passes the connection on. By an IP address, `<name>.local` or any
+other name, port 443 is Supla Cloud as before. In the local network the
+panel and the add-ons are also at their own ports (8443, 8080, 8444).
+Opened at its name, the panel opens the add-ons at their names.
+
+You log in once, in the panel: Zigbee2MQTT at its name takes the session
+from there.
+
+## Access from the internet
+
+Since everything is on port 443, from the internet it's enough to forward
+that one port to the device and give the names A records with your public
+address. The Supla app and the devices connect on port 2016, forward it too
+if the app should work away from home. 8883 only for MQTT clients outside.
+Don't forward 2015, it isn't encrypted.
+
+The panel and Zigbee2MQTT answer only in the local network until you turn
+them on in System, Access, Access from the internet. Supla Cloud and SUPLA
+Scripts have logins of their own and are always reachable. The panel can
+change everything on the device, so with it on the internet use a long
+password. After five wrong passwords from one address, logins from there
+wait, longer after each next one.
+
+Without a fixed public address a Cloudflare Tunnel works too: add a public
+hostname for each name, all with service HTTPS and the address of the
+device in the local network with port 443, and in the TLS settings set
+Origin Server Name to that name. Requests through the tunnel count as from
+the internet. The tunnel carries only the web interfaces. Devices and the
+Supla app connect on port 2016, which the tunnel doesn't carry; at home
+they connect to the device directly anyway.
 
 ## Keys of the DNS provider
 
@@ -84,8 +126,9 @@ as the provider allows.
 - OVH: create the keys at https://eu.api.ovh.com/createToken/ with the
   rights `POST /domain/zone/example.com/*` and
   `DELETE /domain/zone/example.com/*` (your domain instead of
-  `example.com`). You get the application key, the application secret and
-  the consumer key. The servers of OVH show a new record only after a few
+  `example.com`) and Validity Unlimited, otherwise they stop working after
+  a while. You get the application key, the application secret and the
+  consumer key. The servers of OVH show a new record only after a few
   minutes, so getting the certificate takes a while.
 - DuckDNS: the token from the top of the page after logging in.
 - deSEC: Token Management, a token for the domain.
@@ -107,15 +150,19 @@ In the panel enter `supla.example.com` as the domain and DuckDNS with its
 token as the provider. SuplaOS puts the TXT record at DuckDNS and Let's
 Encrypt finds it through the CNAME. deSEC and acme-dns work the same way.
 
+The names of the panel and the add-ons need such a record each, e.g.
+`_acme-challenge.suplaos.example.com CNAME supla-example.duckdns.org`. With
+DuckDNS they can all point to the same name.
+
 A wildcard record in the zone (`*.example.com`) doesn't get in the way.
 
 ## What changes
 
 - Supla Cloud opens at `https://supla.example.com`, the panel at
-  `https://supla.example.com:8443`.
-- The panel answers with the certificate of the domain at the domain name,
-  and at `<name>.local` and the IP address with the certificate of the
-  device, as before.
+  `https://suplaos.example.com` (and `https://supla.example.com:8443`).
+- The panel answers with the certificate of the domain at the domain and
+  the names, and at `<name>.local` and the IP address with the certificate
+  of the device, as before.
 - Supla Cloud, SUPLA Scripts and the encrypted MQTT port have one
   certificate each: the one of the domain. Opened by the IP address or
   `<name>.local` they show a warning, use the domain for them.

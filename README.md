@@ -51,7 +51,8 @@ After installing Supla, Supla Cloud is at https://<device address>. The
 first account can be given already when installing Supla (also in the first
 run wizard), or created later on the Supla add-on page. The Zigbee2MQTT
 interface is at https://<device address>:8080, served by the panel after
-logging in to it.
+logging in to it. With an [own domain](docs/domain.md) the panel and the
+add-ons also get names of their own on port 443.
 
 An account on the public Supla Cloud can be moved here with its devices,
 scenes and measurement history, the devices and channels keep their IDs:

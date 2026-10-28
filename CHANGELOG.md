@@ -2,8 +2,22 @@
 
 [Po polsku](docs/pl/CHANGELOG.md)
 
-## 0.9.9
+## 0.10.0
 
+- Own domain: the panel and the add-ons with a web interface (Zigbee2MQTT,
+  SUPLA Scripts) get names of their own next to the domain, e.g.
+  suplaos.example.com, and all of them answer on port 443, so from the
+  internet one forwarded port is enough. The names can be changed on the
+  domain card and the certificate has all of them. You log in once, in the
+  panel. Port 443 is served by the panel now, it passes the connections for
+  Supla Cloud on as they are. See [own domain](docs/domain.md).
+- The panel and Zigbee2MQTT answer only in the local network until access
+  from the internet is turned on for them in System, Access. If you use the
+  panel from the internet through a forwarded port, turn it on there from
+  home after the update.
+- Wrong passwords to the panel are counted by address and after five the
+  wait grows with each next one, up to an hour. Wrong passwords sent from
+  the internet no longer keep you out.
 - Own domain: a router that answers DNS queries in place of the servers of
   the DNS provider is also recognised when it marks its answers as
   authoritative (it still offers recursion, which those servers do not).
