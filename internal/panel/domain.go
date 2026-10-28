@@ -51,13 +51,17 @@ func (s *Server) webInterfaces() ([]acme.Interface, error) {
 	return interfacesOf(st), nil
 }
 
+func addonInterface(a *addon.Addon) acme.Interface {
+	return acme.Interface{ID: a.ID, Host: a.Web.Host, Prefixed: true}
+}
+
 var panelLabel = addon.Text{"en": "SuplaOS panel", "pl": "Panel SuplaOS"}
 
 func interfacesOf(st *stack.Stack) []acme.Interface {
 	out := []acme.Interface{panelInterface}
 	for _, a := range st.Order() {
 		if a.Web != nil && a.Web.Host != "" {
-			out = append(out, acme.Interface{ID: a.ID, Host: a.Web.Host, Prefixed: true})
+			out = append(out, addonInterface(a))
 		}
 	}
 	return out
@@ -89,9 +93,19 @@ func (s *Server) addressChanges(st *stack.Stack) []addressChange {
 			out = append(out, addressChange{"supla", "SUPLA_HOST_ADDRESS", v["SUPLA_HOST_ADDRESS"], to})
 		}
 	}
-	if st.IsInstalled("supla-scripts") {
-		v := st.Values(st.Catalog["supla-scripts"])
+	if a := st.Catalog["supla-scripts"]; st.IsInstalled(a.ID) {
+		v := st.Values(a)
 		to := "https://" + c.Domain + ":" + v["SUPLA_SCRIPTS_PORT"]
+		// At its own name on the port of the Cloud, through the router.
+		if set, _ := s.acme.Settings(); set != nil {
+			switch port, _, _ := routeTable(st, set); port {
+			case "":
+			case "443":
+				to = "https://" + set.Name(addonInterface(a))
+			default:
+				to = "https://" + set.Name(addonInterface(a)) + ":" + port
+			}
+		}
 		if strings.TrimSuffix(v["SUPLA_SCRIPTS_URL"], "/") != to {
 			out = append(out, addressChange{"supla-scripts", "SUPLA_SCRIPTS_URL", v["SUPLA_SCRIPTS_URL"], to})
 		}

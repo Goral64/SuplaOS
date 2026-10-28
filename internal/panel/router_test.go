@@ -164,3 +164,41 @@ func TestRouter(t *testing.T) {
 	}
 	c.Close()
 }
+
+func TestNamedAddresses(t *testing.T) {
+	s := newServer(t)
+	st := routerStack(t, s)
+	domainCertificate(s, "supla.example.com")
+
+	// Opened at the name of the panel: the add-ons at their names.
+	named := s.namedURLs(st, "SuplaOS.example.com")
+	for id, want := range map[string]string{
+		"supla":         "https://supla.example.com/",
+		"zigbee2mqtt":   "https://supla-z2m.example.com/",
+		"supla-scripts": "https://supla-scripts.example.com/",
+	} {
+		if got := s.webURL(st, st.Catalog[id], "suplaos.example.com", named); got != want {
+			t.Errorf("%s: %s, want %s", id, got, want)
+		}
+	}
+	// Opened otherwise: the host and the ports, as before.
+	for _, host := range []string{"suplaos.local:8443", "192.168.1.20:8443", "supla.example.com:8443"} {
+		if named := s.namedURLs(st, host); named != nil {
+			t.Errorf("%s: %v", host, named)
+		}
+	}
+	if got := s.webURL(st, st.Catalog["zigbee2mqtt"], "[fe80::1]:8443", nil); got != "https://[fe80::1]:8080/" {
+		t.Errorf("by address: %s", got)
+	}
+
+	// SUPLA Scripts moves to its name, without a port.
+	var to string
+	for _, c := range s.addressChanges(st) {
+		if c.Key == "SUPLA_SCRIPTS_URL" {
+			to = c.To
+		}
+	}
+	if to != "https://supla-scripts.example.com" {
+		t.Errorf("address of SUPLA Scripts: %q", to)
+	}
+}

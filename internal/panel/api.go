@@ -386,6 +386,30 @@ type webDTO struct {
 	Scheme string `json:"scheme"`
 	Port   string `json:"port"`
 	Path   string `json:"path"`
+	// URL opens it from the browser of the request.
+	URL string `json:"url"`
+}
+
+// webURL is the address of the web interface of a seen from the browser
+// that opened the panel at host.
+func (s *Server) webURL(st *stack.Stack, a *addon.Addon, host string, named map[string]string) string {
+	if u := named[a.ID]; u != "" {
+		return u
+	}
+	if h, _, err := net.SplitHostPort(host); err == nil {
+		host = h
+	}
+	// The port is an option of the add-on.
+	values := st.Values(a)
+	port := os.Expand(a.Web.Port, func(k string) string { return values[k] })
+	return a.Web.URLScheme() + "://" + net.JoinHostPort(host, port) + webPath(a)
+}
+
+func webPath(a *addon.Addon) string {
+	if a.Web.Path == "" {
+		return "/"
+	}
+	return a.Web.Path
 }
 
 func (s *Server) getAddons(w http.ResponseWriter, r *http.Request) {
@@ -400,6 +424,7 @@ func (s *Server) getAddons(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Printf("containers: %v", err)
 	}
+	named := s.namedURLs(st, r.Host)
 	byService := map[string]stack.Container{}
 	for _, c := range containers {
 		byService[c.Service] = c
@@ -440,7 +465,8 @@ func (s *Server) getAddons(w http.ResponseWriter, r *http.Request) {
 				}
 			}
 			if a.Web != nil {
-				d.Web = &webDTO{Scheme: a.Web.URLScheme(), Port: st.Expand(a.Web.Port), Path: a.Web.Path}
+				d.Web = &webDTO{Scheme: a.Web.URLScheme(), Port: st.Expand(a.Web.Port), Path: a.Web.Path,
+					URL: s.webURL(st, a, r.Host, named)}
 			}
 		}
 		list = append(list, d)
@@ -513,15 +539,12 @@ func dropUnchanged(st *stack.Stack, a *addon.Addon, set map[string]string) {
 
 // summary ends a job with the add-on state and the address of its
 // interface, as seen from the browser.
-func summary(st *stack.Stack, j *Job, id, host string) {
+func (s *Server) summary(st *stack.Stack, j *Job, id, host string) {
 	a := st.Catalog[id]
 	j.Logf("")
 	j.Logf("%s is running.", a.Name.In("en"))
 	if a.Web != nil {
-		if h, _, err := net.SplitHostPort(host); err == nil {
-			host = h
-		}
-		j.Logf("Open: %s://%s:%s%s", a.Web.URLScheme(), host, st.Expand(a.Web.Port), a.Web.Path)
+		j.Logf("Open: %s", s.webURL(st, a, host, s.namedURLs(st, host)))
 	}
 }
 
@@ -570,7 +593,7 @@ func (s *Server) installAddon(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 		s.checkImagesAfter(j)
-		summary(st, j, id, r.Host)
+		s.summary(st, j, id, r.Host)
 		return nil
 	})
 }
@@ -599,7 +622,7 @@ func (s *Server) configAddon(w http.ResponseWriter, r *http.Request) {
 			return err
 		}
 		s.checkImagesAfter(j)
-		summary(st, j, id, r.Host)
+		s.summary(st, j, id, r.Host)
 		return nil
 	})
 }

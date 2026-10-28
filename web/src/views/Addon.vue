@@ -151,9 +151,8 @@ async function deleteBackup(b) {
   await load()
 }
 
-function webURL(a) {
-  return `${a.web.scheme}://${window.location.hostname}:${a.web.port}${a.web.path || '/'}`
-}
+// The panel gives the address for the name it is opened at.
+const webURL = (a) => a.web.url
 </script>
 
 <template>

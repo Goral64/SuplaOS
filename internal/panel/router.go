@@ -87,6 +87,39 @@ func routeTable(st *stack.Stack, set *acme.Settings) (port string, def target, n
 	return port, def, names
 }
 
+// namedURLs are the addresses of the web interfaces of the add-ons at their
+// names, by add-on, when the panel is opened at its own name (host of the
+// request): then they are opened at their names too, without other ports.
+func (s *Server) namedURLs(st *stack.Stack, host string) map[string]string {
+	set, err := s.acme.Settings()
+	if err != nil || set == nil {
+		return nil
+	}
+	port, _, _ := routeTable(st, set)
+	if port == "" {
+		return nil
+	}
+	suffix := ""
+	if port != "443" {
+		suffix = ":" + port
+	}
+	if !strings.EqualFold(host, set.Name(panelInterface)+suffix) {
+		return nil
+	}
+	out := map[string]string{}
+	for _, a := range st.Order() {
+		if a.Web != nil && a.Web.TLS != "" && a.Web.Host == "" {
+			out[a.ID] = "https://" + set.Domain + suffix + webPath(a)
+		}
+	}
+	for _, i := range interfacesOf(st) {
+		if a := st.Catalog[i.ID]; a != nil && (a.Web.Proxy != "" || a.Web.TLS != "") {
+			out[a.ID] = "https://" + set.Name(i) + suffix + webPath(a)
+		}
+	}
+	return out
+}
+
 // updateRouter starts, changes or stops the router; called with
 // s.proxies.mu held.
 func (s *Server) updateRouter(st *stack.Stack) {
