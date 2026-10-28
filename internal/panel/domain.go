@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/Goral64/SuplaOS/internal/acme"
+	"github.com/Goral64/SuplaOS/internal/addon"
 	"github.com/Goral64/SuplaOS/internal/domaincert"
 	"github.com/Goral64/SuplaOS/internal/stack"
 )
@@ -27,6 +28,37 @@ type domainView struct {
 	// ScriptsOAuth: SUPLA Scripts logs in with the Cloud, which has to be
 	// connected again after the address of either changes.
 	ScriptsOAuth bool `json:"scriptsOAuth"`
+	// Names of the web interfaces besides the domain.
+	Names []domainName `json:"names"`
+}
+
+// domainName is the name of a web interface: set by the user (Name) or
+// Default, which follows the domain.
+type domainName struct {
+	ID      string     `json:"id"`
+	Label   addon.Text `json:"label"`
+	Name    string     `json:"name"`
+	Default string     `json:"default"`
+}
+
+// webInterfaces are the panel and the installed add-ons with a web host:
+// each has a name of its own in the certificate of the domain.
+func (s *Server) webInterfaces() ([]acme.Interface, error) {
+	st, err := s.openStack()
+	if err != nil {
+		return nil, err
+	}
+	return interfacesOf(st), nil
+}
+
+func interfacesOf(st *stack.Stack) []acme.Interface {
+	out := []acme.Interface{{ID: "panel", Host: "suplaos"}}
+	for _, a := range st.Order() {
+		if a.Web != nil && a.Web.Host != "" {
+			out = append(out, acme.Interface{ID: a.ID, Host: a.Web.Host, Prefixed: true})
+		}
+	}
+	return out
 }
 
 // addressChange is an option of an add-on to set to the domain.
@@ -96,6 +128,21 @@ func (s *Server) getDomain(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	v.Addresses = s.addressChanges(st)
+	v.Names = []domainName{}
+	for _, i := range interfacesOf(st) {
+		n := domainName{ID: i.ID, Label: addon.Text{"en": "SuplaOS panel", "pl": "Panel SuplaOS"}}
+		if a := st.Catalog[i.ID]; a != nil {
+			n.Label = a.Name
+		}
+		if set != nil {
+			n.Name, n.Default = set.Names[i.ID], acme.DefaultName(set.Domain, i)
+		}
+		// The defaults for a domain typed in the form.
+		if d := strings.TrimSuffix(strings.ToLower(strings.TrimSpace(r.URL.Query().Get("domain"))), "."); d != "" {
+			n.Default = acme.DefaultName(d, i)
+		}
+		v.Names = append(v.Names, n)
+	}
 	v.ScriptsOAuth = st.IsInstalled("supla-scripts") && st.Values(st.Catalog["supla-scripts"])["SUPLA_SCRIPTS_OAUTH_ID"] != ""
 	writeJSON(w, http.StatusOK, v)
 }

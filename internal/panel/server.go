@@ -63,6 +63,7 @@ type Server struct {
 
 func New(cfg Config) *Server {
 	s := &Server{cfg: cfg, acme: acme.New(cfg.Root)}
+	s.acme.Interfaces = s.webInterfaces
 	s.sessions.load(cfg.Sessions)
 	if data, err := os.ReadFile(cfg.Settings); err == nil {
 		if err := yaml.Unmarshal(data, &s.settings); err != nil {

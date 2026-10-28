@@ -8,6 +8,7 @@ import (
 	"net"
 	"net/http/httptest"
 	"os"
+	"slices"
 	"strings"
 	"sync/atomic"
 	"testing"
@@ -223,13 +224,26 @@ func TestExactCheckIntercepted(t *testing.T) {
 	askAuthoritative = func(string, string, string) (bool, error) { return false, errNotAuthoritative }
 	sleep = func(d time.Duration) { slept += d }
 	defer func() { askAuthoritative, sleep = authoritative, time.Sleep }()
-	check := exactCheck("supla.example.pl", 2*time.Minute, io.Discard)
-	done, err := check("", "_acme-challenge.supla.example.pl.", "v", nil)
+	check := exactCheck(2*time.Minute, false, io.Discard)
+	done, err := check("supla.example.pl", "_acme-challenge.supla.example.pl.", "v", nil)
 	if !done || err != nil {
 		t.Errorf("check: %v, %v", done, err)
 	}
 	if slept < time.Minute+50*time.Second || slept > 2*time.Minute {
 		t.Errorf("waited %s", slept)
+	}
+
+	// The records of all the names are set at once: the next one does
+	// not wait again. One by one: each name waits.
+	sleep = func(d time.Duration) { slept += d; time.Sleep(d) }
+	for _, sequential := range []bool{false, true} {
+		check := exactCheck(100*time.Millisecond, sequential, io.Discard)
+		check("supla.example.pl", "_acme-challenge.supla.example.pl.", "v", nil)
+		slept = 0
+		check("suplaos.example.pl", "_acme-challenge.suplaos.example.pl.", "v", nil)
+		if waited := slept > 50*time.Millisecond; waited != sequential {
+			t.Errorf("sequential %v: waited %s for the second name", sequential, slept)
+		}
 	}
 }
 
@@ -306,6 +320,113 @@ func TestSaveSettings(t *testing.T) {
 	if err := m.SaveSettings(Settings{Domain: "supla.example.com", Provider: "duckdns"}); err == nil {
 		t.Error("duckdns without a token accepted")
 	}
+}
+
+var testInterfaces = []Interface{
+	{ID: "panel", Host: "suplaos"},
+	{ID: "zigbee2mqtt", Host: "z2m", Prefixed: true},
+}
+
+func TestDefaultName(t *testing.T) {
+	for _, c := range []struct{ domain, panel, z2m string }{
+		{"supla.example.com", "suplaos.example.com", "supla-z2m.example.com"},
+		{"dom.home.example.co.uk", "suplaos.home.example.co.uk", "dom-z2m.home.example.co.uk"},
+		// Right below a public suffix: under the domain.
+		{"example.com", "suplaos.example.com", "z2m.example.com"},
+		{"example.co.uk", "suplaos.example.co.uk", "z2m.example.co.uk"},
+		{"supla.duckdns.org", "suplaos.supla.duckdns.org", "z2m.supla.duckdns.org"},
+		{"myname.dedyn.io", "suplaos.myname.dedyn.io", "z2m.myname.dedyn.io"},
+	} {
+		if p, z := DefaultName(c.domain, testInterfaces[0]), DefaultName(c.domain, testInterfaces[1]); p != c.panel || z != c.z2m {
+			t.Errorf("%s: %s %s, want %s %s", c.domain, p, z, c.panel, c.z2m)
+		}
+	}
+}
+
+func TestSaveNames(t *testing.T) {
+	m := New(t.TempDir())
+	ifs := testInterfaces
+	m.Interfaces = func() ([]Interface, error) { return ifs, nil }
+	set := func(names map[string]string) error {
+		return m.SaveSettings(Settings{Domain: "supla.example.com", Provider: "duckdns",
+			Fields: map[string]string{"DUCKDNS_TOKEN": "x"}, Names: names})
+	}
+	for _, names := range []map[string]string{
+		{"panel": "supla.example.com"},
+		{"panel": "z2m.example.com", "zigbee2mqtt": "z2m.example.com"},
+		{"zigbee2mqtt": "suplaos.example.com"},
+		{"panel": "suplaos.local"},
+		{"panel": "*.example.com"},
+	} {
+		if err := set(names); err == nil {
+			t.Errorf("%v accepted", names)
+		}
+	}
+	// A default name is not kept, a name is cleaned up.
+	if err := set(map[string]string{"panel": "suplaos.example.com", "zigbee2mqtt": " Zigbee.Example.com. "}); err != nil {
+		t.Fatal(err)
+	}
+	s, _ := m.Settings()
+	if len(s.Names) != 1 || s.Names["zigbee2mqtt"] != "zigbee.example.com" {
+		t.Errorf("names %v", s.Names)
+	}
+	if got, _ := m.domains(s); !slices.Equal(got, []string{"supla.example.com", "suplaos.example.com", "zigbee.example.com"}) {
+		t.Errorf("domains %v", got)
+	}
+	// The name of a removed add-on is kept for later.
+	ifs = testInterfaces[:1]
+	if err := set(map[string]string{"panel": "admin.example.com"}); err != nil {
+		t.Fatal(err)
+	}
+	s, _ = m.Settings()
+	if s.Names["panel"] != "admin.example.com" || s.Names["zigbee2mqtt"] != "zigbee.example.com" {
+		t.Errorf("names %v", s.Names)
+	}
+	if got, _ := m.domains(s); !slices.Equal(got, []string{"supla.example.com", "admin.example.com"}) {
+		t.Errorf("domains %v", got)
+	}
+}
+
+func TestObtainNames(t *testing.T) {
+	m, p := testManager(t)
+	ifs := testInterfaces[:1]
+	m.Interfaces = func() ([]Interface, error) { return ifs, nil }
+	save(t, m, "supla.example.com")
+	var out bytes.Buffer
+	if renewed, err := m.Renew(&out); err != nil || !renewed {
+		t.Fatalf("Renew: %v %v\n%s", renewed, err, out.String())
+	}
+	c, _ := m.Current()
+	if !sameNames(c.Leaf.DNSNames, "supla.example.com", "suplaos.example.com") {
+		t.Errorf("names %v", c.Leaf.DNSNames)
+	}
+	if renewed, _ := m.Renew(&out); renewed {
+		t.Error("renewed with all the names in")
+	}
+	// An add-on installed: its name is missing.
+	ifs = testInterfaces
+	if renewed, err := m.Renew(&out); err != nil || !renewed {
+		t.Fatalf("Renew with another name: %v %v\n%s", renewed, err, out.String())
+	}
+	c, _ = m.Current()
+	if !sameNames(c.Leaf.DNSNames, "supla.example.com", "suplaos.example.com", "supla-z2m.example.com") {
+		t.Errorf("names %v", c.Leaf.DNSNames)
+	}
+	if p.calls.Load() != 5 {
+		t.Errorf("%d challenges, want 5", p.calls.Load())
+	}
+	// Without the interfaces the certificate is kept.
+	m.now = func() time.Time { return c.Leaf.NotAfter.Add(-time.Hour) }
+	m.Interfaces = func() ([]Interface, error) { return nil, errors.New("no catalog") }
+	if renewed, err := m.Renew(&out); renewed || err == nil {
+		t.Errorf("Renew without interfaces: %v %v", renewed, err)
+	}
+}
+
+func sameNames(got []string, want ...string) bool {
+	got = slices.Sorted(slices.Values(got))
+	slices.Sort(want)
+	return slices.Equal(got, want)
 }
 
 // Every provider is made from its fields, so the names of the variables

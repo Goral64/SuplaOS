@@ -412,4 +412,12 @@ func TestDomainAPI(t *testing.T) {
 	if !strings.Contains(w.Body.String(), `"key":"SUPLA_SCRIPTS_URL"`) || !strings.Contains(w.Body.String(), `"to":"https://supla.example.com:8444"`) {
 		t.Errorf("addresses: %s", w.Body)
 	}
+	// The panel and the add-ons with a web host have names of their own.
+	if body := w.Body.String(); !strings.Contains(body, `"id":"panel"`) || !strings.Contains(body, `"default":"suplaos.example.com"`) ||
+		!strings.Contains(body, `"default":"supla-scripts.example.com"`) {
+		t.Errorf("names: %s", body)
+	}
+	if body := send("GET", "/api/domain?domain=example.com", "").Body.String(); !strings.Contains(body, `"default":"scripts.example.com"`) {
+		t.Errorf("names for another domain: %s", body)
+	}
 }

@@ -234,11 +234,14 @@ type Command struct {
 // Web is the add-on's own web interface, linked from the panel. With Proxy
 // (service:port in the compose network) the panel serves it on Port over
 // HTTPS to logged-in users only; the service itself publishes no port.
+// Host is the first label of its default name besides the own domain, e.g.
+// z2m for supla-z2m.example.com.
 type Web struct {
 	Scheme string `yaml:"scheme"`
 	Port   string `yaml:"port"`
 	Path   string `yaml:"path"`
 	Proxy  string `yaml:"proxy"`
+	Host   string `yaml:"host"`
 }
 
 // URLScheme is the scheme the web interface is opened with.
@@ -315,6 +318,8 @@ func (a *Addon) Option(key string) *Option {
 var (
 	idRe  = regexp.MustCompile(`^[a-z0-9][a-z0-9-]*$`)
 	keyRe = regexp.MustCompile(`^[A-Za-z_][A-Za-z0-9_]*$`)
+	// hostLabel is a label of a DNS name.
+	hostLabel = regexp.MustCompile(`^[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?$`)
 )
 
 // Parse reads addon.yaml.
@@ -433,6 +438,9 @@ func (a *Addon) validate() error {
 		if !ok || !slices.Contains(a.Services, svc) || port == "" {
 			return fmt.Errorf("%s: web proxy must be service:port of the add-on", a.ID)
 		}
+	}
+	if a.Web != nil && a.Web.Host != "" && !hostLabel.MatchString(a.Web.Host) {
+		return fmt.Errorf("%s: web host must be a DNS label: %q", a.ID, a.Web.Host)
 	}
 	if a.Backup != nil && (a.Backup.Service == "" || len(a.Backup.Command) == 0 || a.Backup.File == "") {
 		return fmt.Errorf("%s: backup needs service, command and file", a.ID)

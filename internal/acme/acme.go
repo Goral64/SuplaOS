@@ -22,6 +22,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 	"sync"
 	"syscall"
@@ -54,13 +55,49 @@ const (
 )
 
 // Settings are what the user sets in the panel. Fields are the values of
-// the fields of the provider, by their Env.
+// the fields of the provider, by their Env. Names are the names of the web
+// interfaces set by the user, by Interface.ID; the others get DefaultName.
 type Settings struct {
 	Domain   string            `yaml:"domain" json:"domain"`
 	Provider string            `yaml:"provider" json:"provider"`
 	Fields   map[string]string `yaml:"fields" json:"fields"`
 	Email    string            `yaml:"email,omitempty" json:"email"`
 	Staging  bool              `yaml:"staging,omitempty" json:"staging"`
+	Names    map[string]string `yaml:"names,omitempty" json:"names"`
+}
+
+// Interface is a web interface with a name of its own besides the domain,
+// at which Supla Cloud answers.
+type Interface struct {
+	ID string `json:"id"` // "panel" or the add-on
+	// Host is the first label of the default name. Prefixed ones get the
+	// first label of the domain in front: supla-z2m.example.com next to
+	// supla.example.com.
+	Host     string `json:"-"`
+	Prefixed bool   `json:"-"`
+}
+
+// DefaultName is the name of i next to domain. Under it when the domain is
+// right below a public suffix (example.com, supla.duckdns.org): a name next
+// to it would not be in the zone of the user or would need another
+// registration at the provider.
+func DefaultName(domain string, i Interface) string {
+	first, parent, _ := strings.Cut(domain, ".")
+	if base, err := publicsuffix.EffectiveTLDPlusOne(domain); err != nil || base == domain {
+		return i.Host + "." + domain
+	}
+	if i.Prefixed {
+		return first + "-" + i.Host + "." + parent
+	}
+	return i.Host + "." + parent
+}
+
+// Name is the name of i: set by the user or the default one.
+func (s *Settings) Name(i Interface) string {
+	if n := s.Names[i.ID]; n != "" {
+		return n
+	}
+	return DefaultName(s.Domain, i)
 }
 
 // Status is the state of the certificate shown in the panel.
@@ -105,6 +142,10 @@ type Manager struct {
 	now  func() time.Time
 	// lookupCNAME is net.LookupCNAME, another one in the tests.
 	lookupCNAME func(string) (string, error)
+
+	// Interfaces returns the web interfaces that need a name in the
+	// certificate. Without it there are none.
+	Interfaces func() ([]Interface, error)
 
 	// For the tests: another ACME server and DNS.
 	directory  string
@@ -179,6 +220,9 @@ func (m *Manager) SaveSettings(s Settings) error {
 		}
 	}
 	s.Fields = fields
+	if err := m.checkNames(&s, old); err != nil {
+		return err
+	}
 	data, err := yaml.Marshal(s)
 	if err != nil {
 		return err
@@ -198,6 +242,76 @@ func (m *Manager) Disable() error {
 		}
 	}
 	return nil
+}
+
+// checkNames cleans up the names of s: a default one is not kept, so that
+// it follows the domain. Names of interfaces that are not there now (an
+// add-on removed) stay as they were saved.
+func (m *Manager) checkNames(s *Settings, old *Settings) error {
+	ifs, err := m.interfaces()
+	if err != nil {
+		return err
+	}
+	names := map[string]string{}
+	if old != nil {
+		maps.Copy(names, old.Names)
+	}
+	used := map[string]string{s.Domain: "Supla Cloud"}
+	for _, i := range ifs {
+		n := strings.TrimSuffix(strings.ToLower(strings.TrimSpace(s.Names[i.ID])), ".")
+		delete(names, i.ID)
+		if n == "" || n == DefaultName(s.Domain, i) {
+			n = DefaultName(s.Domain, i)
+		} else {
+			if err := checkDomain(n); err != nil {
+				return err
+			}
+			names[i.ID] = n
+		}
+		if other, ok := used[n]; ok {
+			return fmt.Errorf("%s: the name is used by %s already", n, other)
+		}
+		used[n] = i.ID
+	}
+	s.Names = names
+	if len(names) == 0 {
+		s.Names = nil
+	}
+	return nil
+}
+
+func (m *Manager) interfaces() ([]Interface, error) {
+	if m.Interfaces == nil {
+		return nil, nil
+	}
+	return m.Interfaces()
+}
+
+// domains are the names in the certificate: the domain first. Without the
+// interfaces the certificate is not got or renewed: it would lose their
+// names.
+func (m *Manager) domains(s *Settings) ([]string, error) {
+	ifs, err := m.interfaces()
+	if err != nil {
+		return nil, fmt.Errorf("web interfaces: %w", err)
+	}
+	out := []string{s.Domain}
+	for _, i := range ifs {
+		if n := s.Name(i); !slices.Contains(out, n) {
+			out = append(out, n)
+		}
+	}
+	return out, nil
+}
+
+// covers tells whether crt has all the names.
+func covers(crt *x509.Certificate, names []string) bool {
+	for _, n := range names {
+		if crt.VerifyHostname(n) != nil {
+			return false
+		}
+	}
+	return true
 }
 
 // checkDomain accepts a name in public DNS: no wildcard, no .local.
@@ -292,7 +406,11 @@ func (m *Manager) Renew(w io.Writer) (renewed bool, err error) {
 	if st.Failures > 0 && m.now().Before(m.retryAt(st)) {
 		return false, nil
 	}
-	if !m.due(s, st, w) {
+	domains, err := m.domains(s)
+	if err != nil {
+		return false, err
+	}
+	if !m.due(s, domains, st, w) {
 		return false, nil
 	}
 	return true, m.obtain(s, w)
@@ -313,10 +431,10 @@ func (m *Manager) retryAt(st *state) time.Time {
 	return st.Attempt.Add(min(wait, maxRetry))
 }
 
-func (m *Manager) due(s *Settings, st *state, w io.Writer) bool {
+func (m *Manager) due(s *Settings, domains []string, st *state, w io.Writer) bool {
 	crt := m.leaf()
 	now := m.now()
-	if crt == nil || crt.VerifyHostname(s.Domain) != nil || st.Directory != s.directory(m) {
+	if crt == nil || !covers(crt, domains) || st.Directory != s.directory(m) {
 		return true
 	}
 	if now.After(crt.NotBefore.Add(crt.NotAfter.Sub(crt.NotBefore) * 2 / 3)) {
@@ -380,14 +498,19 @@ func (m *Manager) get(s *Settings, st *state, w io.Writer) error {
 			return err
 		}
 	}
+	domains, err := m.domains(s)
+	if err != nil {
+		return err
+	}
 	var options []dns01.ChallengeOption
-	if p := FindProvider(s.Provider); !p.delegation || !m.followCNAME(s.Domain, w) {
+	if p := FindProvider(s.Provider); !p.delegation || !slices.ContainsFunc(domains, func(d string) bool { return m.followCNAME(d, w) }) {
 		defer setenv("LEGO_DISABLE_CNAME_SUPPORT", "true")()
 		wait := p.wait
 		if wait == 0 {
 			wait = 2 * time.Minute
 		}
-		options = append(options, dns01.WrapPreCheck(exactCheck(s.Domain, wait, w)))
+		_, sequential := provider.(interface{ Sequential() time.Duration })
+		options = append(options, dns01.WrapPreCheck(exactCheck(wait, sequential, w)))
 	}
 	if err := client.Challenge.SetDNS01Provider(provider, append(options, m.dnsOptions...)...); err != nil {
 		return err
@@ -396,13 +519,13 @@ func (m *Manager) get(s *Settings, st *state, w io.Writer) error {
 	if err != nil {
 		return err
 	}
-	req := certificate.ObtainRequest{Domains: []string{s.Domain}, Bundle: true, PrivateKey: key}
+	req := certificate.ObtainRequest{Domains: domains, Bundle: true, PrivateKey: key}
 	// A renewal says which certificate it replaces: Let's Encrypt does
 	// not count those in its rate limits.
 	if crt := m.leaf(); crt != nil && st.Directory == s.directory(m) && crt.VerifyHostname(s.Domain) == nil {
 		req.ReplacesCertID, _ = certificate.MakeARICertID(crt)
 	}
-	fmt.Fprintf(w, "Getting a certificate for %s from %s\n", s.Domain, s.directory(m))
+	fmt.Fprintf(w, "Getting a certificate for %s from %s\n", strings.Join(domains, ", "), s.directory(m))
 	res, err := client.Certificate.Obtain(req)
 	if err != nil && req.ReplacesCertID != "" {
 		fmt.Fprintf(w, "%v\nTrying again as a new certificate\n", err)
@@ -465,9 +588,11 @@ func (m *Manager) legoClient(s *Settings, w io.Writer, register bool) (*lego.Cli
 
 // followCNAME tells whether the TXT record goes where a CNAME of
 // _acme-challenge.<domain> points: only when it points out of the domain,
-// to a zone set aside for the challenge (e.g. at DuckDNS). A wildcard
-// CNAME of the zone itself also answers for _acme-challenge, then the
-// record goes under the name itself, which comes before the wildcard.
+// to a zone set aside for the challenge (e.g. at DuckDNS). One of the names
+// of the certificate is enough, lego follows a CNAME where there is one.
+// A wildcard CNAME of the zone itself also answers for _acme-challenge,
+// then the record goes under the name itself, which comes before the
+// wildcard.
 // Only asked for providers used for such zones: the answer stays in the
 // cache of the resolver.
 func (m *Manager) followCNAME(domain string, w io.Writer) bool {
@@ -496,10 +621,20 @@ var errNotAuthoritative = errors.New("not authoritative")
 // answer later queries as if it were the server, without the record, so
 // the servers are not asked again. The wait is done in one go: lego looks
 // at its own time limit (60 seconds for some providers) only between
-// checks.
-func exactCheck(domain string, wait time.Duration, w io.Writer) dns01.WrapPreCheckFunc {
-	start := time.Now()
-	return func(_, fqdn, value string, _ dns01.PreCheckFunc) (bool, error) {
+// checks. All the records are set before the first check, one by one only
+// for a sequential provider: then the wait is counted for each name.
+func exactCheck(wait time.Duration, sequential bool, w io.Writer) dns01.WrapPreCheckFunc {
+	started := map[string]time.Time{}
+	return func(domain, fqdn, value string, _ dns01.PreCheckFunc) (bool, error) {
+		key := ""
+		if sequential {
+			key = domain
+		}
+		start, ok := started[key]
+		if !ok {
+			start = time.Now()
+			started[key] = start
+		}
 		found, err := askAuthoritative(domain, fqdn, value)
 		if !errors.Is(err, errNotAuthoritative) {
 			return found, err

@@ -57,6 +57,7 @@ ports: ["${SUPLA_SCRIPTS_PORT}"]
 web:
   scheme: https
   port: "${SUPLA_SCRIPTS_PORT}"
+  host: scripts
 
 backup:
   service: supla-scripts-db

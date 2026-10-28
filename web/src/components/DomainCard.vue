@@ -1,5 +1,5 @@
 <script setup>
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { api, text } from '../api'
 import { ask } from './dialog'
@@ -22,6 +22,19 @@ async function load() {
 }
 onMounted(load)
 
+// The default names follow the domain typed in the form.
+const defaults = ref({})
+let typing
+watch(() => form.value?.domain, (domain) => {
+  clearTimeout(typing)
+  if (!domain) return
+  typing = setTimeout(async () => {
+    const v = await api('GET', '/domain?domain=' + encodeURIComponent(domain))
+    defaults.value = Object.fromEntries(v.names.map((n) => [n.id, n.default]))
+  }, 300)
+})
+const name = (n) => n.name || n.default
+
 function edit() {
   const v = view.value
   form.value = {
@@ -30,7 +43,9 @@ function edit() {
     fields: { ...v.fields },
     email: v.email,
     staging: v.staging,
+    names: Object.fromEntries(v.names.map((n) => [n.id, n.name])),
   }
+  defaults.value = Object.fromEntries(v.names.map((n) => [n.id, n.default]))
 }
 
 // A saved secret is not shown: left empty it stays as it is, for the same
@@ -82,6 +97,9 @@ async function disable() {
     <template v-if="!form">
       <template v-if="view.status">
         <p><code>{{ view.status.domain }}</code></p>
+        <ul class="small">
+          <li v-for="n in view.names" :key="n.id">{{ text(n.label, locale) }}: <code>{{ name(n) }}</code></li>
+        </ul>
         <p v-if="view.status.notAfter" class="muted small">
           {{ $t('domain.issued', { issuer: view.status.issuer, date: when(view.status.notAfter) }) }}
         </p>
@@ -121,6 +139,11 @@ async function disable() {
         <label for="domain" class="required">{{ $t('domain.domain') }}</label>
         <input id="domain" v-model="form.domain" required placeholder="supla.example.com" autocomplete="off">
         <div class="help">{{ $t('domain.domainHelp') }}</div>
+      </div>
+      <div v-for="(n, i) in view.names" :key="n.id" class="field">
+        <label :for="'name-' + n.id">{{ $t('domain.name', { name: text(n.label, locale) }) }}</label>
+        <input :id="'name-' + n.id" v-model="form.names[n.id]" :placeholder="defaults[n.id]" autocomplete="off">
+        <div v-if="i === view.names.length - 1" class="help">{{ $t('domain.namesHelp') }}</div>
       </div>
       <div class="field">
         <label for="provider">{{ $t('domain.provider') }}</label>

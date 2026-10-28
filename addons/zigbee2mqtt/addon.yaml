@@ -86,3 +86,4 @@ ports: ["${ZIGBEE2MQTT_PORT}"]
 web:
   port: "${ZIGBEE2MQTT_PORT}"
   proxy: zigbee2mqtt:8080
+  host: z2m
