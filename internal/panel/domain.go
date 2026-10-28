@@ -52,7 +52,7 @@ func (s *Server) webInterfaces() ([]acme.Interface, error) {
 }
 
 func interfacesOf(st *stack.Stack) []acme.Interface {
-	out := []acme.Interface{{ID: "panel", Host: "suplaos"}}
+	out := []acme.Interface{panelInterface}
 	for _, a := range st.Order() {
 		if a.Web != nil && a.Web.Host != "" {
 			out = append(out, acme.Interface{ID: a.ID, Host: a.Web.Host, Prefixed: true})

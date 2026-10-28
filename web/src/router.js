@@ -33,7 +33,8 @@ export const router = createRouter({
 router.beforeEach(async (to) => {
   if (to.meta.standalone) return true
   if (!session.loaded) await loadSession()
-  if (to.meta.public) return session.loggedIn ? '/' : true
+  // The login page also sends a logged-in browser back to an add-on.
+  if (to.meta.public) return session.loggedIn && !(to.path === '/login' && to.query.next) ? '/' : true
   if (!session.loggedIn) return '/login'
   if (session.mustChange && to.path !== '/password') return '/password'
   if (!session.mustChange && !session.setupDone && to.path !== '/setup') return '/setup'

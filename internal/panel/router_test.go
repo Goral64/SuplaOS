@@ -129,6 +129,21 @@ func TestRouter(t *testing.T) {
 		t.Errorf("z2m: %d %s", resp.StatusCode, resp.Header.Get("Location"))
 	}
 
+	// No HTTP/2, and a request for another name on the connection of the
+	// panel is refused.
+	conn, err := tls.Dial("tcp", ln.Addr().String(), &tls.Config{ServerName: "suplaos.example.com", NextProtos: []string{"h2", "http/1.1"}, InsecureSkipVerify: true})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if proto := conn.ConnectionState().NegotiatedProtocol; proto != "http/1.1" {
+		t.Errorf("protocol %q", proto)
+	}
+	io.WriteString(conn, "GET / HTTP/1.1\r\nHost: supla.example.com\r\nConnection: close\r\n\r\n")
+	if reply, _ := io.ReadAll(conn); !bytes.HasPrefix(reply, []byte("HTTP/1.1 421")) {
+		t.Errorf("other name: %.40q", reply)
+	}
+	conn.Close()
+
 	// A name gone: its server is closed, the name goes to the Cloud.
 	rt.update(target{tls: "supla-cloud:443"}, map[string]target{"suplaos.example.com": {local: "panel"}})
 	if len(rt.locals) != 1 {

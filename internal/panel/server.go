@@ -52,6 +52,7 @@ type Server struct {
 	domainCert atomic.Pointer[tls.Certificate]
 	acme       *acme.Manager
 	proxies    proxies
+	handoffs   handoffs
 
 	mu       sync.Mutex
 	settings Settings
@@ -112,6 +113,8 @@ func (s *Server) Handler() http.Handler {
 	mux.HandleFunc("GET /api/session", s.getSession)
 	mux.HandleFunc("POST /api/login", s.login)
 	mux.HandleFunc("POST /api/logout", s.logout)
+	api("POST /api/session/handoff", s.postHandoff)
+	mux.HandleFunc("GET "+handoffPath, s.takeHandoff)
 	mux.HandleFunc("GET /api/ca.crt", s.getCA)
 	api("GET /api/ca", s.getCAInfo)
 	api("GET /api/domain", s.getDomain)

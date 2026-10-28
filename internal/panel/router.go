@@ -308,10 +308,26 @@ type localServer struct {
 	srv *http.Server
 }
 
+// The route is picked by the name of the connection, so a connection is
+// never used for another name: no HTTP/2, whose connections browsers share
+// between names of the same certificate and address, and 421 for a request
+// for another name, after which they open a new connection.
 func newLocalServer(addr net.Addr, h http.Handler, cfg *tls.Config) *localServer {
+	cfg = cfg.Clone()
+	cfg.NextProtos = []string{"http/1.1"}
 	l := &localServer{
-		ln:  &connListener{addr: addr, conns: make(chan net.Conn), done: make(chan struct{})},
-		srv: &http.Server{Handler: h, ReadHeaderTimeout: 10 * time.Second},
+		ln: &connListener{addr: addr, conns: make(chan net.Conn), done: make(chan struct{})},
+		srv: &http.Server{Handler: http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			host := r.Host
+			if name, _, err := net.SplitHostPort(host); err == nil {
+				host = name
+			}
+			if r.TLS != nil && !strings.EqualFold(host, r.TLS.ServerName) {
+				http.Error(w, "Misdirected request", http.StatusMisdirectedRequest)
+				return
+			}
+			h.ServeHTTP(w, r)
+		}), ReadHeaderTimeout: 10 * time.Second},
 	}
 	go l.srv.Serve(tls.NewListener(l.ln, cfg))
 	return l

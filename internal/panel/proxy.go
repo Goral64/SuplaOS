@@ -155,20 +155,24 @@ func (u *upstream) forget() {
 // own when listen is empty.
 func (s *Server) proxyHandler(ps *proxyServer, listen string) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == handoffPath {
+			s.takeHandoff(w, r)
+			return
+		}
 		if ses := s.sessions.get(r); ses == nil || ses.MustChange {
 			if r.Method != http.MethodGet || r.Header.Get("Upgrade") != "" {
 				http.Error(w, "Log in to the SuplaOS panel first.", http.StatusUnauthorized)
 				return
 			}
-			host := r.Host
-			if h, _, err := net.SplitHostPort(host); err == nil {
-				host = h
-			}
-			back := "https://" + host + r.URL.RequestURI()
+			back := "https://" + r.Host + r.URL.RequestURI()
 			if listen != "" {
+				host := r.Host
+				if h, _, err := net.SplitHostPort(host); err == nil {
+					host = h
+				}
 				back = "https://" + net.JoinHostPort(host, listen) + r.URL.RequestURI()
 			}
-			http.Redirect(w, r, "https://"+net.JoinHostPort(host, Port)+"/login?next="+url.QueryEscape(back), http.StatusFound)
+			http.Redirect(w, r, s.panelLogin(r.Host)+"?next="+url.QueryEscape(back), http.StatusFound)
 			return
 		}
 		addr, err := s.address(r.Context(), &ps.upstream)
