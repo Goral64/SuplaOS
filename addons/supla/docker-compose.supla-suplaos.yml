@@ -4,9 +4,9 @@ services:
     # .env of SuplaOS holds the variables of all add-ons; supla.env only
     # those of Supla, so installing other add-ons does not recreate it.
     env_file: !override [.env.default, supla.env]
-    # HTTPS only, plain HTTP is not published.
-    ports: !override
-      - "${PORT_HTTPS}:443"
+    # No port of its own: the panel serves PORT_HTTPS and passes the
+    # connections on, so that other web interfaces share the port.
+    ports: !reset []
     # supla-server checks the database version on start and gives up when
     # the Cloud has not migrated it yet (first start, updates). The Cloud
     # runs the migrations before Apache starts, so wait until it answers.

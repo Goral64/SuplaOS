@@ -311,7 +311,7 @@ func TestProxy(t *testing.T) {
 		w.Write([]byte("z2m " + r.URL.Path + " cookie=" + r.Header.Get("Cookie")))
 	}))
 	defer backend.Close()
-	ps := &proxyServer{addon: "zigbee2mqtt", service: "zigbee2mqtt", port: "8080", addr: backend.Listener.Addr().String()}
+	ps := &proxyServer{addon: "zigbee2mqtt", upstream: upstream{service: "zigbee2mqtt", port: "8080", addr: backend.Listener.Addr().String()}}
 	h := s.proxyHandler(ps, "8080")
 
 	r := httptest.NewRequest("GET", "https://suplaos.local:8080/devices?x=1", nil)

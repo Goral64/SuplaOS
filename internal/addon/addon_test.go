@@ -60,6 +60,8 @@ func TestParseErrors(t *testing.T) {
 		"proxy service": "id: x\ncompose: [a.yml]\nservices: [x]\nweb: {port: \"1\", proxy: \"y:80\"}\n",
 		"proxy port":    "id: x\ncompose: [a.yml]\nservices: [x]\nweb: {port: \"1\", proxy: x}\n",
 		"web host":      "id: x\ncompose: [a.yml]\nservices: [x]\nweb: {port: \"1\", host: Z2M.x}\n",
+		"web tls":       "id: x\ncompose: [a.yml]\nservices: [x]\nweb: {port: \"1\", tls: y:443}\n",
+		"proxy and tls": "id: x\ncompose: [a.yml]\nservices: [x]\nweb: {port: \"1\", proxy: x:80, tls: x:443}\n",
 		"cert escape":   "id: x\ncompose: [a.yml]\nservices: [x]\ncertificates: [../ssl]\n",
 		"cert restart":  "id: x\ncompose: [a.yml]\nservices: [x]\ntrust: [{dir: ssl, restart: [y]}]\n",
 		"backup skip":   "id: x\ncompose: [a.yml]\nservices: [x]\ndata: [var/x]\nfull_backup: {skip: [var/y]}\n",

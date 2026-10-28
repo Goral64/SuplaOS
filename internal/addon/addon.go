@@ -235,13 +235,17 @@ type Command struct {
 // (service:port in the compose network) the panel serves it on Port over
 // HTTPS to logged-in users only; the service itself publishes no port.
 // Host is the first label of its default name besides the own domain, e.g.
-// z2m for supla-z2m.example.com.
+// z2m for supla-z2m.example.com. TLS is the service:port of a service with
+// TLS of its own, to which the panel passes connections for that name on
+// the port of Supla Cloud; without Host it is Supla Cloud itself, which
+// gets the domain and every other name, and Port is served by the panel.
 type Web struct {
 	Scheme string `yaml:"scheme"`
 	Port   string `yaml:"port"`
 	Path   string `yaml:"path"`
 	Proxy  string `yaml:"proxy"`
 	Host   string `yaml:"host"`
+	TLS    string `yaml:"tls"`
 }
 
 // URLScheme is the scheme the web interface is opened with.
@@ -433,10 +437,18 @@ func (a *Addon) validate() error {
 			return fmt.Errorf("%s: compose file must be a plain name: %q", a.ID, c.File)
 		}
 	}
-	if a.Web != nil && a.Web.Proxy != "" {
-		svc, port, ok := strings.Cut(a.Web.Proxy, ":")
-		if !ok || !slices.Contains(a.Services, svc) || port == "" {
-			return fmt.Errorf("%s: web proxy must be service:port of the add-on", a.ID)
+	if a.Web != nil {
+		for what, v := range map[string]string{"proxy": a.Web.Proxy, "tls": a.Web.TLS} {
+			if v == "" {
+				continue
+			}
+			svc, port, ok := strings.Cut(v, ":")
+			if !ok || !slices.Contains(a.Services, svc) || port == "" {
+				return fmt.Errorf("%s: web %s must be service:port of the add-on", a.ID, what)
+			}
+		}
+		if a.Web.Proxy != "" && a.Web.TLS != "" {
+			return fmt.Errorf("%s: web has either proxy or tls", a.ID)
 		}
 	}
 	if a.Web != nil && a.Web.Host != "" && !hostLabel.MatchString(a.Web.Host) {

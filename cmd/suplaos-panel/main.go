@@ -50,7 +50,8 @@ func main() {
 		}
 	}()
 	go system.WatchHotspot()
-	go s.WatchProxies(tlsConfig)
+	handler := s.Handler()
+	go s.WatchProxies(tlsConfig, handler)
 	go s.ApplyPending()
 	if *redirect != "" {
 		go func() {
@@ -60,7 +61,7 @@ func main() {
 	}
 	srv := &http.Server{
 		Addr:              *listen,
-		Handler:           s.Handler(),
+		Handler:           handler,
 		TLSConfig:         tlsConfig,
 		ReadHeaderTimeout: 10 * time.Second,
 	}

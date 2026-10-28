@@ -23,23 +23,32 @@ const proxyInterval = 10 * time.Second
 type proxies struct {
 	mu      sync.Mutex
 	tls     *tls.Config
+	panel   http.Handler // served by the router at the name of the panel
 	servers map[string]*proxyServer // by port
-	failed  map[string]string       // last error by port, logged once
+	router  *router
+	failed  map[string]string // last error by port, logged once
 }
 
 type proxyServer struct {
-	addon, service, port string // port of the service in its container
-	srv                  *http.Server
+	addon string
+	upstream
+	srv *http.Server
+}
+
+// upstream is a port of a service in its container.
+type upstream struct {
+	service, port string
 
 	mu   sync.Mutex
 	addr string // of the container, looked up again after an error
 }
 
-// WatchProxies keeps the proxies in line with the installed add-ons; it
-// does not return.
-func (s *Server) WatchProxies(cfg *tls.Config) {
+// WatchProxies keeps the proxies and the router in line with the installed
+// add-ons; it does not return. panel is served by the router at the name
+// of the panel.
+func (s *Server) WatchProxies(cfg *tls.Config, panel http.Handler) {
 	s.proxies.mu.Lock()
-	s.proxies.tls = cfg
+	s.proxies.tls, s.proxies.panel = cfg, panel
 	s.proxies.mu.Unlock()
 	for {
 		s.updateProxies()
@@ -68,7 +77,7 @@ func (s *Server) updateProxies() {
 		}
 		svc, port, _ := strings.Cut(a.Web.Proxy, ":")
 		if listen := st.Expand(a.Web.Port); listen != "" {
-			want[listen] = &proxyServer{addon: a.ID, service: svc, port: port}
+			want[listen] = &proxyServer{addon: a.ID, upstream: upstream{service: svc, port: port}}
 		}
 	}
 	for listen, ps := range p.servers {
@@ -86,44 +95,64 @@ func (s *Server) updateProxies() {
 		}
 		// The port may still be taken, e.g. by the container of an older
 		// version publishing it; tried again later.
-		ln, err := net.Listen("tcp", ":"+listen)
+		ln, err := p.listen(listen, "proxy "+ps.addon)
 		if err != nil {
-			if p.failed[listen] != err.Error() {
-				log.Printf("proxy %s: %v", ps.addon, err)
-			}
-			if p.failed == nil {
-				p.failed = map[string]string{}
-			}
-			p.failed[listen] = err.Error()
 			continue
 		}
-		delete(p.failed, listen)
 		ps.srv = &http.Server{Handler: s.proxyHandler(ps, listen), ReadHeaderTimeout: 10 * time.Second}
 		go ps.srv.Serve(tls.NewListener(ln, p.tls))
 		p.servers[listen] = ps
 		log.Printf("proxy %s on %s", ps.addon, listen)
 	}
+	s.updateRouter(st)
 }
 
-// proxyAddress returns the address of the container, looked up once.
-func (s *Server) proxyAddress(ctx context.Context, ps *proxyServer) (string, error) {
-	ps.mu.Lock()
-	defer ps.mu.Unlock()
-	if ps.addr != "" {
-		return ps.addr, nil
+// listen listens on port; an error is logged once until it changes.
+func (p *proxies) listen(port, what string) (net.Listener, error) {
+	ln, err := net.Listen("tcp", ":"+port)
+	if err != nil {
+		if p.failed[port] != err.Error() {
+			log.Printf("%s: %v", what, err)
+		}
+		if p.failed == nil {
+			p.failed = map[string]string{}
+		}
+		p.failed[port] = err.Error()
+		return nil, err
+	}
+	delete(p.failed, port)
+	return ln, nil
+}
+
+// address returns the address of the container, looked up once.
+func (s *Server) address(ctx context.Context, u *upstream) (string, error) {
+	u.mu.Lock()
+	defer u.mu.Unlock()
+	if u.addr != "" {
+		return u.addr, nil
 	}
 	st, err := s.openStack()
 	if err != nil {
 		return "", err
 	}
-	ip, err := st.ServiceAddress(ctx, ps.service)
+	ip, err := st.ServiceAddress(ctx, u.service)
 	if err != nil {
 		return "", err
 	}
-	ps.addr = net.JoinHostPort(ip, ps.port)
-	return ps.addr, nil
+	u.addr = net.JoinHostPort(ip, u.port)
+	return u.addr, nil
 }
 
+// forget makes the address looked up again: the container may have been
+// recreated with another one.
+func (u *upstream) forget() {
+	u.mu.Lock()
+	u.addr = ""
+	u.mu.Unlock()
+}
+
+// proxyHandler serves ps on listen, or through the router at a name of its
+// own when listen is empty.
 func (s *Server) proxyHandler(ps *proxyServer, listen string) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if ses := s.sessions.get(r); ses == nil || ses.MustChange {
@@ -135,11 +164,14 @@ func (s *Server) proxyHandler(ps *proxyServer, listen string) http.Handler {
 			if h, _, err := net.SplitHostPort(host); err == nil {
 				host = h
 			}
-			back := "https://" + net.JoinHostPort(host, listen) + r.URL.RequestURI()
+			back := "https://" + host + r.URL.RequestURI()
+			if listen != "" {
+				back = "https://" + net.JoinHostPort(host, listen) + r.URL.RequestURI()
+			}
 			http.Redirect(w, r, "https://"+net.JoinHostPort(host, Port)+"/login?next="+url.QueryEscape(back), http.StatusFound)
 			return
 		}
-		addr, err := s.proxyAddress(r.Context(), ps)
+		addr, err := s.address(r.Context(), &ps.upstream)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusBadGateway)
 			return
@@ -151,11 +183,7 @@ func (s *Server) proxyHandler(ps *proxyServer, listen string) http.Handler {
 				dropCookie(pr.Out.Header, cookieName)
 			},
 			ErrorHandler: func(w http.ResponseWriter, r *http.Request, err error) {
-				// The container may have been recreated with another
-				// address.
-				ps.mu.Lock()
-				ps.addr = ""
-				ps.mu.Unlock()
+				ps.forget()
 				if !errors.Is(err, context.Canceled) {
 					log.Printf("proxy %s: %v", ps.addon, err)
 				}

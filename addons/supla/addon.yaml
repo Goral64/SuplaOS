@@ -133,6 +133,7 @@ downloads:
 web:
   scheme: https
   port: "${PORT_HTTPS}"
+  tls: supla-cloud:443
 
 backup:
   service: supla-db
