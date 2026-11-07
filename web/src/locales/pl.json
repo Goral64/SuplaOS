@@ -401,7 +401,8 @@
       "dns": {
         "ok": "Domena wskazuje na {detail}.",
         "notFound": "Domeny nie ma w DNS.",
-        "private": "Domena wskazuje na adres lokalny ({detail}), do którego cloud.supla.org się nie połączy."
+        "private": "Domena wskazuje na adres lokalny ({detail}), do którego cloud.supla.org się nie połączy.",
+        "local": "DNS w tej sieci podaje dla domeny adres lokalny ({detail}), a publicznego DNS nie udało się zapytać. Jeśli z internetu domena wskazuje na publiczny adres, wszystko w porządku."
       },
       "certificate": {
         "ok": "Certyfikat domeny jest w panelu.",

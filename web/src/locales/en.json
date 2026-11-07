@@ -401,7 +401,8 @@
       "dns": {
         "ok": "The domain points to {detail}.",
         "notFound": "The domain is not found in DNS.",
-        "private": "The domain points to a local address ({detail}), which cloud.supla.org cannot reach."
+        "private": "The domain points to a local address ({detail}), which cloud.supla.org cannot reach.",
+        "local": "The DNS of this network gives a local address for the domain ({detail}) and a public DNS could not be asked. If the domain points to a public address from the internet, that is fine."
       },
       "certificate": {
         "ok": "The certificate of the domain is in the panel.",

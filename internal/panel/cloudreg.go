@@ -104,6 +104,62 @@ func checkName(host string) regCheck {
 	return c
 }
 
+// dohServers answer DNS over HTTPS, which a router that catches DNS
+// queries (to give its own answers for names of the local network) does
+// not see, unlike queries to a public server on port 53.
+var dohServers = []string{
+	"https://cloudflare-dns.com/dns-query",
+	"https://dns.google/resolve",
+}
+
+var errNotFound = errors.New("no such host")
+
+// lookupDoH asks a DoH server in the JSON format for the A and AAAA
+// records of host.
+func lookupDoH(ctx context.Context, server, host string) ([]string, error) {
+	var addrs []string
+	for _, typ := range []string{"A", "AAAA"} {
+		req, err := http.NewRequestWithContext(ctx, http.MethodGet,
+			server+"?name="+url.QueryEscape(host)+"&type="+typ, nil)
+		if err != nil {
+			return nil, err
+		}
+		req.Header.Set("Accept", "application/dns-json")
+		resp, err := http.DefaultClient.Do(req)
+		if err != nil {
+			return nil, err
+		}
+		var answer struct {
+			Status int
+			Answer []struct {
+				Type int    `json:"type"`
+				Data string `json:"data"`
+			}
+		}
+		err = json.NewDecoder(io.LimitReader(resp.Body, 1<<16)).Decode(&answer)
+		resp.Body.Close()
+		if err != nil {
+			return nil, err
+		}
+		if resp.StatusCode != http.StatusOK {
+			return nil, fmt.Errorf("%s: %s", server, resp.Status)
+		}
+		switch answer.Status {
+		case 0:
+		case 3:
+			return nil, errNotFound
+		default:
+			return nil, fmt.Errorf("%s: DNS status %d", server, answer.Status)
+		}
+		for _, a := range answer.Answer {
+			if a.Type == 1 || a.Type == 28 {
+				addrs = append(addrs, a.Data)
+			}
+		}
+	}
+	return addrs, nil
+}
+
 // publicResolver asks a public DNS server, so that a name the local network
 // resolves to the device does not hide what cloud.supla.org gets.
 var publicResolver = &net.Resolver{
@@ -114,17 +170,27 @@ var publicResolver = &net.Resolver{
 	},
 }
 
-var lookupHost = func(ctx context.Context, host string) ([]string, error) {
-	addrs, err := publicResolver.LookupHost(ctx, host)
+// lookupHost resolves host as the internet sees it, if it can: sure is
+// false when the answer may come from the local network.
+var lookupHost = func(ctx context.Context, host string) (addrs []string, sure bool, err error) {
+	for _, server := range dohServers {
+		dctx, cancel := context.WithTimeout(ctx, 5*time.Second)
+		addrs, err := lookupDoH(dctx, server, host)
+		cancel()
+		if err == nil || errors.Is(err, errNotFound) {
+			return addrs, true, err
+		}
+	}
+	addrs, err = publicResolver.LookupHost(ctx, host)
 	if err != nil {
 		var dnsErr *net.DNSError
 		if errors.As(err, &dnsErr) && dnsErr.IsNotFound {
-			return nil, err
+			return nil, false, err
 		}
 		// No public DNS from here: the one of the system.
-		return net.DefaultResolver.LookupHost(ctx, host)
+		addrs, err = net.DefaultResolver.LookupHost(ctx, host)
 	}
-	return addrs, nil
+	return addrs, false, err
 }
 
 func isPrivate(ip netip.Addr) bool {
@@ -135,7 +201,7 @@ func isPrivate(ip netip.Addr) bool {
 // checkDNS: the name has to point to a public address.
 func checkDNS(ctx context.Context, host string) regCheck {
 	c := regCheck{ID: "dns", State: "fail"}
-	addrs, err := lookupHost(ctx, host)
+	addrs, sure, err := lookupHost(ctx, host)
 	if err != nil || len(addrs) == 0 {
 		c.Reason = "notFound"
 		return c
@@ -148,6 +214,11 @@ func checkDNS(ctx context.Context, host string) regCheck {
 		}
 	}
 	c.Reason = "private"
+	if !sure {
+		// The router may give its own answer for the name; cloud.supla.org
+		// checks it anyway.
+		c.State, c.Reason = "warn", "local"
+	}
 	return c
 }
 
@@ -219,7 +290,7 @@ func (s *Server) registrationChecks(ctx context.Context, address string) []regCh
 		return []regCheck{name}
 	}
 	dns := checkDNS(ctx, host)
-	if dns.State != "ok" {
+	if dns.State == "fail" {
 		return []regCheck{name, dns}
 	}
 	https := checkHTTPS(ctx, address)

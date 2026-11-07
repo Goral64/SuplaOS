@@ -2,6 +2,12 @@
 
 [Po polsku](docs/pl/CHANGELOG.md)
 
+## 0.10.2
+
+- Registration at cloud.supla.org: the check of the domain asks a public DNS
+  over HTTPS. A router that answers DNS queries itself gave the local
+  address of the domain, and the card wouldn't let the registration go on.
+
 ## 0.10.1
 
 - Supla Cloud can be registered at cloud.supla.org from the panel (card on

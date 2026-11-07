@@ -2,6 +2,12 @@
 
 [In English](../../CHANGELOG.md)
 
+## 0.10.2
+
+- Rejestracja w cloud.supla.org: sprawdzenie domeny pyta publiczny DNS przez
+  HTTPS. Router, który sam odpowiada na zapytania DNS, podawał lokalny adres
+  domeny i karta nie pozwalała przejść dalej.
+
 ## 0.10.1
 
 - Supla Cloud można zarejestrować w cloud.supla.org z panelu (karta na

@@ -3,6 +3,8 @@ package panel
 import (
 	"context"
 	"errors"
+	"net/http"
+	"net/http/httptest"
 	"testing"
 )
 
@@ -38,20 +40,22 @@ func TestCloudHost(t *testing.T) {
 }
 
 func TestCheckDNS(t *testing.T) {
-	defer func(f func(context.Context, string) ([]string, error)) { lookupHost = f }(lookupHost)
+	defer func(f func(context.Context, string) ([]string, bool, error)) { lookupHost = f }(lookupHost)
 	answers := map[string][]string{
 		"public.example.com":  {"192.168.1.5", "203.0.113.7"},
 		"private.example.com": {"192.168.1.5", "fd00::1"},
+		"local.example.com":   {"192.168.1.5"},
 	}
-	lookupHost = func(_ context.Context, host string) ([]string, error) {
+	lookupHost = func(_ context.Context, host string) ([]string, bool, error) {
 		if a, ok := answers[host]; ok {
-			return a, nil
+			return a, host != "local.example.com", nil
 		}
-		return nil, errors.New("no such host")
+		return nil, true, errors.New("no such host")
 	}
 	for host, want := range map[string]string{
 		"public.example.com":  "ok",
 		"private.example.com": "private",
+		"local.example.com":   "local",
 		"none.example.com":    "notFound",
 	} {
 		c := checkDNS(context.Background(), host)
@@ -74,5 +78,26 @@ func TestRegistrationToken(t *testing.T) {
 		if got != want || (want == "") != (err != nil) {
 			t.Errorf("%q: %q %v", in, got, err)
 		}
+	}
+}
+
+func TestLookupDoH(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch r.URL.Query().Get("name") + " " + r.URL.Query().Get("type") {
+		case "a.example.com A":
+			w.Write([]byte(`{"Status":0,"Answer":[{"type":5,"data":"b.example.com."},{"type":1,"data":"203.0.113.7"}]}`))
+		case "a.example.com AAAA":
+			w.Write([]byte(`{"Status":0}`))
+		default:
+			w.Write([]byte(`{"Status":3}`))
+		}
+	}))
+	defer srv.Close()
+	addrs, err := lookupDoH(context.Background(), srv.URL, "a.example.com")
+	if err != nil || len(addrs) != 1 || addrs[0] != "203.0.113.7" {
+		t.Errorf("a.example.com: %v %v", addrs, err)
+	}
+	if _, err := lookupDoH(context.Background(), srv.URL, "none.example.com"); !errors.Is(err, errNotFound) {
+		t.Errorf("none.example.com: %v", err)
 	}
 }
