@@ -379,7 +379,53 @@
     "copy": "Kopiuj do schowka",
     "copied": "Skopiowano",
     "help": "Urządzenia bez opcji Custom CA (starsze firmware) łączą się z ustawieniem Skip certificate verification. Certyfikat zostaje ten sam po zmianie adresu urządzenia i po przeniesieniu na inne urządzenie pełną kopią.",
+    "domain": "Certyfikat jest dla tego urządzenia w sieci lokalnej, nie dla {cloud}: CA urządzenia podpisuje tylko nazwy i adresy lokalne. Urządzenie łączące się z internetu po domenie nie przejdzie sprawdzenia z Custom CA, ustaw w nim Skip certificate verification.",
     "show": "Pokaż certyfikat"
+  },
+  "cloudRegistration": {
+    "title": "Rejestracja w cloud.supla.org",
+    "intro": "Supla Cloud zarejestrowany w cloud.supla.org współpracuje z zarejestrowanymi tam aplikacjami (integracje Supli z innymi usługami) i może wysyłać powiadomienia push na telefony, jeśli cloud.supla.org na to pozwala. cloud.supla.org łączy się z Cloud pod jego adresem, więc musi on być dostępny z internetu po HTTPS z zaufanym certyfikatem.",
+    "conditions": "Warunki dla {address}",
+    "conditionsHelp": "Adres Cloud jest w ustawieniach poniżej. Domenę z certyfikatem ustawia się na stronie System. Router musi przekazywać port HTTPS Cloud do tego urządzenia. Dostęp z internetu w panelu nie jest potrzebny: Cloud jest dostępny zawsze.",
+    "checkAgain": "Sprawdź ponownie",
+    "checking": "Sprawdzam...",
+    "state": { "ok": "OK", "warn": "Uwaga", "fail": "Niespełniony" },
+    "checks": {
+      "name": {
+        "ok": "Adres jest nazwą domeny.",
+        "ip": "Adres jest adresem IP. cloud.supla.org wymaga nazwy domeny.",
+        "local": "Nazwa .local działa tylko w sieci lokalnej. cloud.supla.org wymaga domeny w internecie.",
+        "notDomain": "Adres nie jest nazwą domeny.",
+        "supla": "Domena nie może mieć słowa \"supla\" w dwóch ostatnich częściach (np. supla.example.com jest w porządku, mojasupla.com nie)."
+      },
+      "dns": {
+        "ok": "Domena wskazuje na {detail}.",
+        "notFound": "Domeny nie ma w DNS.",
+        "private": "Domena wskazuje na adres lokalny ({detail}), do którego cloud.supla.org się nie połączy."
+      },
+      "certificate": {
+        "ok": "Certyfikat domeny jest w panelu.",
+        "staging": "Certyfikat jest testowy (Let's Encrypt staging), więc niezaufany. Wyłącz serwer testowy na stronie System.",
+        "none": "W panelu nie ma certyfikatu tej domeny. To w porządku tylko wtedy, gdy ma go proxy przed urządzeniem (np. tunel Cloudflare)."
+      },
+      "https": {
+        "ok": "Cloud odpowiada pod swoim adresem (wersja {detail}).",
+        "unreachable": "Cloud nie odpowiada stąd pod swoim adresem. Niektóre routery nie pozwalają urządzeniu połączyć się z własnym publicznym adresem; wtedy rozstrzygnie cloud.supla.org. ({detail})",
+        "certificate": "Pod adresem odpowiedziało coś z niezaufanym certyfikatem, może router. ({detail})",
+        "notCloud": "Pod adresem odpowiedziało coś innego niż Cloud, może router. ({detail})"
+      }
+    },
+    "notReady": "Najpierw popraw niespełnione warunki.",
+    "step1": "Otwórz stronę rejestracji (adres Cloud jest już wpisany), podaj swój e-mail i naciśnij Zarejestruj:",
+    "token": "Token albo polecenie z cloud.supla.org",
+    "tokenHelp": "Wklej polecenie, które pokazuje cloud.supla.org (docker exec ... supla:register-target-cloud ...), albo sam token z jego końca.",
+    "register": "Zarejestruj",
+    "registered": "Ten Supla Cloud jest zarejestrowany w cloud.supla.org ({address}).",
+    "notificationsOn": "Powiadomienia push dozwolone, limit {limit}.",
+    "notificationsOff": "cloud.supla.org nie pozwala na powiadomienia push.",
+    "registeredHelp": "Rejestracja dotyczy adresu Cloud. Żeby ją cofnąć albo zarejestrować inny adres, użyj na cloud.supla.org/register-cloud linku do wyrejestrowania instancji, a potem usuń rejestrację tutaj.",
+    "forget": "Usuń rejestrację z tego urządzenia",
+    "forgetConfirm": "Usunąć rejestrację z tego Supla Cloud? Zrób to po cofnięciu jej w cloud.supla.org; do tego czasu cloud.supla.org nadal ma ten adres."
   },
   "changelog": {
     "title": "Zmiany w SuplaOS",
@@ -400,6 +446,7 @@
     "autoBackup": "Kopia automatyczna",
     "domainAddresses": "Adresy w domenie",
     "connectScripts": "Łączenie SUPLA Scripts z Supla Cloud",
+    "registerCloud": "Rejestracja Supla Cloud w cloud.supla.org",
     "fullBackup": "Pełna kopia",
     "restoreFull": "Przywracanie pełnej kopii",
     "prepareMove": "Przygotowanie przeniesienia z Supla Cloud",

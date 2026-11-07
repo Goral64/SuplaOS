@@ -116,6 +116,23 @@ the internet. The tunnel carries only the web interfaces. Devices and the
 Supla app connect on port 2016, which the tunnel doesn't carry; at home
 they connect to the device directly anyway.
 
+## Registration at cloud.supla.org
+
+A Cloud reachable from the internet at its domain can be registered at
+cloud.supla.org. Then it works with the apps registered there and can send
+push notifications, when cloud.supla.org allows it. The Supla page of the
+panel has a card for it. It checks what it can from the device: the Cloud
+address is a domain (not an IP and without "supla" in the last two parts),
+the domain points to a public address, the certificate is trusted and the
+Cloud answers at its address. Not every router lets the device reach its own
+public address, so that last one is only a warning.
+
+The card links to cloud.supla.org/register-cloud with the address filled
+in. After you enter your e-mail there, it shows a command with a token.
+Paste it (or just the token) on the card and press Register. To undo it,
+unregister the instance on that page of cloud.supla.org, then remove the
+registration on the card.
+
 ## Keys of the DNS provider
 
 The key lets SuplaOS change the DNS of the domain, so give it as few rights

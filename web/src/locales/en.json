@@ -379,7 +379,53 @@
     "copy": "Copy to clipboard",
     "copied": "Copied",
     "help": "Devices without the Custom CA option (older firmware) connect with Skip certificate verification. The certificate stays the same when the address of the device changes and after moving to another device with a full backup.",
+    "domain": "The certificate is for this device in the local network, not for {cloud}: the CA of the device signs only local names and addresses. A device that connects from the internet by the domain fails the check with Custom CA, set Skip certificate verification there.",
     "show": "Show the certificate"
+  },
+  "cloudRegistration": {
+    "title": "Registration at cloud.supla.org",
+    "intro": "A Supla Cloud registered at cloud.supla.org works with the apps registered there (integrations of Supla with other services) and can send push notifications to the phones, when cloud.supla.org allows it. cloud.supla.org connects to the Cloud at its address, so it has to be reachable from the internet over HTTPS with a trusted certificate.",
+    "conditions": "Conditions for {address}",
+    "conditionsHelp": "The Cloud address is in the settings below. A domain with a certificate is set on the System page. The router has to pass the HTTPS port of the Cloud on to this device. Access from the internet in the panel is not needed: the Cloud is always reachable.",
+    "checkAgain": "Check again",
+    "checking": "Checking...",
+    "state": { "ok": "OK", "warn": "Warning", "fail": "Not met" },
+    "checks": {
+      "name": {
+        "ok": "The address is a domain name.",
+        "ip": "The address is an IP address. cloud.supla.org needs a domain name.",
+        "local": "A .local name works only in the local network. cloud.supla.org needs a domain on the internet.",
+        "notDomain": "The address is not a domain name.",
+        "supla": "The domain may not contain \"supla\" in its last two parts (e.g. supla.example.com is fine, mysupla.com is not)."
+      },
+      "dns": {
+        "ok": "The domain points to {detail}.",
+        "notFound": "The domain is not found in DNS.",
+        "private": "The domain points to a local address ({detail}), which cloud.supla.org cannot reach."
+      },
+      "certificate": {
+        "ok": "The certificate of the domain is in the panel.",
+        "staging": "The certificate is a test one (Let's Encrypt staging), which is not trusted. Turn the test server off on the System page.",
+        "none": "There is no certificate of this domain in the panel. That is fine only when a proxy in front of the device (e.g. a Cloudflare tunnel) has one."
+      },
+      "https": {
+        "ok": "The Cloud answers at its address (version {detail}).",
+        "unreachable": "The Cloud does not answer at its address from here. Some routers do not let the device reach its own public address; then cloud.supla.org will tell. ({detail})",
+        "certificate": "Something answered at the address with an untrusted certificate, maybe the router. ({detail})",
+        "notCloud": "Something other than the Cloud answered at the address, maybe the router. ({detail})"
+      }
+    },
+    "notReady": "Fix the conditions marked as not met first.",
+    "step1": "Open the registration page, which already has the address of the Cloud, enter your e-mail and press Register:",
+    "token": "Token or command from cloud.supla.org",
+    "tokenHelp": "Paste the command cloud.supla.org shows (docker exec ... supla:register-target-cloud ...) or only the token at its end.",
+    "register": "Register",
+    "registered": "This Supla Cloud is registered at cloud.supla.org ({address}).",
+    "notificationsOn": "Push notifications allowed, limit {limit}.",
+    "notificationsOff": "Push notifications not allowed by cloud.supla.org.",
+    "registeredHelp": "The registration is for the address of the Cloud. To undo it or to register another address, use the link \"unregister your instance\" on cloud.supla.org/register-cloud and then remove the registration here.",
+    "forget": "Remove the registration from this device",
+    "forgetConfirm": "Remove the registration from this Supla Cloud? Do it after it was undone at cloud.supla.org; until then cloud.supla.org still has this address."
   },
   "changelog": {
     "title": "Changes in SuplaOS",
@@ -400,6 +446,7 @@
     "autoBackup": "Automatic backup",
     "domainAddresses": "Addresses at the domain",
     "connectScripts": "Connecting SUPLA Scripts with Supla Cloud",
+    "registerCloud": "Registering Supla Cloud at cloud.supla.org",
     "fullBackup": "Full backup",
     "restoreFull": "Restoring a full backup",
     "prepareMove": "Preparing the move from Supla Cloud",

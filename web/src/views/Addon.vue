@@ -12,6 +12,7 @@ import LogView from '../components/LogView.vue'
 import AccountFields from '../components/AccountFields.vue'
 import MigrationCard from '../components/MigrationCard.vue'
 import SuplaDevicesCard from '../components/SuplaDevicesCard.vue'
+import CloudRegistrationCard from '../components/CloudRegistrationCard.vue'
 
 const props = defineProps({ id: String })
 const router = useRouter()
@@ -268,6 +269,8 @@ const webURL = (a) => a.web.url
 
       <SuplaDevicesCard v-if="addon.id === 'supla' && suplaRunning && deviceCA >= 0"
         :path="`/addons/supla/downloads/${deviceCA}`" :server="addon.values.SUPLA_HOST_ADDRESS" />
+
+      <CloudRegistrationCard v-if="addon.id === 'supla' && suplaRunning" />
 
       <MigrationCard v-if="addon.id === 'supla' && suplaRunning" />
 

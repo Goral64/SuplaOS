@@ -2,6 +2,15 @@
 
 [Po polsku](docs/pl/CHANGELOG.md)
 
+## 0.10.1
+
+- Supla Cloud can be registered at cloud.supla.org from the panel (card on
+  the Supla page), with a check of what the registration needs and the
+  state of it. See [own domain](docs/domain.md#registration-at-cloudsuplaorg).
+- The card of the CA certificate for devices gave the Cloud address with its
+  port as the server, and a domain the certificate doesn't have. It gives
+  the address of the device now, when the Cloud is at a domain.
+
 ## 0.10.0
 
 - Own domain: the panel and the add-ons with a web interface (Zigbee2MQTT,

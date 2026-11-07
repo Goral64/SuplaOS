@@ -3,7 +3,9 @@ package panel
 import (
 	"bufio"
 	"context"
+	"crypto/x509"
 	"encoding/json"
+	"encoding/pem"
 	"errors"
 	"fmt"
 	"io"
@@ -794,6 +796,58 @@ func (s *Server) suplaUsers(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	writeJSON(w, http.StatusOK, map[string]int{"count": n})
+}
+
+// suplaServer is the address devices set as the server: one the
+// certificate of supla-server (port 2016) has, which devices with Custom
+// CA check. The Cloud address when it has it (without the port, which is
+// the one of the Cloud), else the IP address of the device. The CA of the
+// device signs only .local names and private addresses, so not a domain.
+func (s *Server) suplaServer(w http.ResponseWriter, r *http.Request) {
+	st, err := s.openStack()
+	if err != nil {
+		jsonError(w, http.StatusInternalServerError, err)
+		return
+	}
+	if !st.IsInstalled("supla") {
+		jsonError(w, http.StatusNotFound, errors.New("supla is not installed"))
+		return
+	}
+	data, err := os.ReadFile(filepath.Join(st.Dir(), "ssl", "server", "cert.crt"))
+	if err != nil {
+		jsonError(w, http.StatusInternalServerError, err)
+		return
+	}
+	host, _ := cloudHost(st.Values(st.Catalog["supla"])["SUPLA_HOST_ADDRESS"])
+	server, covered := serverAddress(data, host)
+	writeJSON(w, http.StatusOK, map[string]any{"server": server, "cloud": host, "covered": covered})
+}
+
+// serverAddress returns host when the certificate (PEM) has it, else the
+// first address of the certificate that is not of the device itself.
+func serverAddress(pemData []byte, host string) (string, bool) {
+	block, _ := pem.Decode(pemData)
+	if block == nil {
+		return host, false
+	}
+	cert, err := x509.ParseCertificate(block.Bytes)
+	if err != nil {
+		return host, false
+	}
+	if cert.VerifyHostname(host) == nil {
+		return host, true
+	}
+	for _, ip := range cert.IPAddresses {
+		if !ip.IsLoopback() {
+			return ip.String(), false
+		}
+	}
+	for _, name := range cert.DNSNames {
+		if name != "localhost" && name != "supla-server.local" {
+			return name, false
+		}
+	}
+	return host, false
 }
 
 // suplaAccount is a Supla Cloud account to create.

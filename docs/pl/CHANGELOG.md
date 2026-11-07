@@ -2,6 +2,15 @@
 
 [In English](../../CHANGELOG.md)
 
+## 0.10.1
+
+- Supla Cloud można zarejestrować w cloud.supla.org z panelu (karta na
+  stronie Supla), ze sprawdzeniem warunków rejestracji i jej stanem. Opis
+  w [własnej domenie](domain.md#rejestracja-w-cloudsuplaorg).
+- Karta certyfikatu CA dla urządzeń podawała jako serwer adres Cloud razem
+  z portem, a także domenę, której certyfikat nie ma. Gdy Cloud jest pod
+  domeną, podaje teraz adres urządzenia.
+
 ## 0.10.0
 
 - Własna domena: panel i dodatki z interfejsem WWW (Zigbee2MQTT, SUPLA

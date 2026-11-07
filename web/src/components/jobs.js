@@ -27,6 +27,7 @@ const fixedTitles = {
   'automatic backup': 'autoBackup',
   'addresses at the domain': 'domainAddresses',
   'connect SUPLA Scripts with Supla Cloud': 'connectScripts',
+  'register Supla Cloud': 'registerCloud',
   'full backup': 'fullBackup',
   'restore full backup': 'restoreFull',
   'prepare the move from Supla Cloud': 'prepareMove',

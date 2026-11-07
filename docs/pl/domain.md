@@ -114,6 +114,23 @@ z internetu. Tunel przenosi tylko interfejsy WWW. Urządzenia i aplikacja
 Supla łączą się po porcie 2016, którego tunel nie przeniesie; w domu i tak
 łączą się z urządzeniem bezpośrednio.
 
+## Rejestracja w cloud.supla.org
+
+Cloud dostępny z internetu pod swoją domeną można zarejestrować
+w cloud.supla.org. Wtedy współpracuje z zarejestrowanymi tam aplikacjami
+i może wysyłać powiadomienia push, jeśli cloud.supla.org na to pozwala. Na
+stronie Supla w panelu jest do tego karta. Sprawdza, co się da z urządzenia:
+adres Cloud jest domeną (nie IP i bez „supla” w dwóch ostatnich częściach),
+domena wskazuje na publiczny adres, certyfikat jest zaufany i Cloud odpowiada
+pod swoim adresem. Nie każdy router pozwala urządzeniu połączyć się z własnym
+publicznym adresem, więc to ostatnie jest tylko ostrzeżeniem.
+
+Karta prowadzi do cloud.supla.org/register-cloud z wpisanym adresem. Po
+podaniu tam e-maila pokazuje się polecenie z tokenem. Wklej je (albo sam
+token) na karcie i naciśnij Zarejestruj. Żeby cofnąć rejestrację,
+wyrejestruj instancję na tej samej stronie cloud.supla.org, a potem usuń
+rejestrację na karcie.
+
 ## Klucze dostawcy DNS
 
 Klucz pozwala SuplaOS zmieniać DNS domeny, więc daj mu tak mało uprawnień,
