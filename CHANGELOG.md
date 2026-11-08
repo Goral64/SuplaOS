@@ -8,6 +8,9 @@
   panel after logging in, a ready Supla connection takes the token and MQTT
   from the add-on, and Connect with Supla Cloud on the add-on page makes the
   token. See [Add-ons](README.md#add-ons).
+- When the Cloud address has another port than the Cloud on the device
+  (forwarded by the router, e.g. `:9443`), the device listens on it too.
+  Node-RED and SUPLA Scripts reached nothing at that address before.
 
 ## 0.10.2
 

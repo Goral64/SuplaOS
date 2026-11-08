@@ -100,12 +100,17 @@ Aplikacja Supla i urządzenia łączą się po porcie 2016, przekieruj go też,
 jeśli aplikacja ma działać poza domem. 8883 tylko dla klientów MQTT
 z zewnątrz. Nie przekierowuj 2015, nie jest szyfrowany.
 
-Panel i Zigbee2MQTT odpowiadają tylko w sieci lokalnej, dopóki nie włączysz
-ich w System, Dostęp, Dostęp z internetu. Supla Cloud i SUPLA Scripts mają
-własne logowanie i działają zawsze. Panelem da się zmienić wszystko na
-urządzeniu, więc wystawiając go do internetu, użyj długiego hasła. Po pięciu
-złych hasłach z jednego adresu logowanie stamtąd czeka, po każdym kolejnym
-dłużej.
+Gdy port 443 na routerze jest zajęty, przekieruj inny port na 443 urządzenia
+(np. 9443) i podaj adres Cloud z tym portem (`supla.example.pl:9443`).
+Urządzenie słucha też na tym porcie, więc dodatki, które łączą się z Cloud
+pod jego adresem (Node-RED, SUPLA Scripts), trafiają do niego na miejscu.
+
+Panel, Zigbee2MQTT i Node-RED odpowiadają tylko w sieci lokalnej, dopóki nie
+włączysz ich w System, Dostęp, Dostęp z internetu. Supla Cloud i SUPLA
+Scripts mają własne logowanie i działają zawsze. Panelem da się zmienić
+wszystko na urządzeniu, więc wystawiając go do internetu, użyj długiego
+hasła. Po pięciu złych hasłach z jednego adresu logowanie stamtąd czeka, po
+każdym kolejnym dłużej.
 
 Bez stałego publicznego adresu da się też przez tunel Cloudflare: dodaj
 Public Hostname dla każdej nazwy, wszystkie z usługą HTTPS i adresem

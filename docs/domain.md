@@ -102,12 +102,17 @@ address. The Supla app and the devices connect on port 2016, forward it too
 if the app should work away from home. 8883 only for MQTT clients outside.
 Don't forward 2015, it isn't encrypted.
 
-The panel and Zigbee2MQTT answer only in the local network until you turn
-them on in System, Access, Access from the internet. Supla Cloud and SUPLA
-Scripts have logins of their own and are always reachable. The panel can
-change everything on the device, so with it on the internet use a long
-password. After five wrong passwords from one address, logins from there
-wait, longer after each next one.
+When 443 on the router is taken, forward another port to 443 of the device
+(e.g. 9443) and give the Cloud address with it (`supla.example.com:9443`).
+The device listens on that port too, so the add-ons that connect to the
+Cloud at its address (Node-RED, SUPLA Scripts) reach it on the device.
+
+The panel, Zigbee2MQTT and Node-RED answer only in the local network until
+you turn them on in System, Access, Access from the internet. Supla Cloud
+and SUPLA Scripts have logins of their own and are always reachable. The
+panel can change everything on the device, so with it on the internet use a
+long password. After five wrong passwords from one address, logins from
+there wait, longer after each next one.
 
 Without a fixed public address a Cloudflare Tunnel works too: add a public
 hostname for each name, all with service HTTPS and the address of the

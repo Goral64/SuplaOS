@@ -8,6 +8,9 @@
   zalogowaniu, gotowe połączenie z Suplą bierze token i MQTT z dodatku,
   a Połącz z Supla Cloud na stronie dodatku robi token. Zobacz
   [Dodatki](README.md#dodatki).
+- Gdy adres Cloud ma inny port niż Cloud na urządzeniu (przekierowany
+  w routerze, np. `:9443`), urządzenie słucha też na nim. Node-RED i SUPLA
+  Scripts nie znajdowały wcześniej niczego pod tym adresem.
 
 ## 0.10.2
 

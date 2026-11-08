@@ -10,6 +10,7 @@ import (
 	"net"
 	"net/http"
 	"os"
+	"strconv"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -26,6 +27,12 @@ import (
 // Cloud, SUPLA Scripts) as it is, the panel and the proxied add-ons are
 // served here. No name, an IP address or any other name goes to Supla
 // Cloud, as before.
+//
+// The address of the Cloud may have another port, forwarded by the router
+// of the network to the port of the Cloud (e.g. 9443 when 443 is taken
+// there). Tokens of the Cloud carry that address, and containers that
+// reach the Cloud on this device by it (Node-RED, SUPLA Scripts) would find
+// nothing on that port: the router listens on it too.
 
 const helloTimeout = 10 * time.Second
 
@@ -35,9 +42,13 @@ type router struct {
 	ln     net.Listener
 	routes atomic.Pointer[routes]
 
+	// The port in the address of the Cloud, when it is another one.
+	public   string
+	publicLn net.Listener
+
 	// Kept between updates: the addresses of the containers and the
 	// servers of the panel.
-	ups    map[string]*upstream     // by service:port
+	ups    map[string]*upstream    // by service:port
 	locals map[string]*localServer // by "panel" or the add-on
 
 	mu     sync.Mutex
@@ -85,6 +96,23 @@ func routeTable(st *stack.Stack, set *acme.Settings) (port string, def target, n
 		}
 	}
 	return port, def, names
+}
+
+// publicPort returns the port in the address of Supla Cloud when it is not
+// the port of the router; "" otherwise.
+func publicPort(st *stack.Stack, port string) string {
+	a := st.Catalog["supla"]
+	if a == nil || !st.IsInstalled(a.ID) || port == "" {
+		return ""
+	}
+	_, p, err := net.SplitHostPort(st.Values(a)["SUPLA_HOST_ADDRESS"])
+	if err != nil || p == port {
+		return ""
+	}
+	if n, err := strconv.Atoi(p); err != nil || n < 1 || n > 65535 {
+		return ""
+	}
+	return p
 }
 
 // namedURLs are the addresses of the web interfaces of the add-ons at their
@@ -145,10 +173,34 @@ func (s *Server) updateRouter(st *stack.Stack) {
 			return
 		}
 		p.router = &router{s: s, port: port, ln: ln, ups: map[string]*upstream{}, locals: map[string]*localServer{}}
-		go p.router.serve()
+		go p.router.serve(ln)
 		log.Printf("router on %s", port)
 	}
 	p.router.update(def, names)
+	p.router.listenPublic(publicPort(st, port))
+}
+
+// listenPublic listens also on the port of the address of the Cloud, or
+// stops when there is none; called with s.proxies.mu held.
+func (rt *router) listenPublic(port string) {
+	if rt.public == port {
+		return
+	}
+	if rt.publicLn != nil {
+		rt.publicLn.Close()
+		rt.publicLn, rt.public = nil, ""
+	}
+	if port == "" {
+		return
+	}
+	// Taken by something else: tried again later.
+	ln, err := rt.s.proxies.listen(port, "router")
+	if err != nil {
+		return
+	}
+	rt.publicLn, rt.public = ln, port
+	go rt.serve(ln)
+	log.Printf("router also on %s (port of the Cloud address)", port)
 }
 
 func (rt *router) update(def target, names map[string]target) {
@@ -199,14 +251,17 @@ func (s *Server) addonProxy(id string) http.Handler {
 
 func (rt *router) close() {
 	rt.ln.Close()
+	if rt.publicLn != nil {
+		rt.publicLn.Close()
+	}
 	for _, l := range rt.locals {
 		l.close()
 	}
 }
 
-func (rt *router) serve() {
+func (rt *router) serve(ln net.Listener) {
 	for {
-		c, err := rt.ln.Accept()
+		c, err := ln.Accept()
 		if errors.Is(err, net.ErrClosed) {
 			return
 		}

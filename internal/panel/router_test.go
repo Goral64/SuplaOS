@@ -78,7 +78,7 @@ func TestRouter(t *testing.T) {
 		"supla-scripts:443": {addr: scripts.Listener.Addr().String()},
 	}, locals: map[string]*localServer{}}
 	defer rt.close()
-	go rt.serve()
+	go rt.serve(ln)
 	rt.update(target{tls: "supla-cloud:443"}, map[string]target{
 		"suplaos.example.com":       {local: "panel"},
 		"supla-z2m.example.com":     {local: "zigbee2mqtt"},
@@ -153,6 +153,38 @@ func TestRouter(t *testing.T) {
 		t.Errorf("removed name: %q", body)
 	}
 
+	// The port of the Cloud address: the same routes.
+	free, err := net.Listen("tcp", "127.0.0.1:0")
+	if err != nil {
+		t.Fatal(err)
+	}
+	_, public, _ := net.SplitHostPort(free.Addr().String())
+	free.Close()
+	rt.listenPublic(public)
+	if rt.publicLn == nil {
+		t.Fatalf("no listener on %s", public)
+	}
+	viaPublic := &http.Client{Transport: &http.Transport{
+		DialContext: func(ctx context.Context, _, _ string) (net.Conn, error) {
+			return (&net.Dialer{}).DialContext(ctx, "tcp", "127.0.0.1:"+public)
+		},
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+	}}
+	if resp, err := viaPublic.Get("https://supla.example.com:" + public + "/"); err != nil {
+		t.Errorf("public port: %v", err)
+	} else {
+		body, _ := io.ReadAll(resp.Body)
+		resp.Body.Close()
+		if string(body) != "cloud" {
+			t.Errorf("public port: %q", body)
+		}
+	}
+	rt.listenPublic("")
+	if c, err := net.Dial("tcp", "127.0.0.1:"+public); err == nil {
+		c.Close()
+		t.Errorf("public port still open")
+	}
+
 	// Not TLS: closed.
 	c, err := net.Dial("tcp", ln.Addr().String())
 	if err != nil {
@@ -200,5 +232,27 @@ func TestNamedAddresses(t *testing.T) {
 	}
 	if to != "https://supla-scripts.example.com" {
 		t.Errorf("address of SUPLA Scripts: %q", to)
+	}
+}
+
+func TestPublicPort(t *testing.T) {
+	s := newServer(t)
+	st := routerStack(t, s)
+	for addr, want := range map[string]string{
+		"supla.example.com:9443": "9443",
+		"supla.example.com:443":  "",
+		"supla.example.com":      "",
+		"192.168.1.10:8443x":     "",
+		"[2001:db8::1]:9443":     "9443",
+		"192.168.1.10:0":         "",
+	} {
+		st.State.Addons["supla"] = &stack.Installed{Options: map[string]string{"SUPLA_HOST_ADDRESS": addr}}
+		if got := publicPort(st, "443"); got != want {
+			t.Errorf("%s: %q, want %q", addr, got, want)
+		}
+	}
+	delete(st.State.Addons, "supla")
+	if got := publicPort(st, "443"); got != "" {
+		t.Errorf("without Supla: %q", got)
 	}
 }
