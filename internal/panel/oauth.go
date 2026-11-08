@@ -68,6 +68,55 @@ func (s *Server) connectScripts(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
+// Node-RED gets a personal access token of the account for the Supla nodes:
+// they read the channels, groups and scenes and run actions on them.
+const (
+	nodeRedTokenName  = "Node-RED (SuplaOS)"
+	nodeRedTokenScope = "channels_r channels_ea channelgroups_r channelgroups_ea scenes_r scenes_ea iodevices_r locations_r"
+)
+
+// connectNodeRed makes a personal access token in the Supla Cloud of this
+// device, with the account given, and puts it in the settings of Node-RED.
+// The token made before for Node-RED in that account is deleted. The
+// password is used only for this.
+func (s *Server) connectNodeRed(w http.ResponseWriter, r *http.Request) {
+	var req suplaAccount
+	if err := readJSON(r, &req); err != nil {
+		jsonError(w, http.StatusBadRequest, err)
+		return
+	}
+	if req.Email == "" || req.Password == "" {
+		jsonError(w, http.StatusBadRequest, errors.New("e-mail and password are required"))
+		return
+	}
+	s.stackJob(w, "connect Node-RED with Supla Cloud", func(st *stack.Stack, j *Job) error {
+		if !st.IsInstalled("supla") || !st.IsInstalled("node-red") {
+			return errors.New("Supla and Node-RED have to be installed")
+		}
+		supla := st.Values(st.Catalog["supla"])
+		cloud, err := s.cloudClient("https://127.0.0.1:" + supla["PORT_HTTPS"])
+		if err != nil {
+			return err
+		}
+		j.Logf("Logging in to Supla Cloud as %s", req.Email)
+		if err := cloud.login(req.Email, req.Password); err != nil {
+			return err
+		}
+		token, replaced, err := cloud.personalToken(nodeRedTokenName, nodeRedTokenScope)
+		if err != nil {
+			return err
+		}
+		if replaced > 0 {
+			j.Logf("Deleted the token made before for Node-RED")
+		}
+		j.Logf("Personal access token %q made", nodeRedTokenName)
+		if err := st.Configure("node-red", map[string]string{"SUPLA_TOKEN": token}); err != nil {
+			return err
+		}
+		return st.Up()
+	})
+}
+
 // cloudAPI talks to the API of the Supla Cloud of this device.
 type cloudAPI struct {
 	url    string
@@ -182,4 +231,37 @@ func (c *cloudAPI) oauthApp(name, redirect string) (string, string, error) {
 		return "", "", errors.New("Supla Cloud did not give the ID and the secret of the OAuth app")
 	}
 	return a.PublicID, a.Secret, nil
+}
+
+// personalToken makes a personal access token of the account with this name
+// and scope, after deleting the tokens with the same name. It returns the
+// token and how many were deleted.
+func (c *cloudAPI) personalToken(name, scope string) (string, int, error) {
+	var tokens []struct {
+		ID   int    `json:"id"`
+		Name string `json:"name"`
+	}
+	if err := c.call("GET", "/api/oauth-personal-tokens", nil, &tokens); err != nil {
+		return "", 0, err
+	}
+	deleted := 0
+	for _, t := range tokens {
+		if t.Name != name {
+			continue
+		}
+		if err := c.call("DELETE", fmt.Sprintf("/api/oauth-personal-tokens/%d", t.ID), nil, nil); err != nil {
+			return "", deleted, err
+		}
+		deleted++
+	}
+	var made struct {
+		Token string `json:"token"`
+	}
+	if err := c.call("POST", "/api/oauth-personal-tokens", map[string]string{"name": name, "scope": scope}, &made); err != nil {
+		return "", deleted, err
+	}
+	if made.Token == "" {
+		return "", deleted, errors.New("Supla Cloud did not give the token")
+	}
+	return made.Token, deleted, nil
 }

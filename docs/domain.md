@@ -73,8 +73,9 @@ Encrypt.
 
 Supla Cloud answers at the domain. The panel and the add-ons with a web
 interface get names of their own next to it: for `supla.example.com` the
-panel is `suplaos.example.com`, Zigbee2MQTT `supla-z2m.example.com` and
-SUPLA Scripts `supla-scripts.example.com`. When the domain is right below a
+panel is `suplaos.example.com`, Zigbee2MQTT `supla-z2m.example.com`,
+SUPLA Scripts `supla-scripts.example.com` and Node-RED
+`supla-nodered.example.com`. When the domain is right below a
 public suffix (`example.com`, `myname.duckdns.org`), they go under it:
 `suplaos.example.com`, `z2m.myname.duckdns.org`. The names can be changed on
 the card, an empty field is the default one. The certificate has all of

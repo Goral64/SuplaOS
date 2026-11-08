@@ -52,8 +52,22 @@ const connectKeys = ['SUPLA_SCRIPTS_OAUTH_CLOUD', 'SUPLA_SCRIPTS_OAUTH_ID', 'SUP
 const deviceCA = computed(() => addon.value?.downloads.findIndex((d) => d.file === 'ssl/server/ca.crt') ?? -1)
 const byConnect = computed(() => addon.value?.id === 'supla-scripts' && suplaRunning.value)
 const cloudLogin = ref({ email: '', password: '' })
+// Connect with Supla Cloud: an OAuth app for SUPLA Scripts, a personal
+// access token for Node-RED.
+const cloudConnect = computed(() => {
+  if (!suplaRunning.value) return null
+  if (addon.value?.id === 'supla-scripts') {
+    return { path: '/supla-scripts/oauth', title: 'addon.cloudLogin', help: 'addon.cloudLoginHelp',
+      done: addon.value.values.SUPLA_SCRIPTS_OAUTH_ID ? 'addon.cloudLoginDone' : '' }
+  }
+  if (addon.value?.id === 'node-red' && addon.value.installed) {
+    return { path: '/node-red/token', title: 'addon.nodeRedLogin', help: 'addon.nodeRedLoginHelp',
+      done: addon.value.values.SUPLA_TOKEN ? 'addon.nodeRedLoginDone' : '' }
+  }
+  return null
+})
 async function connectCloud() {
-  const result = await job('POST', '/supla-scripts/oauth', cloudLogin.value)
+  const result = await job('POST', cloudConnect.value.path, cloudLogin.value)
   if (result?.state === 'done') cloudLogin.value = { email: '', password: '' }
 }
 
@@ -250,10 +264,10 @@ const webURL = (a) => a.web.url
         </div>
       </div>
 
-      <div v-if="addon.id === 'supla-scripts' && suplaRunning" class="card">
-        <h2>{{ $t('addon.cloudLogin') }}</h2>
-        <p class="muted">{{ $t('addon.cloudLoginHelp') }}</p>
-        <p v-if="addon.values.SUPLA_SCRIPTS_OAUTH_ID" class="alert ok">{{ $t('addon.cloudLoginDone') }}</p>
+      <div v-if="cloudConnect" class="card">
+        <h2>{{ $t(cloudConnect.title) }}</h2>
+        <p class="muted">{{ $t(cloudConnect.help) }}</p>
+        <p v-if="cloudConnect.done" class="alert ok">{{ $t(cloudConnect.done) }}</p>
         <form class="row" style="align-items: flex-end" @submit.prevent="connectCloud">
           <div class="field" style="flex: 1; min-width: 200px; margin: 0">
             <label for="cl-email">{{ $t('addon.email') }}</label>

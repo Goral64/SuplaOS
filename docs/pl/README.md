@@ -7,7 +7,7 @@ System na Raspberry Pi 4/5, komputery x86-64 i maszyny wirtualne
 [supla-docker](https://github.com/SUPLA/supla-docker), czyli własny serwer
 Supli w domu. Wgrywasz obraz na kartę albo dysk, włączasz urządzenie
 i resztę robisz z przeglądarki. Oprócz Supli można dołożyć dodatki:
-brokera MQTT, Zigbee2MQTT, Zigbee2Supla, SUPLA Scripts.
+brokera MQTT, Zigbee2MQTT, Zigbee2Supla, SUPLA Scripts, Node-RED.
 
 Projekt jest na wczesnym etapie. Obraz dla Raspberry Pi działa na Pi 4
 z dyskiem SSD i na Pi 3B+ (Supla działa tam dobrze, ale przy 1 GB RAM nie
@@ -71,6 +71,17 @@ logować się przez Supla Cloud i od razu dostaje zmiany kanałów. Bez Supli na
 urządzeniu ustawienia dodatku przyjmują aplikację OAuth założoną ręcznie
 (Integracje, Moje aplikacje OAuth, adres przekierowania https://<adres
 urządzenia>:8444/authorize).
+
+[Node-RED](https://nodered.org) jest pod https://<adres urządzenia>:1880,
+też przez panel, po zalogowaniu do niego. Ma od razu
+[węzły Supli](https://github.com/Goral64/SuplaNodeRED) i gotowe połączenie
+z Suplą, które bierze ustawienia z dodatku. Gdy Supla działa na tym samym
+urządzeniu, Połącz z Supla Cloud na stronie dodatku Node-RED robi dla niego
+token osobisty (hasło nie jest zapisywane). Dla innego Cloud, np.
+cloud.supla.org, wklej w ustawieniach dodatku token zrobiony tam. Z dodatkiem
+Mosquitto węzły Supli czytają stan kanałów przez MQTT (gdy w dodatku Supla
+MQTT jest włączone), a węzły MQTT łączą się z serwerem `mosquitto`, port 1883,
+z loginem `${MQTT_USERNAME}` i hasłem `${MQTT_PASSWORD}`.
 
 To samo można zrobić przez SSH poleceniem `suplaos`:
 

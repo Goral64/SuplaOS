@@ -1,0 +1,8 @@
+# supla-server publishes the channels of all accounts to the mosquitto
+# add-on, the Supla nodes read their state from there.
+services:
+  node-red:
+    environment:
+      SUPLA_MQTT_URL: mqtt://mosquitto:1883
+      SUPLA_MQTT_USERNAME: ${MOSQUITTO_USERNAME}
+      SUPLA_MQTT_PASSWORD: ${MOSQUITTO_PASSWORD}

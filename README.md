@@ -7,7 +7,7 @@ machines ([Proxmox, VirtualBox, VMware, Hyper-V](docs/virtual-machines.md)), bui
 [supla-docker](https://github.com/SUPLA/supla-docker), i.e. your own Supla
 server at home. Write the image to an SD card or a disk, power the device on
 and do the rest from a web browser. Besides Supla you can add extras: an MQTT
-broker, Zigbee2MQTT, Zigbee2Supla, SUPLA Scripts.
+broker, Zigbee2MQTT, Zigbee2Supla, SUPLA Scripts, Node-RED.
 
 The project is at an early stage. The Raspberry Pi image runs on a Pi 4
 with an SSD and on a Pi 3B+ (Supla is fine there, but with 1 GB of RAM I
@@ -73,6 +73,18 @@ Scripts offers logging in with Supla Cloud and gets changes of the channels
 right away. Without Supla on the device the settings of the add-on take an
 OAuth app made by hand (Integrations, My OAuth apps, redirect address
 https://<device address>:8444/authorize).
+
+[Node-RED](https://nodered.org) is at https://<device address>:1880, also
+served by the panel after logging in to it. It comes with the
+[Supla nodes](https://github.com/Goral64/SuplaNodeRED) and a ready Supla
+connection that takes its settings from the add-on. With Supla on the same
+device, Connect with Supla Cloud on the Node-RED add-on page makes a personal
+access token for it (the password isn't saved). For another Cloud, e.g.
+cloud.supla.org, paste a token made there into the add-on settings. With the
+Mosquitto add-on the Supla nodes read the state of the channels over MQTT
+(when MQTT is on in the Supla add-on), and the MQTT nodes connect to server
+`mosquitto`, port 1883, with `${MQTT_USERNAME}` and `${MQTT_PASSWORD}` as the
+login.
 
 The same can be done from SSH with `suplaos`:
 

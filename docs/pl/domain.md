@@ -72,9 +72,10 @@ nie ufają jego certyfikatom, ale nie liczy się on do limitów Let's Encrypt.
 
 Supla Cloud odpowiada pod domeną. Panel i dodatki z interfejsem WWW dostają
 własne nazwy obok niej: dla `supla.example.pl` panel to
-`suplaos.example.pl`, Zigbee2MQTT `supla-z2m.example.pl`, a SUPLA Scripts
-`supla-scripts.example.pl`. Gdy domena jest tuż pod sufiksem publicznym
-(`example.pl`, `mojanazwa.duckdns.org`), nazwy są pod nią:
+`suplaos.example.pl`, Zigbee2MQTT `supla-z2m.example.pl`, SUPLA Scripts
+`supla-scripts.example.pl`, a Node-RED `supla-nodered.example.pl`. Gdy
+domena jest tuż pod sufiksem publicznym (`example.pl`,
+`mojanazwa.duckdns.org`), nazwy są pod nią:
 `suplaos.example.pl`, `z2m.mojanazwa.duckdns.org`. Nazwy można zmienić na
 karcie, puste pole to nazwa domyślna. Certyfikat ma je wszystkie, a dodatek
 zainstalowany później sam dostaje swoją nazwę w nowym certyfikacie.

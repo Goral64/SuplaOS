@@ -166,6 +166,7 @@ func (s *Server) Handler() http.Handler {
 	api("POST /api/supla/registration", s.registerCloud)
 	api("DELETE /api/supla/registration", s.forgetRegistration)
 	api("POST /api/supla-scripts/oauth", s.connectScripts)
+	api("POST /api/node-red/token", s.connectNodeRed)
 	api("GET /api/migration", s.getMigration)
 	api("POST /api/migration/fetch", s.fetchMigration)
 	api("POST /api/migration/prepare", s.prepareMigration)

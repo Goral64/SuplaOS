@@ -2,6 +2,13 @@
 
 [In English](../../CHANGELOG.md)
 
+## 0.11.0
+
+- Nowy dodatek: Node-RED z węzłami Supli. Edytor jest przez panel, po
+  zalogowaniu, gotowe połączenie z Suplą bierze token i MQTT z dodatku,
+  a Połącz z Supla Cloud na stronie dodatku robi token. Zobacz
+  [Dodatki](README.md#dodatki).
+
 ## 0.10.2
 
 - Rejestracja w cloud.supla.org: sprawdzenie domeny pyta publiczny DNS przez

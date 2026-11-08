@@ -1,0 +1,10 @@
+# Login to the mosquitto add-on, for the MQTT nodes: server mosquitto,
+# port 1883, user ${MQTT_USERNAME}, password ${MQTT_PASSWORD}.
+services:
+  node-red:
+    environment:
+      MQTT_URL: mqtt://mosquitto:1883
+      MQTT_USERNAME: ${MOSQUITTO_USERNAME}
+      MQTT_PASSWORD: ${MOSQUITTO_PASSWORD}
+    depends_on:
+      - mosquitto

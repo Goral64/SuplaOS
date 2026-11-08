@@ -2,6 +2,13 @@
 
 [Po polsku](docs/pl/CHANGELOG.md)
 
+## 0.11.0
+
+- New add-on: Node-RED with the Supla nodes. The editor is served by the
+  panel after logging in, a ready Supla connection takes the token and MQTT
+  from the add-on, and Connect with Supla Cloud on the add-on page makes the
+  token. See [Add-ons](README.md#add-ons).
+
 ## 0.10.2
 
 - Registration at cloud.supla.org: the check of the domain asks a public DNS

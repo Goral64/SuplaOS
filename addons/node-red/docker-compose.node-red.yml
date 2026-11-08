@@ -1,0 +1,29 @@
+services:
+  node-red:
+    container_name: ${COMPOSE_PROJECT_NAME}-node-red
+    # nodered/node-red with the Supla nodes, built from images/node-red.
+    image: ${NODE_RED_IMAGE:-ghcr.io/goral64/node-red:5.0.9-0.1.1}
+    restart: unless-stopped
+    # The start script fixes the owner of /data, then runs Node-RED as
+    # the node-red user of the image.
+    user: "0"
+    entrypoint: ["/bin/sh", "/node-red-start.sh"]
+    # The editor is served by the SuplaOS panel on NODE_RED_PORT, over
+    # HTTPS and after logging in; no port is published.
+    environment:
+      TZ: ${TZ}
+      NODE_EXTRA_CA_CERTS: /etc/suplaos/ca-certificates.crt
+      # For the Supla nodes, with the address of the Cloud in it.
+      SUPLA_TOKEN: ${SUPLA_TOKEN:-}
+    # The address of the Cloud in the tokens may be <name>.local.
+    extra_hosts:
+      - "${SUPLAOS_HOSTNAME}.local:host-gateway"
+    volumes:
+      - ./node-red-start.sh:/node-red-start.sh:ro
+      - ./ssl/node-red:/etc/suplaos:ro
+      # Flows, their credentials and nodes added from the palette.
+      - ${VOLUME_DATA}/node-red:/data
+    logging:
+      driver: "json-file"
+      options:
+        max-size: 10m

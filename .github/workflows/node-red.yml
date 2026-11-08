@@ -1,0 +1,104 @@
+name: node-red
+
+# The node-red add-on uses nodered/node-red with the Supla nodes of
+# Goral64/SuplaNodeRED, built from images/node-red into
+# ghcr.io/goral64/node-red (amd64 and arm64). Once a day a new release of
+# either becomes an image and a pull request that points the add-on at it.
+on:
+  schedule:
+    - cron: "53 4 * * *"
+  workflow_dispatch:
+    inputs:
+      node_red:
+        description: Node-RED version, e.g. 5.0.9 (default the latest release)
+        required: false
+      supla_nodes:
+        description: Version of the Supla nodes, e.g. 0.1.0 (default the latest tag)
+        required: false
+
+permissions:
+  contents: write
+  pull-requests: write
+  packages: write
+
+jobs:
+  update:
+    runs-on: ubuntu-24.04
+    env:
+      GH_TOKEN: ${{ github.token }}
+      IMAGE: ghcr.io/goral64/node-red
+      COMPOSE: addons/node-red/docker-compose.node-red.yml
+    steps:
+      - uses: actions/checkout@v7
+      - name: Look for new versions
+        id: check
+        env:
+          NODE_RED: ${{ inputs.node_red }}
+          SUPLA_NODES: ${{ inputs.supla_nodes }}
+        run: |
+          node_red="${NODE_RED:-$(gh api repos/node-red/node-red/releases/latest -q .tag_name)}"
+          node_red="${node_red#v}"
+          supla="${SUPLA_NODES:-$(gh api repos/Goral64/SuplaNodeRED/tags -q '.[].name' | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | sort -V | tail -1)}"
+          supla="${supla#v}"
+          version="$node_red-$supla"
+          current=$(sed -n "s|.*$IMAGE:\([0-9.-]*\)}.*|\1|p" "$COMPOSE")
+          # The Docker image of a Node-RED release comes a while after it.
+          if ! docker manifest inspect "nodered/node-red:$node_red" >/dev/null 2>&1; then
+            echo "::warning::nodered/node-red:$node_red is not there yet"
+            exit 0
+          fi
+          built=false
+          docker manifest inspect "$IMAGE:$version" >/dev/null 2>&1 && built=true
+          echo "node-red $version (add-on: $current, image built: $built)"
+          echo "node_red=$node_red" >> "$GITHUB_OUTPUT"
+          echo "supla=$supla" >> "$GITHUB_OUTPUT"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "current=$current" >> "$GITHUB_OUTPUT"
+          echo "built=$built" >> "$GITHUB_OUTPUT"
+          [ "$version" = "$current" ] || echo "update=true" >> "$GITHUB_OUTPUT"
+      - name: Build the image
+        if: steps.check.outputs.version && steps.check.outputs.built == 'false'
+        env:
+          NODE_RED: ${{ steps.check.outputs.node_red }}
+          SUPLA: ${{ steps.check.outputs.supla }}
+          VERSION: ${{ steps.check.outputs.version }}
+          ACTOR: ${{ github.actor }}
+        run: |
+          echo "$GH_TOKEN" | docker login ghcr.io -u "$ACTOR" --password-stdin
+          docker run --privileged --rm tonistiigi/binfmt --install arm64
+          docker buildx create --use
+          docker buildx build images/node-red \
+            --platform linux/amd64,linux/arm64 \
+            --build-arg "NODE_RED_VERSION=$NODE_RED" \
+            --build-arg "SUPLA_NODES_VERSION=$SUPLA" \
+            --label "org.opencontainers.image.version=$VERSION" \
+            --label "org.opencontainers.image.source=https://github.com/${{ github.repository }}" \
+            --label "org.opencontainers.image.description=Node-RED $NODE_RED with the Supla nodes $SUPLA for SuplaOS" \
+            --label "org.opencontainers.image.licenses=Apache-2.0 AND GPL-3.0-only" \
+            -t "$IMAGE:$VERSION" \
+            --push
+      - name: Pull request
+        if: steps.check.outputs.update == 'true'
+        env:
+          NODE_RED: ${{ steps.check.outputs.node_red }}
+          SUPLA: ${{ steps.check.outputs.supla }}
+          VERSION: ${{ steps.check.outputs.version }}
+        run: |
+          sed -i "s|$IMAGE:[0-9.-]*}|$IMAGE:$VERSION}|" "$COMPOSE"
+          title="Node-RED $NODE_RED, Supla nodes $SUPLA"
+          {
+            echo "Node-RED: https://github.com/node-red/node-red/releases/tag/$NODE_RED"
+            echo "Supla nodes: https://github.com/Goral64/SuplaNodeRED/tree/v$SUPLA"
+            echo
+            echo "Image: $IMAGE:$VERSION"
+          } > "$RUNNER_TEMP/pr.md"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout -B node-red
+          git commit -q -am "$title"
+          git push -q -f origin node-red
+          if [ "$(gh pr view node-red --json state -q .state 2>/dev/null)" = OPEN ]; then
+            gh pr edit node-red --title "$title" --body-file "$RUNNER_TEMP/pr.md"
+          else
+            gh pr create --head node-red --base main --title "$title" --body-file "$RUNNER_TEMP/pr.md"
+          fi

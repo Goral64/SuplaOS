@@ -1,0 +1,50 @@
+id: node-red
+name: Node-RED
+description:
+  en: Automations drawn as flows, with Supla, MQTT and many other services
+  pl: Automatyka rysowana jako przepływy, z Suplą, MQTT i wieloma innymi usługami
+recommends: [supla, mosquitto]
+files: [node-red-start.sh]
+compose:
+  - docker-compose.node-red.yml
+  - file: docker-compose.node-red-mosquitto.yml
+    when: {installed: mosquitto}
+  - file: docker-compose.node-red-supla-mqtt.yml
+    when: {installed: mosquitto, option: "supla:SUPLA_MQTT_BROKER_ENABLED", equals: "true"}
+  - file: docker-compose.node-red-domain.yml
+    when: {option: "suplaos:DOMAIN", not_empty: true}
+services: [node-red]
+images:
+  node-red:
+    version_env: NODE_RED_VERSION
+    changelog: https://github.com/node-red/node-red/releases
+dirs: [var/node-red]
+data: [var/node-red]
+# The CAs of the system with the CA of the device: Node-RED connects to the
+# Supla Cloud of this device over HTTPS.
+trust:
+  - dir: ssl/node-red
+    restart: [node-red]
+
+options:
+  - key: NODE_RED_PORT
+    label: {en: Web interface port, pl: Port interfejsu WWW}
+    help:
+      en: HTTPS through the SuplaOS panel, after logging in to the panel.
+      pl: HTTPS przez panel SuplaOS, po zalogowaniu do panelu.
+    type: port
+    default: "1880"
+    required: true
+  - key: SUPLA_TOKEN
+    label: {en: Supla token, pl: Token Supli}
+    help:
+      en: "Personal access token of a Supla Cloud account, for the Supla nodes. With Supla on this device it comes from the Supla account card above. For another Cloud (e.g. cloud.supla.org) make one there in Account, Security, Personal access tokens."
+      pl: "Token osobisty konta Supla Cloud dla węzłów Supli. Gdy Supla działa na tym urządzeniu, robi go karta Konto Supla wyżej. Dla innego Cloud (np. cloud.supla.org) utwórz go tam w Konto, Bezpieczeństwo, Osobiste tokeny dostępowe."
+    type: password
+
+ports: ["${NODE_RED_PORT}"]
+
+web:
+  port: "${NODE_RED_PORT}"
+  proxy: node-red:1880
+  host: nodered
