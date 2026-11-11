@@ -93,6 +93,21 @@ only local names.
 Firmware without the Custom CA option connects with Skip certificate
 verification.
 
+Adding a device with the wizard in the Supla app isn't enough on its own.
+The wizard sets only Wi-Fi, the server and the e-mail, and the device stays
+with Supla CA verification, which doesn't accept a certificate of any own
+server. In the server log it shows as Connection accepted and nothing
+after it. Put the device in config mode once more and set Custom CA (or
+Skip) there. This goes for the original devices made by Zamel too.
+
+The certificate pasted into the device is the CA, valid for 20 years. The
+certificate of supla-server is valid a bit over two years, and SuplaOS
+makes a new one with the same CA before it expires or when the address of
+the device changes, so nothing has to be changed in the devices. They need
+the new CA only after installing SuplaOS from scratch; a full
+[backup](backup.md) brings the old CA back. If the devices have the IP
+address of SuplaOS as the server, give it a fixed address in the router.
+
 ## New device, new CA
 
 The CA stays the same after changing the name or the address of the device.

@@ -97,6 +97,21 @@ lokalne.
 Firmware bez opcji Custom CA łączy się z ustawieniem Skip certificate
 verification.
 
+Samo dodanie urządzenia kreatorem w aplikacji Supla nie wystarczy. Kreator
+ustawia tylko Wi-Fi, serwer i e-mail, a urządzenie zostaje przy weryfikacji
+Supla CA, która nie przyjmie certyfikatu żadnego własnego serwera. W logu
+serwera widać wtedy Connection accepted i nic dalej. Trzeba jeszcze raz
+wejść w tryb konfiguracji urządzenia i ustawić tam Custom CA (albo Skip).
+Dotyczy to też oryginalnych urządzeń Zamel.
+
+Certyfikat wklejany w urządzeniu to CA, ważne 20 lat. Certyfikat
+supla-server jest ważny nieco ponad dwa lata i SuplaOS sam robi nowy z tym
+samym CA, zanim wygaśnie albo gdy zmieni się adres urządzenia, więc
+w urządzeniach nic nie trzeba zmieniać. Nowe CA trzeba w nich wkleić tylko
+po instalacji SuplaOS od zera; pełna [kopia zapasowa](backup.md) przywraca
+stare CA. Jeśli urządzenia mają jako serwer adres IP SuplaOS, daj mu
+w routerze stały adres.
+
 ## Nowe urządzenie, nowe CA
 
 Po zmianie nazwy albo adresu urządzenia CA zostaje to samo. Świeżo wgrany
