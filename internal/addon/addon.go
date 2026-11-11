@@ -159,9 +159,9 @@ func (p *Port) UnmarshalYAML(n *yaml.Node) error {
 }
 
 // CertDir is a directory with certificates made by SuplaOS. Restart are
-// the services that use it, restarted when the certificates change; all
-// services of the add-on when empty. In addon.yaml a path or
-// {dir: ..., restart: [...]}.
+// the services that use it, restarted when the certificates change, also
+// of other add-ons when installed; all services of the add-on when empty.
+// In addon.yaml a path or {dir: ..., restart: [...]}.
 type CertDir struct {
 	Dir     string   `yaml:"dir"`
 	Restart []string `yaml:"restart"`
@@ -172,7 +172,8 @@ type CertDir struct {
 	// Names are more names the certificate is valid for, e.g. the name of
 	// the service in the compose network.
 	Names []string `yaml:"names"`
-	// KeyType rsa makes an RSA key (for old clients), ECDSA otherwise.
+	// KeyType rsa makes an RSA key signed by the RSA CA of the device (for
+	// old clients), ECDSA otherwise.
 	KeyType string `yaml:"key_type"`
 	// DeviceCA: always signed by the CA of the device, also with an own
 	// domain (with the domain among the names), for clients that trust
@@ -410,11 +411,6 @@ func (a *Addon) validate() error {
 		if !local(c.Dir) {
 			return fmt.Errorf("%s: path %q leaves the stack directory", a.ID, c.Dir)
 		}
-		for _, svc := range c.Restart {
-			if !slices.Contains(a.Services, svc) {
-				return fmt.Errorf("%s: %s: restart of unknown service %q", a.ID, c.Dir, svc)
-			}
-		}
 		for _, f := range []string{c.Cert, c.Key} {
 			if f != "" && f != filepath.Base(f) {
 				return fmt.Errorf("%s: %s: certificate file must be a plain name: %q", a.ID, c.Dir, f)
@@ -507,10 +503,22 @@ func Load(dir string) (Catalog, error) {
 		a.Dir = filepath.Join(dir, e.Name())
 		c[a.ID] = a
 	}
+	var services []string
+	for _, a := range c {
+		services = append(services, a.Services...)
+	}
 	for _, a := range c {
 		for _, r := range append(append([]string{}, a.Requires...), a.Recommends...) {
 			if c[r] == nil {
 				return nil, fmt.Errorf("%s: unknown add-on %q", a.ID, r)
+			}
+		}
+		// A certificate may be used by services of other add-ons too.
+		for _, d := range slices.Concat(a.Certificates, a.Trust) {
+			for _, svc := range d.Restart {
+				if !slices.Contains(services, svc) {
+					return nil, fmt.Errorf("%s: %s: restart of unknown service %q", a.ID, d.Dir, svc)
+				}
 			}
 		}
 	}

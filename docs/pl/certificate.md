@@ -85,8 +85,9 @@ pobrać na stronie dodatku Mosquitto.
 
 ## Urządzenia Supli
 
-Urządzenia łączą się z supla-server szyfrowanym portem 2016, a jego
-certyfikat jest podpisany tym samym CA. Na stronie dodatku Supla, w karcie
+Urządzenia łączą się z supla-server szyfrowanym portem 2016. Jego
+certyfikat podpisuje drugie CA urządzenia, z kluczem RSA, bo stare
+urządzenia na ESP8266 nie znają innego. Na stronie dodatku Supla, w karcie
 Certyfikat CA dla urządzeń (Custom CA), skopiuj certyfikat. W ustawieniach
 urządzenia (GUI-Generic, SuplaDevice: protokół Supla) ustaw adres SuplaOS
 jako serwer, poziom bezpieczeństwa Custom CA i wklej go tam. Urządzenie
@@ -102,7 +103,9 @@ ustawia tylko Wi-Fi, serwer i e-mail, a urządzenie zostaje przy weryfikacji
 Supla CA, która nie przyjmie certyfikatu żadnego własnego serwera. W logu
 serwera widać wtedy Connection accepted i nic dalej. Trzeba jeszcze raz
 wejść w tryb konfiguracji urządzenia i ustawić tam Custom CA (albo Skip).
-Dotyczy to też oryginalnych urządzeń Zamel.
+Dotyczy to też nowszych urządzeń Zamel (firmware numerowany datą, np.
+25.10.02). Starsze na ESP8266 (firmware 2.8.x) nie sprawdzają certyfikatu
+i łączą się bez żadnych zmian.
 
 Certyfikat wklejany w urządzeniu to CA, ważne 20 lat. Certyfikat
 supla-server jest ważny nieco ponad dwa lata i SuplaOS sam robi nowy z tym

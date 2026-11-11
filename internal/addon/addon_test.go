@@ -1,6 +1,10 @@
 package addon
 
-import "testing"
+import (
+	"os"
+	"path/filepath"
+	"testing"
+)
 
 func TestLoadCatalog(t *testing.T) {
 	c, err := Load("../../addons")
@@ -63,7 +67,6 @@ func TestParseErrors(t *testing.T) {
 		"web tls":       "id: x\ncompose: [a.yml]\nservices: [x]\nweb: {port: \"1\", tls: y:443}\n",
 		"proxy and tls": "id: x\ncompose: [a.yml]\nservices: [x]\nweb: {port: \"1\", proxy: x:80, tls: x:443}\n",
 		"cert escape":   "id: x\ncompose: [a.yml]\nservices: [x]\ncertificates: [../ssl]\n",
-		"cert restart":  "id: x\ncompose: [a.yml]\nservices: [x]\ntrust: [{dir: ssl, restart: [y]}]\n",
 		"backup skip":   "id: x\ncompose: [a.yml]\nservices: [x]\ndata: [var/x]\nfull_backup: {skip: [var/y]}\n",
 	} {
 		if _, err := Parse([]byte(src)); err == nil {
@@ -77,6 +80,27 @@ func TestConditionIn(t *testing.T) {
 	none := func(string) bool { return false }
 	if !c.Match(none, map[string]string{"M": "b"}) || c.Match(none, map[string]string{"M": "c"}) {
 		t.Error("in")
+	}
+}
+
+// A certificate may restart services of other add-ons, but only known ones.
+func TestLoadCertRestart(t *testing.T) {
+	dir := t.TempDir()
+	write := func(id, src string) {
+		if err := os.MkdirAll(filepath.Join(dir, id), 0o755); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile(filepath.Join(dir, id, "addon.yaml"), []byte(src), 0o644); err != nil {
+			t.Fatal(err)
+		}
+	}
+	write("x", "id: x\ncompose: [a.yml]\nservices: [x]\ntrust: [{dir: ssl, restart: [x, y]}]\n")
+	if _, err := Load(dir); err == nil {
+		t.Error("unknown service y accepted")
+	}
+	write("y", "id: y\ncompose: [a.yml]\nservices: [y]\n")
+	if _, err := Load(dir); err != nil {
+		t.Error(err)
 	}
 }
 

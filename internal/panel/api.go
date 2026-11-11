@@ -766,6 +766,9 @@ func (s *Server) downloadFile(w http.ResponseWriter, r *http.Request) {
 	}
 	p := filepath.Join(st.Dir(), a.Downloads[i].File)
 	w.Header().Set("Content-Disposition", fmt.Sprintf("attachment; filename=%q", a.ID+"-"+filepath.Base(p)))
+	// The files change, e.g. a new CA for devices: without it browsers
+	// keep an old one for days, guessing from Last-Modified.
+	w.Header().Set("Cache-Control", "no-cache")
 	http.ServeFile(w, r, p)
 }
 

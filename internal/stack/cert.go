@@ -67,6 +67,12 @@ func (s *Stack) CADir() string { return filepath.Join(s.Root, "ca") }
 // CACertFile is the CA certificate users download.
 func (s *Stack) CACertFile() string { return filepath.Join(s.CADir(), "ca.crt") }
 
+// rsaCAFile is the second CA of the device, with an RSA key. It signs the
+// RSA certificates: old clients (Supla devices on ESP8266) know no other
+// signature and reject a certificate signed with ECDSA even when they do
+// not check it.
+func (s *Stack) rsaCAFile() string { return filepath.Join(s.CADir(), "rsa-ca.crt") }
+
 // certificates makes the certificates the installed add-ons ask for and
 // renews them when needed. Services of add-ons whose certificate was
 // replaced are restarted after Up.
@@ -95,11 +101,16 @@ func (s *Stack) certificates() error {
 }
 
 // restartFor queues a restart of the services using the certificates of
-// d, after Up.
+// d, after Up. Services of other add-ons may be named; those not installed
+// are left out.
 func (s *Stack) restartFor(a *addon.Addon, d addon.CertDir) {
 	services := d.Restart
 	if len(services) == 0 {
 		services = a.Services
+	} else if installed, err := s.Services(); err == nil {
+		services = slices.DeleteFunc(slices.Clone(services), func(name string) bool {
+			return !slices.Contains(installed, name)
+		})
 	}
 	if len(services) > 0 {
 		s.after = append(s.after, addon.After{Restart: slices.Clone(services)})
@@ -207,7 +218,13 @@ func (s *Stack) DeviceCertificate(dir string) (replaced bool, err error) {
 }
 
 func (s *Stack) deviceCertificate(dir string, o certOptions) (replaced bool, err error) {
-	ca, caKey, err := s.loadCA()
+	var ca *x509.Certificate
+	var caKey crypto.Signer
+	if o.rsa {
+		ca, caKey, err = s.loadRSACA()
+	} else {
+		ca, caKey, err = s.loadCA()
+	}
 	if err != nil {
 		return false, err
 	}
@@ -316,12 +333,30 @@ func certValid(data []byte, ca *x509.Certificate, dns []string, ips []net.IP) bo
 
 // loadCA reads the CA of the device and makes it on first use.
 func (s *Stack) loadCA() (*x509.Certificate, *ecdsa.PrivateKey, error) {
-	crtFile, keyFile := s.CACertFile(), filepath.Join(s.CADir(), "ca.key")
+	crt, key, err := s.loadCAFiles(s.CACertFile(), filepath.Join(s.CADir(), "ca.key"), false)
+	if err != nil {
+		return nil, nil, err
+	}
+	return crt, key.(*ecdsa.PrivateKey), nil
+}
+
+// loadRSACA reads the RSA CA of the device and makes it on first use.
+func (s *Stack) loadRSACA() (*x509.Certificate, crypto.Signer, error) {
+	return s.loadCAFiles(s.rsaCAFile(), filepath.Join(s.CADir(), "rsa-ca.key"), true)
+}
+
+func (s *Stack) loadCAFiles(crtFile, keyFile string, useRSA bool) (*x509.Certificate, crypto.Signer, error) {
 	pair, err := tls.LoadX509KeyPair(crtFile, keyFile)
 	if err == nil {
-		key, ok := pair.PrivateKey.(*ecdsa.PrivateKey)
+		var key crypto.Signer
+		var ok bool
+		if useRSA {
+			key, ok = pair.PrivateKey.(*rsa.PrivateKey)
+		} else {
+			key, ok = pair.PrivateKey.(*ecdsa.PrivateKey)
+		}
 		if !ok {
-			return nil, nil, fmt.Errorf("%s: not an ECDSA key", keyFile)
+			return nil, nil, fmt.Errorf("%s: wrong type of the key", keyFile)
 		}
 		crt, err := x509.ParseCertificate(pair.Certificate[0])
 		// CAs made before 0.4.2 had the same name on every device, and
@@ -333,19 +368,42 @@ func (s *Stack) loadCA() (*x509.Certificate, *ecdsa.PrivateKey, error) {
 		return nil, nil, fmt.Errorf("CA of the device: %w", err)
 	}
 
-	key, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
-	if err != nil {
-		return nil, nil, err
+	var key crypto.Signer
+	var keyPEM []byte
+	if useRSA {
+		k, err := rsa.GenerateKey(rand.Reader, 2048)
+		if err != nil {
+			return nil, nil, err
+		}
+		keyDER, err := x509.MarshalPKCS8PrivateKey(k)
+		if err != nil {
+			return nil, nil, err
+		}
+		key, keyPEM = k, pem.EncodeToMemory(&pem.Block{Type: "PRIVATE KEY", Bytes: keyDER})
+	} else {
+		k, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+		if err != nil {
+			return nil, nil, err
+		}
+		keyDER, err := x509.MarshalECPrivateKey(k)
+		if err != nil {
+			return nil, nil, err
+		}
+		key, keyPEM = k, pem.EncodeToMemory(&pem.Block{Type: "EC PRIVATE KEY", Bytes: keyDER})
 	}
 	host, _ := os.Hostname()
 	// The ID tells apart the CAs of devices with the same name, also of the
 	// same device installed again.
-	pub, err := x509.MarshalPKIXPublicKey(&key.PublicKey)
+	pub, err := x509.MarshalPKIXPublicKey(key.Public())
 	if err != nil {
 		return nil, nil, err
 	}
 	sum := sha256.Sum256(pub)
 	id := hex.EncodeToString(sum[:4])
+	name := "SuplaOS " + host + " " + id
+	if useRSA {
+		name = "SuplaOS " + host + " devices " + id
+	}
 	var ranges []*net.IPNet
 	for _, r := range caIPRanges {
 		_, n, _ := net.ParseCIDR(r)
@@ -354,7 +412,7 @@ func (s *Stack) loadCA() (*x509.Certificate, *ecdsa.PrivateKey, error) {
 	tmpl := &x509.Certificate{
 		SerialNumber: serialNumber(),
 		Subject: pkix.Name{
-			CommonName:   "SuplaOS " + host + " " + id,
+			CommonName:   name,
 			Organization: []string{"SuplaOS"},
 			SerialNumber: id,
 		},
@@ -367,16 +425,11 @@ func (s *Stack) loadCA() (*x509.Certificate, *ecdsa.PrivateKey, error) {
 		PermittedDNSDomains:   caDNSDomains,
 		PermittedIPRanges:     ranges,
 	}
-	der, err := x509.CreateCertificate(rand.Reader, tmpl, tmpl, &key.PublicKey, key)
+	der, err := x509.CreateCertificate(rand.Reader, tmpl, tmpl, key.Public(), key)
 	if err != nil {
 		return nil, nil, err
 	}
-	keyDER, err := x509.MarshalECPrivateKey(key)
-	if err != nil {
-		return nil, nil, err
-	}
-	if err := s.writeFile(keyFile,
-		pem.EncodeToMemory(&pem.Block{Type: "EC PRIVATE KEY", Bytes: keyDER}), 0o600); err != nil {
+	if err := s.writeFile(keyFile, keyPEM, 0o600); err != nil {
 		return nil, nil, err
 	}
 	if err := s.writeFile(crtFile,

@@ -2,6 +2,17 @@
 
 [Po polsku](docs/pl/CHANGELOG.md)
 
+## 0.11.1
+
+- Supla devices on ESP8266 (e.g. Zamel with firmware 2.8.x) didn't connect
+  to supla-server: they know only RSA and rejected its certificate signed
+  with ECDSA. The certificate of port 2016 is now signed by a second CA of
+  the device, with an RSA key. Devices with Custom CA need the new CA from
+  the card on the Supla add-on page, the old one no longer fits. The CA for
+  browsers stays the same.
+- Files of the add-ons (e.g. that CA) could stay old in the browser for
+  days after they changed.
+
 ## 0.11.0
 
 - New add-on: Node-RED with the Supla nodes. The editor is served by the

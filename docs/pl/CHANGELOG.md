@@ -2,6 +2,17 @@
 
 [In English](../../CHANGELOG.md)
 
+## 0.11.1
+
+- Urządzenia Supli na ESP8266 (np. Zamel z firmware 2.8.x) nie łączyły się
+  z supla-server: znają tylko RSA i odrzucały jego certyfikat podpisany
+  ECDSA. Certyfikat portu 2016 podpisuje teraz drugie CA urządzenia,
+  z kluczem RSA. Urządzenia z Custom CA potrzebują nowego CA z karty na
+  stronie dodatku Supla, stare już nie pasuje. CA dla przeglądarek zostaje
+  to samo.
+- Pliki dodatków (np. to CA) mogły jeszcze przez kilka dni po zmianie
+  zostawać stare w przeglądarce.
+
 ## 0.11.0
 
 - Nowy dodatek: Node-RED z węzłami Supli. Edytor jest przez panel, po

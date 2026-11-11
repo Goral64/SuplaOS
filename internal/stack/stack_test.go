@@ -5,9 +5,11 @@ import (
 	"crypto/ecdsa"
 	"crypto/elliptic"
 	"crypto/rand"
+	"crypto/rsa"
 	"crypto/x509"
 	"crypto/x509/pkix"
 	"encoding/pem"
+	"math/big"
 	"net"
 	"os"
 	"path/filepath"
@@ -271,8 +273,14 @@ func verify(t *testing.T, s *Stack, dir, name string) error {
 // a client connecting by name would, name constraints of the CA included.
 func verifyFile(t *testing.T, s *Stack, file, name string) error {
 	t.Helper()
+	return verifyWith(t, s.CACertFile(), file, name)
+}
+
+// verifyWith checks the first certificate in file with the CA in caFile.
+func verifyWith(t *testing.T, caFile, file, name string) error {
+	t.Helper()
 	roots := x509.NewCertPool()
-	ca, err := os.ReadFile(s.CACertFile())
+	ca, err := os.ReadFile(caFile)
 	if err != nil || !roots.AppendCertsFromPEM(ca) {
 		t.Fatalf("CA: %v", err)
 	}
@@ -687,6 +695,26 @@ func TestCertificateRestartsUsers(t *testing.T) {
 	}
 }
 
+// zigbee2supla reads the CA of supla-server when it starts: a new one
+// restarts it too, when it is installed.
+func TestSuplaServerCertificateRestartsZigbee2Supla(t *testing.T) {
+	s := newStack(t)
+	must(t, s.Install("supla", nil))
+	must(t, s.Install("zigbee2supla", map[string]string{"Z2S_SUPLA_EMAIL": "a@b.c"}))
+	s.after = nil
+	deviceNames = func() ([]string, []net.IP) {
+		return []string{"suplaos.local"}, []net.IP{net.ParseIP("192.168.1.41")}
+	}
+	must(t, s.certificates())
+	var restarted []string
+	for _, a := range s.after {
+		restarted = append(restarted, a.Restart...)
+	}
+	if !slices.Contains(restarted, "zigbee2supla") || !slices.Contains(restarted, "supla-server") {
+		t.Errorf("restarted: %v", restarted)
+	}
+}
+
 // A new name of the device changes .env, which the certificate watcher
 // notices (and applies).
 func TestEnvChanged(t *testing.T) {
@@ -742,19 +770,34 @@ func TestSuplaServerCertificate(t *testing.T) {
 	block, _ := pem.Decode(data)
 	crt, err := x509.ParseCertificate(block.Bytes)
 	must(t, err)
-	if crt.PublicKeyAlgorithm != x509.RSA || !slices.Contains(crt.DNSNames, "supla-server.local") {
-		t.Errorf("key %v, names %v", crt.PublicKeyAlgorithm, crt.DNSNames)
+	// RSA all the way, also the signature: devices on ESP8266 reject a
+	// certificate signed with ECDSA.
+	if crt.PublicKeyAlgorithm != x509.RSA || crt.SignatureAlgorithm != x509.SHA256WithRSA ||
+		!slices.Contains(crt.DNSNames, "supla-server.local") {
+		t.Errorf("key %v, signature %v, names %v", crt.PublicKeyAlgorithm, crt.SignatureAlgorithm, crt.DNSNames)
 	}
 	for _, name := range []string{"supla-server.local", "192.168.1.20", "suplaos.local"} {
-		if err := verifyFile(t, s, filepath.Join(dir, "cert.crt"), name); err != nil {
+		if err := verifyWith(t, filepath.Join(dir, "ca.crt"), filepath.Join(dir, "cert.crt"), name); err != nil {
 			t.Errorf("%s: %v", name, err)
 		}
 	}
+	// ca.crt is the RSA CA, the CA users install stays the ECDSA one.
+	if ca, _ := os.ReadFile(filepath.Join(dir, "ca.crt")); !strings.Contains(string(ca), "BEGIN CERTIFICATE") {
+		t.Error("no ca.crt")
+	} else {
+		block, _ := pem.Decode(ca)
+		caCrt, err := x509.ParseCertificate(block.Bytes)
+		must(t, err)
+		if caCrt.PublicKeyAlgorithm != x509.RSA || !strings.Contains(caCrt.Subject.CommonName, " devices ") ||
+			len(caCrt.PermittedDNSDomains) == 0 {
+			t.Errorf("RSA CA: %v %q %v", caCrt.PublicKeyAlgorithm, caCrt.Subject.CommonName, caCrt.PermittedDNSDomains)
+		}
+	}
+	if main, _, _ := s.loadCA(); main == nil || main.PublicKeyAlgorithm != x509.ECDSA {
+		t.Error("main CA is not ECDSA")
+	}
 	if key, _ := os.ReadFile(filepath.Join(dir, "private.key")); !strings.Contains(string(key), "BEGIN PRIVATE KEY") {
 		t.Error("no private.key")
-	}
-	if _, err := os.Stat(filepath.Join(dir, "ca.crt")); err != nil {
-		t.Error(err)
 	}
 	// The certificate stays while valid, also with an own domain: devices
 	// trust the CA of the device.
@@ -767,5 +810,20 @@ func TestSuplaServerCertificate(t *testing.T) {
 	os.WriteFile(filepath.Join(dir, "cert.crt"), []byte("-----BEGIN CERTIFICATE-----\nAA==\n-----END CERTIFICATE-----\n"), 0o644)
 	if replaced, err := s.certificate(dir, optionsOf(s.Catalog["supla"].Certificates[1])); err != nil || !replaced {
 		t.Errorf("old one: %v %v", replaced, err)
+	}
+	// An RSA one signed by the main CA (SuplaOS before 0.11.1) is replaced
+	// too.
+	ca, caKey, err := s.loadCA()
+	must(t, err)
+	key, err := rsa.GenerateKey(rand.Reader, 2048)
+	must(t, err)
+	names, ips := deviceNames()
+	tmpl := &x509.Certificate{SerialNumber: big.NewInt(2), NotBefore: time.Now(), NotAfter: time.Now().Add(leafValidity),
+		DNSNames: append(names, "supla-server.local"), IPAddresses: ips}
+	der, err := x509.CreateCertificate(rand.Reader, tmpl, ca, &key.PublicKey, caKey)
+	must(t, err)
+	must(t, os.WriteFile(filepath.Join(dir, "cert.crt"), pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: der}), 0o644))
+	if replaced, err := s.certificate(dir, optionsOf(s.Catalog["supla"].Certificates[1])); err != nil || !replaced {
+		t.Errorf("signed by the main CA: %v %v", replaced, err)
 	}
 }

@@ -81,8 +81,9 @@ add-on page also offers the file.
 
 ## Supla devices
 
-Devices connect to supla-server on the encrypted port 2016, and its
-certificate is signed by the same CA. On the Supla add-on page, card CA
+Devices connect to supla-server on the encrypted port 2016. Its
+certificate is signed by a second CA of the device, with an RSA key, as
+old devices on ESP8266 know no other. On the Supla add-on page, card CA
 certificate for devices (Custom CA), copy the certificate. In the settings
 of the device (GUI-Generic, SuplaDevice: Supla protocol) set the address of
 SuplaOS as the server, the security level Custom CA, and paste it there.
@@ -98,7 +99,9 @@ The wizard sets only Wi-Fi, the server and the e-mail, and the device stays
 with Supla CA verification, which doesn't accept a certificate of any own
 server. In the server log it shows as Connection accepted and nothing
 after it. Put the device in config mode once more and set Custom CA (or
-Skip) there. This goes for the original devices made by Zamel too.
+Skip) there. This goes for the newer Zamel devices too (firmware
+numbered by date, e.g. 25.10.02). The older ones on ESP8266 (firmware
+2.8.x) don't check the certificate and connect as they are.
 
 The certificate pasted into the device is the CA, valid for 20 years. The
 certificate of supla-server is valid a bit over two years, and SuplaOS
