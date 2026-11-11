@@ -1,6 +1,8 @@
 package panel
 
 import (
+	"context"
+	"net"
 	"net/http"
 	"net/http/httptest"
 	"net/netip"
@@ -139,5 +141,52 @@ func TestLoginThrottle(t *testing.T) {
 	s.result("8.8.8.8", true)
 	if s.failed["8.8.8.8"] != nil {
 		t.Error("not cleared after a good password")
+	}
+}
+
+// The IPv6 networks next to the device come from the routes without a
+// gateway: an address from DHCPv6 is a /128.
+func TestOnLinkIPv6(t *testing.T) {
+	file := t.TempDir() + "/ipv6_route"
+	data := strings.Join([]string{
+		// Through the router: not next to the device.
+		"fd7c4de36cbd00010000000000000000 40 00000000000000000000000000000000 00 fe800000000000003625befffee2b3c8 00000069 00000001 00000000 00000003     end0",
+		"2a010110000000000000000000000000 40 00000000000000000000000000000000 00 00000000000000000000000000000000 00000064 00000002 00000000 00000001     end0",
+		"2a010110000000000000000000000077 80 00000000000000000000000000000000 00 00000000000000000000000000000000 00000000 00000002 00000000 80200001     end0",
+		// Default route and multicast.
+		"00000000000000000000000000000000 00 00000000000000000000000000000000 00 fe800000000000003625befffee2b3c8 00000400 00000001 00000000 00000003     end0",
+		"ff000000000000000000000000000000 08 00000000000000000000000000000000 00 00000000000000000000000000000000 00000100 00000007 00000000 00000001     end0",
+	}, "\n") + "\n"
+	if err := os.WriteFile(file, []byte(data), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	got := onLinkIPv6(file)
+	want := []netip.Prefix{netip.MustParsePrefix("2a01:110::/64"), netip.MustParsePrefix("2a01:110::77/128")}
+	if len(got) != len(want) || got[0] != want[0] || got[1] != want[1] {
+		t.Errorf("got %v, want %v", got, want)
+	}
+}
+
+// A request to a private IPv6 address of the device is local, whatever
+// address it came from; not so for IPv4, where ports are forwarded.
+func TestToPrivateIPv6(t *testing.T) {
+	for _, c := range []struct {
+		to       string
+		internet bool
+	}{
+		{"[fdf2:c818:8ddd:a8a5::17]:8443", false},
+		{"[fe80::1%25end0]:8443", false},
+		{"[2a01:4f8:9::1]:8443", true},
+		{"192.168.1.20:8443", true},
+	} {
+		r := request("[2a00:1450::5]:5000")
+		addr, err := net.ResolveTCPAddr("tcp", strings.ReplaceAll(c.to, "%25", "%"))
+		if err != nil {
+			t.Fatal(err)
+		}
+		r = r.WithContext(context.WithValue(r.Context(), http.LocalAddrContextKey, net.Addr(addr)))
+		if got := fromInternet(r); got != c.internet {
+			t.Errorf("to %s: internet %v", c.to, got)
+		}
 	}
 }

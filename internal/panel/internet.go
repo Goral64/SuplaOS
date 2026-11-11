@@ -1,10 +1,15 @@
 package panel
 
 import (
+	"bufio"
+	"encoding/hex"
+	"log"
 	"net"
 	"net/http"
 	"net/netip"
+	"os"
 	"slices"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -38,7 +43,8 @@ var localNets struct {
 	updated time.Time
 }
 
-// interfaceNets is net.InterfaceAddrs, another one in the tests.
+// interfaceNets are the networks of net.InterfaceAddrs and the IPv6
+// networks the router announces; another one in the tests.
 var interfaceNets = func() ([]netip.Prefix, error) {
 	addrs, err := net.InterfaceAddrs()
 	if err != nil {
@@ -52,7 +58,41 @@ var interfaceNets = func() ([]netip.Prefix, error) {
 			}
 		}
 	}
-	return out, nil
+	return append(out, onLinkIPv6(ipv6RouteFile)...), nil
+}
+
+var ipv6RouteFile = "/proc/net/ipv6_route"
+
+// onLinkIPv6 reads the IPv6 networks reached without a gateway from
+// /proc/net/ipv6_route. An address from DHCPv6 is a /128 and only the route
+// tells the network of the computers next to the device.
+func onLinkIPv6(file string) []netip.Prefix {
+	f, err := os.Open(file)
+	if err != nil {
+		return nil
+	}
+	defer f.Close()
+	var out []netip.Prefix
+	sc := bufio.NewScanner(f)
+	for sc.Scan() {
+		fields := strings.Fields(sc.Text())
+		if len(fields) < 10 || strings.Trim(fields[4], "0") != "" {
+			continue
+		}
+		dest, err := hex.DecodeString(fields[0])
+		bits, err2 := strconv.ParseUint(fields[1], 16, 8)
+		if err != nil || err2 != nil || len(dest) != 16 || bits == 0 || bits > 128 {
+			continue
+		}
+		ip := netip.AddrFrom16([16]byte(dest))
+		if ip.IsMulticast() {
+			continue
+		}
+		if p, err := ip.Prefix(int(bits)); err == nil {
+			out = append(out, p)
+		}
+	}
+	return out
 }
 
 // isLocal tells whether ip is in the local network or a private one.
@@ -123,10 +163,49 @@ func forwardedFor(r *http.Request) []netip.Addr {
 // Headers are believed only from the local network; there a forged one
 // can only take access away.
 func fromInternet(r *http.Request) bool {
-	if !isLocal(remoteAddr(r)) {
+	if !isLocal(remoteAddr(r)) && !toPrivateIPv6(r) {
 		return true
 	}
 	return slices.ContainsFunc(forwardedFor(r), func(ip netip.Addr) bool { return !isLocal(ip) })
+}
+
+// toPrivateIPv6 tells whether the request came to a private or link-local
+// IPv6 address of the device, which no one reaches from the internet: e.g.
+// a computer with a public address to a device with only a private one.
+// Not so for IPv4, where the router forwards ports to a private address.
+func toPrivateIPv6(r *http.Request) bool {
+	local, ok := r.Context().Value(http.LocalAddrContextKey).(net.Addr)
+	if !ok {
+		return false
+	}
+	ap, err := netip.ParseAddrPort(local.String())
+	if err != nil {
+		return false
+	}
+	ip := ap.Addr()
+	return ip.Is6() && !ip.Is4In6() && (ip.IsPrivate() || ip.IsLinkLocalUnicast())
+}
+
+// refused are the addresses already logged as refused, so that a browser
+// asking again does not fill the log; up to a limit, against scanners.
+var refused struct {
+	sync.Mutex
+	ips map[string]bool
+}
+
+// logRefused writes a refused request to the log, once for an address.
+func logRefused(id string, r *http.Request) {
+	ip := clientIP(r)
+	refused.Lock()
+	defer refused.Unlock()
+	if refused.ips == nil {
+		refused.ips = map[string]bool{}
+	}
+	if refused.ips[ip] || len(refused.ips) >= 256 {
+		return
+	}
+	refused.ips[ip] = true
+	log.Printf("%s: request from the internet refused: %s (to %s)", id, ip, r.Host)
 }
 
 // clientIP is the address logins are counted by: the one a proxy in the
@@ -153,6 +232,7 @@ func (s *Server) internetAllowed(id string) bool {
 func (s *Server) guard(id string, h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if fromInternet(r) && !s.internetAllowed(id) {
+			logRefused(id, r)
 			http.Error(w, "Access from the internet is turned off in the SuplaOS panel (System, Access).\n"+
 				"Dostęp z internetu jest wyłączony w panelu SuplaOS (System, Dostęp).", http.StatusForbidden)
 			return

@@ -2,6 +2,15 @@
 
 [Po polsku](docs/pl/CHANGELOG.md)
 
+## 0.11.2
+
+- The panel could refuse a computer in the home network with "Access from
+  the internet is turned off", when it connected over IPv6 with a public
+  address, e.g. at suplaos.local. The networks the router announces count
+  as local now, also when the device got only a single address (DHCPv6),
+  and so do connections to a private IPv6 address of the device. A refused
+  address is written to the log of the panel.
+
 ## 0.11.1
 
 - Supla devices on ESP8266 (e.g. Zamel with firmware 2.8.x) didn't connect

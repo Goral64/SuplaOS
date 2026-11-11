@@ -2,6 +2,15 @@
 
 [In English](../../CHANGELOG.md)
 
+## 0.11.2
+
+- Panel mógł odrzucić komputer z sieci domowej komunikatem „Dostęp
+  z internetu jest wyłączony”, gdy łączył się przez IPv6 z adresu
+  publicznego, np. pod suplaos.local. Sieci ogłaszane przez router liczą
+  się teraz jako lokalne, także gdy urządzenie dostało tylko pojedynczy adres
+  (DHCPv6), tak samo połączenia na prywatny adres IPv6 urządzenia. Odrzucony
+  adres trafia do logu panelu.
+
 ## 0.11.1
 
 - Urządzenia Supli na ESP8266 (np. Zamel z firmware 2.8.x) nie łączyły się
