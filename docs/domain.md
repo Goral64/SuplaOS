@@ -179,6 +179,10 @@ DuckDNS they can all point to the same name.
 
 A wildcard record in the zone (`*.example.com`) doesn't get in the way.
 
+FreeDNS (afraid.org) has no API for TXT records, so it works this way too:
+add the `_acme-challenge` CNAME there. On the shared FreeDNS domains it may
+not be possible to add such a name, on your own domain it should work.
+
 ## What changes
 
 - Supla Cloud opens at `https://supla.example.com`, the panel at

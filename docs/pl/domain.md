@@ -176,6 +176,11 @@ W DuckDNS wszystkie mogą wskazywać na tę samą nazwę.
 
 Rekord wildcard w strefie (`*.example.pl`) nie przeszkadza.
 
+FreeDNS (afraid.org) nie ma API do rekordów TXT, więc też działa w ten
+sposób: rekord CNAME `_acme-challenge` dodajesz u nich. Na wspólnych
+domenach FreeDNS takiej nazwy może się nie dać założyć, na własnej domenie
+powinno działać.
+
 ## Co się zmienia
 
 - Supla Cloud otwiera się pod `https://supla.example.pl`, panel pod
