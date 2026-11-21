@@ -2,6 +2,14 @@
 
 [Po polsku](docs/pl/CHANGELOG.md)
 
+## 0.12.0
+
+- Limits of the Supla Cloud accounts (devices, locations, scenes and so
+  on) can be raised on the Supla add-on page with one click, without the
+  console: Default (as a new account gets), Big (twice that), Large (five
+  times) and Maximum (ten times, as far as the Cloud allows). The card also
+  shows how much of each limit an account uses.
+
 ## 0.11.2
 
 - The panel could refuse a computer in the home network with "Access from

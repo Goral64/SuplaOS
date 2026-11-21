@@ -431,6 +431,37 @@
     "forget": "Remove the registration from this device",
     "forgetConfirm": "Remove the registration from this Supla Cloud? Do it after it was undone at cloud.supla.org; until then cloud.supla.org still has this address."
   },
+  "accountLimits": {
+    "title": "Account limits",
+    "intro": "Supla Cloud limits how many devices, locations, scenes and so on an account may have. A new account gets the default limits of the Cloud, which can be too low for a home with many devices. Here they can be raised for the whole account at once.",
+    "preset": { "default": "Default", "big": "Big", "large": "Large", "max": "Maximum" },
+    "custom": "Own values",
+    "apply": "Set",
+    "confirm": "Set the limits \"{preset}\" for {email}?",
+    "below": "The account already has more than these limits allow for: {names}. What it has stays, but nothing more can be added.",
+    "done": "Limits of {email} changed.",
+    "show": "Show the limits",
+    "hide": "Hide the limits",
+    "help": "Default is what a new account gets, Big twice that, Large five times and Maximum ten times, but never more than the Cloud allows (e.g. a schedule holds about 35 actions). Other values, e.g. for a single limit, are set with: suplaos run supla console supla:user:change-limits <e-mail>",
+    "name": {
+      "limit_iodev": "Devices",
+      "limit_client": "Client apps (phones)",
+      "limit_loc": "Locations",
+      "limit_aid": "Access IDs",
+      "limit_channel_group": "Channel groups",
+      "limit_channel_per_group": "Channels per group",
+      "limit_scene": "Scenes",
+      "limit_operations_per_scene": "Operations per scene",
+      "limit_schedule": "Schedules",
+      "limit_actions_per_schedule": "Actions per schedule",
+      "limit_direct_link": "Direct links",
+      "limit_value_based_triggers": "Reactions",
+      "limit_oauth_client": "OAuth apps",
+      "limit_push_notifications": "Push notifications",
+      "limit_push_notifications_per_hour": "Push notifications per hour",
+      "limit_virtual_channels": "Virtual channels"
+    }
+  },
   "changelog": {
     "title": "Changes in SuplaOS",
     "show": "Changes",

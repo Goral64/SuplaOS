@@ -105,7 +105,8 @@ Everything lives in `/srv/suplaos`: the generated compose project in
 
 Supla Cloud instructions often use commands like
 `docker compose exec -u www-data supla-cloud php bin/console ...`, for
-example to change account limits. In SuplaOS the same goes through
+example to change account limits (for those there is also a card on the
+Supla add-on page in the panel). In SuplaOS the same goes through
 `suplaos run supla console`:
 
     suplaos run supla console supla:user:change-limits you@example.com

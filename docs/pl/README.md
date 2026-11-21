@@ -102,8 +102,8 @@ kopie bazy w `backups/`.
 
 Instrukcje do Supla Cloud często podają polecenia w stylu
 `docker compose exec -u www-data supla-cloud php bin/console ...`, np. do
-zmiany limitów konta. W SuplaOS to samo robi się przez
-`suplaos run supla console`:
+zmiany limitów konta (na to jest też karta na stronie dodatku Supla
+w panelu). W SuplaOS to samo robi się przez `suplaos run supla console`:
 
     suplaos run supla console supla:user:change-limits ty@example.com
 

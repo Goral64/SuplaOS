@@ -431,6 +431,37 @@
     "forget": "Usuń rejestrację z tego urządzenia",
     "forgetConfirm": "Usunąć rejestrację z tego Supla Cloud? Zrób to po cofnięciu jej w cloud.supla.org; do tego czasu cloud.supla.org nadal ma ten adres."
   },
+  "accountLimits": {
+    "title": "Limity kont",
+    "intro": "Supla Cloud ogranicza, ile urządzeń, lokalizacji, scen itd. może mieć konto. Nowe konto dostaje domyślne limity Cloud, które w domu z dużą liczbą urządzeń mogą być za małe. Tutaj można je podnieść dla całego konta naraz.",
+    "preset": { "default": "Domyślne", "big": "Duże", "large": "Bardzo duże", "max": "Maksymalne" },
+    "custom": "Własne wartości",
+    "apply": "Ustaw",
+    "confirm": "Ustawić limity „{preset}” dla {email}?",
+    "below": "Konto ma już więcej, niż te limity pozwalają: {names}. To, co jest, zostaje, ale nie da się dodać kolejnych.",
+    "done": "Limity {email} zmienione.",
+    "show": "Pokaż limity",
+    "hide": "Ukryj limity",
+    "help": "Domyślne to limity nowego konta, Duże są dwa razy większe, Bardzo duże pięć razy, a Maksymalne dziesięć razy, ale nie więcej, niż pozwala Cloud (np. harmonogram mieści ok. 35 akcji). Inne wartości, np. pojedynczego limitu, ustawia polecenie: suplaos run supla console supla:user:change-limits <e-mail>",
+    "name": {
+      "limit_iodev": "Urządzenia",
+      "limit_client": "Aplikacje (telefony)",
+      "limit_loc": "Lokalizacje",
+      "limit_aid": "Identyfikatory dostępu",
+      "limit_channel_group": "Grupy kanałów",
+      "limit_channel_per_group": "Kanały w grupie",
+      "limit_scene": "Sceny",
+      "limit_operations_per_scene": "Operacje w scenie",
+      "limit_schedule": "Harmonogramy",
+      "limit_actions_per_schedule": "Akcje w harmonogramie",
+      "limit_direct_link": "Linki bezpośrednie",
+      "limit_value_based_triggers": "Reakcje",
+      "limit_oauth_client": "Aplikacje OAuth",
+      "limit_push_notifications": "Powiadomienia push",
+      "limit_push_notifications_per_hour": "Powiadomienia push na godzinę",
+      "limit_virtual_channels": "Kanały wirtualne"
+    }
+  },
   "changelog": {
     "title": "Zmiany w SuplaOS",
     "show": "Zmiany",

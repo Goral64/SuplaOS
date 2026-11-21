@@ -162,6 +162,8 @@ func (s *Server) Handler() http.Handler {
 	api("GET /api/supla/users", s.suplaUsers)
 	api("POST /api/supla/users", s.createSuplaUser)
 	api("GET /api/supla/server", s.suplaServer)
+	api("GET /api/supla/limits", s.getLimits)
+	api("PUT /api/supla/limits/{id}", s.putLimits)
 	api("GET /api/supla/registration", s.getRegistration)
 	api("POST /api/supla/registration", s.registerCloud)
 	api("DELETE /api/supla/registration", s.forgetRegistration)

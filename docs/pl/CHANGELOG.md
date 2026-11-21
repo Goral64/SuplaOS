@@ -2,6 +2,14 @@
 
 [In English](../../CHANGELOG.md)
 
+## 0.12.0
+
+- Limity kont Supla Cloud (urządzenia, lokalizacje, sceny itd.) można
+  podnieść na stronie dodatku Supla jednym kliknięciem, bez konsoli:
+  Domyślne (jak w nowym koncie), Duże (dwa razy większe), Bardzo duże (pięć
+  razy) i Maksymalne (dziesięć razy, na ile pozwala Cloud). Karta pokazuje
+  też, ile z każdego limitu konto już wykorzystuje.
+
 ## 0.11.2
 
 - Panel mógł odrzucić komputer z sieci domowej komunikatem „Dostęp
