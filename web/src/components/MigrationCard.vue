@@ -59,15 +59,30 @@ const moveScripts = () => call(async () => {
   await load()
 })
 
+// What is lost by ending the move now.
+function endQuestion() {
+  const lines = []
+  const all = view.value.devices.length
+  const left = all - count('done')
+  if (left) lines.push(t('migration.endWaiting', { n: left, all }))
+  if (historyBad.value) lines.push(t('migration.endHistory'))
+  lines.push(t('migration.cancelPreparedConfirm'))
+  return lines.join('\n\n')
+}
+
 const cancel = () => call(async () => {
+  // Devices connect while the page is open.
+  await load()
   const prepared = view.value.prepared
-  if (!(await ask(t(prepared ? 'migration.cancelPreparedConfirm' : 'migration.cancelConfirm'),
+  if (!(await ask(prepared ? endQuestion() : t('migration.cancelConfirm'),
     { ok: t(prepared ? 'migration.finish' : 'migration.forget'), danger: true }))) return
   await api('DELETE', '/migration')
   await load()
 })
 
 const count = (status) => view.value?.devices?.filter((d) => d.status === status).length || 0
+// Not copied to the end: a failure, or interrupted before it was noted.
+const historyBad = computed(() => !view.value?.history || !!view.value.history.error)
 // Kinds of objects with their number in the source, those there are.
 const objects = computed(() => Object.entries(view.value?.objects || {}).filter(([, n]) => n > 0))
 const made = (kind) => view.value?.made?.counts?.[kind] || 0
@@ -144,9 +159,12 @@ const when = (d) => new Date(d).toLocaleString(locale.value)
             </tr>
           </table>
         </details>
-        <p v-if="view.history" :class="view.history.error ? 'alert error' : 'muted'">
+        <div v-if="historyBad" class="alert error">
+          {{ $t('migration.historyFailed') }}
+          <div v-if="view.history?.error" class="small">{{ view.history.error }}</div>
+        </div>
+        <p v-else class="muted">
           {{ $t('migration.history', { date: when(view.history.time), n: view.history.items }) }}
-          <template v-if="view.history.error"> {{ view.history.error }}</template>
         </p>
         <form v-if="view.scriptsInstalled" class="mt" @submit.prevent="moveScripts">
           <h3>SUPLA Scripts</h3>

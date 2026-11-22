@@ -44,6 +44,9 @@ type State struct {
 	// the move ends.
 	SourceToken string      `json:"sourceToken,omitempty"`
 	History     *HistoryRun `json:"history,omitempty"`
+	// Copied is the time of the newest log item of the source copied, by
+	// table and channel (copiedKey).
+	Copied map[string]int64 `json:"copied,omitempty"`
 	// Scripts is the result of moving the objects of SUPLA Scripts.
 	Scripts *ScriptsResult `json:"scripts,omitempty"`
 }

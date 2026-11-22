@@ -70,10 +70,16 @@ func TestImportHistory(t *testing.T) {
 		{ID: 10, FunctionID: 40},  // thermometer: logs
 		{ID: 11, FunctionID: 130}, // power switch: none
 	}}}}
-	db := &fakeDB{rows: map[string][][]string{"SET time_zone = '+00:00'; SELECT": {{"1700000000"}}}}
-	n, err := ImportHistory(src, db, b, io.Discard)
+	// The device is switched and logs here: the newest log here is newer
+	// than what is to be copied from the source.
+	db := &fakeDB{rows: map[string][][]string{"SET time_zone = '+00:00'; SELECT": {{"1700009999"}}}}
+	copied := map[string]int64{"supla_temperature_log:10": 1700000000}
+	n, err := ImportHistory(src, db, b, copied, io.Discard)
 	if err != nil || n != 2 {
 		t.Fatalf("%d %v", n, err)
+	}
+	if copied["supla_temperature_log:10"] != 1700001200 || len(copied) != 1 {
+		t.Errorf("copied %v", copied)
 	}
 	if len(asked) != 2 || !strings.Contains(asked[1], "/api/v3/channels/10/measurement-logs?") ||
 		!strings.Contains(asked[1], "afterTimestamp=1700000000") || !strings.Contains(asked[1], "order=ASC") {
@@ -83,6 +89,42 @@ func TestImportHistory(t *testing.T) {
 	if !strings.HasPrefix(last, "SET time_zone = '+00:00';\nINSERT IGNORE INTO supla_temperature_log") ||
 		!strings.Contains(last, "(10, FROM_UNIXTIME(1700001200), 21.5);") {
 		t.Errorf("insert:\n%s", last)
+	}
+}
+
+func TestImportHistoryInterrupted(t *testing.T) {
+	fail := true
+	var after []string
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Query().Get("offset") != "0" {
+			if fail {
+				http.Error(w, "busy", http.StatusInternalServerError)
+				return
+			}
+			io.WriteString(w, "[]")
+			return
+		}
+		after = append(after, r.URL.Query().Get("afterTimestamp"))
+		var page []string
+		for i := range logsPage {
+			page = append(page, fmt.Sprintf(`{"date_timestamp":%d,"temperature":20}`, i+1))
+		}
+		io.WriteString(w, "["+strings.Join(page, ",")+"]")
+	}))
+	defer ts.Close()
+	src := &Source{Server: ts.URL, token: "t", client: ts.Client()}
+	b := &Bundle{Devices: []Device{{ID: 1, Channels: []Channel{{ID: 10, FunctionID: 40}}}}}
+	copied := map[string]int64{}
+	if _, err := ImportHistory(src, &fakeDB{}, b, copied, io.Discard); err == nil || len(copied) != 0 {
+		t.Fatalf("a channel not read to the end noted: %v %v", copied, err)
+	}
+	fail = false
+	n, err := ImportHistory(src, &fakeDB{}, b, copied, io.Discard)
+	if err != nil || n != logsPage || copied["supla_temperature_log:10"] != logsPage {
+		t.Fatalf("%d %v %v", n, copied, err)
+	}
+	if len(after) != 2 || after[1] != "" {
+		t.Errorf("not read again from the start: %q", after)
 	}
 }
 

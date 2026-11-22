@@ -38,7 +38,8 @@ point to the new server.
 4. When a device connects, it gets its settings within a minute. The card
    shows which devices are moved and which are waiting.
 5. After switching the devices, copy the newer history: the source keeps
-   logging until a device is moved. Then end the move.
+   logging until a device is moved. End the move when all the devices are
+   moved, it cannot be started again on the same Supla.
 
 Until a device is switched, it works with the source as before, and its old
 entry stays there, so you can go back by setting the old server again.

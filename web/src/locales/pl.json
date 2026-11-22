@@ -347,7 +347,9 @@
     "finish": "Zakończ przenoszenie",
     "forget": "Zapomnij",
     "cancelConfirm": "Zapomnieć konto odczytane ze źródła?",
-    "cancelPreparedConfirm": "Zakończyć przenoszenie? Urządzenia, które połączą się później, nie dostaną już swoich ustawień. To, co dodano do Supli tutaj, zostaje.",
+    "endWaiting": "Jeszcze nieprzeniesione urządzenia: {n} z {all}. Po zakończeniu nie dostaną już swoich ustawień ani nowszej historii.",
+    "endHistory": "Historia pomiarów nie jest pełna. Po zakończeniu nie da się jej dociągnąć.",
+    "cancelPreparedConfirm": "Zakończyć przenoszenie? Tego nie da się cofnąć ani zacząć ponownie na tej Supli. To, co do niej dodano, zostaje.",
     "also": "Do tego",
     "made": "Utworzone",
     "notMade": "Nie przeniosło się, ustaw to tu ponownie:",
@@ -361,6 +363,7 @@
       "directLinks": "linki bezpośrednie"
     },
     "history": "Historia pomiarów: {n} wpisów, ostatnio dociągnięta {date}.",
+    "historyFailed": "Historia pomiarów nie została skopiowana do końca. Kliknij „Dociągnij nowszą historię”, zanim zakończysz przenoszenie.",
     "historyAgain": "Dociągnij nowszą historię",
     "historyHelp": "Źródło zapisuje pomiary, dopóki urządzenie nie zostanie przestawione tutaj. Po przestawieniu urządzeń dociągnij nowszą historię, zanim zakończysz przenoszenie.",
     "scriptsHelp": "Sceny, termostaty i powiadomienia SUPLA Scripts konta źródłowego przechodzą do SUPLA Scripts tutaj. Odwołują się do kanałów po ID, które przeniesienie zachowuje. Konto, które loguje się tam tylko przez Supla Cloud, potrzebuje najpierw nazwy użytkownika i hasła (strona logowania SUPLA Scripts: Inne metody logowania, powiązanie z prywatnym Supla Cloud tokenem). Telefony dla powiadomień rejestruje się w aplikacji od nowa.",

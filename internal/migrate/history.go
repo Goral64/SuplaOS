@@ -122,6 +122,11 @@ func sqlValue(v json.RawMessage, milli bool) (string, error) {
 	return s, nil
 }
 
+// itemTime is the Unix time of a log item.
+func itemTime(item map[string]json.RawMessage) (int64, error) {
+	return strconv.ParseInt(strings.Trim(string(item["date_timestamp"]), `"`), 10, 64)
+}
+
 // insertSQL writes log items of a channel as INSERT IGNORE statements:
 // the rows that are there already (the same time) are skipped.
 func insertSQL(k logKind, channel int, items []map[string]json.RawMessage) (string, error) {
@@ -131,7 +136,7 @@ func insertSQL(k logKind, channel int, items []map[string]json.RawMessage) (stri
 		end := min(i+insertRows, len(items))
 		fmt.Fprintf(&sb, "INSERT IGNORE INTO %s (%s) VALUES\n", k.table, cols)
 		for j, item := range items[i:end] {
-			ts, err := strconv.ParseInt(strings.Trim(string(item["date_timestamp"]), `"`), 10, 64)
+			ts, err := itemTime(item)
 			if err != nil {
 				return "", fmt.Errorf("log item without time: %v", err)
 			}
@@ -153,24 +158,24 @@ func insertSQL(k logKind, channel int, items []map[string]json.RawMessage) (stri
 	return sb.String(), nil
 }
 
+func copiedKey(k logKind, channel int) string {
+	return fmt.Sprintf("%s:%d", k.table, channel)
+}
+
 // ImportHistory copies the measurement logs of the channels of the bundle
-// from the source, from the newest one already here on, and returns how
-// many items were read. It can be run again later to add what the source
-// logged until the devices were switched. A channel deleted in the source
-// meanwhile is skipped: its history up to then is here already.
-func ImportHistory(src *Source, db DB, b *Bundle, log io.Writer) (int, error) {
+// from the source and returns how many items were read. It can be run
+// again later to add what the source logged until the devices were
+// switched: copied says up to when the source was read. The newest log
+// here does not, a switched device logs here too. Without an entry in
+// copied all is read, what is here already stays. A channel deleted in the
+// source meanwhile is skipped: its history up to then is here already.
+func ImportHistory(src *Source, db DB, b *Bundle, copied map[string]int64, log io.Writer) (int, error) {
 	total := 0
 	for _, d := range b.Devices {
 		for _, c := range d.Channels {
 			for _, k := range logKinds(c.FunctionID) {
-				rows, err := db.Query(fmt.Sprintf("SET time_zone = '+00:00'; SELECT IFNULL(UNIX_TIMESTAMP(MAX(`date`)), 0) FROM %s WHERE channel_id = %d;", k.table, c.ID))
-				if err != nil {
-					return total, err
-				}
-				var after int64
-				if len(rows) > 0 {
-					after, _ = strconv.ParseInt(rows[0][0], 10, 64)
-				}
+				key := copiedKey(k, c.ID)
+				after, newest := copied[key], copied[key]
 				n := 0
 				for offset := 0; ; offset += logsPage {
 					items, err := src.logs(c.ID, k.logsType, after, offset)
@@ -192,9 +197,19 @@ func ImportHistory(src *Source, db DB, b *Bundle, log io.Writer) (int, error) {
 						return total, fmt.Errorf("channel %d: %w", c.ID, err)
 					}
 					n += len(items)
+					for _, item := range items {
+						// insertSQL has parsed it already.
+						ts, _ := itemTime(item)
+						newest = max(newest, ts)
+					}
 					if len(items) < logsPage {
 						break
 					}
+				}
+				// Only a channel read to the end: items of one time (the
+				// phases) may be on two pages.
+				if newest > 0 {
+					copied[key] = newest
 				}
 				if n > 0 {
 					fmt.Fprintf(log, "Channel %d: %d log items (%s)\n", c.ID, n, strings.TrimPrefix(k.table, "supla_"))

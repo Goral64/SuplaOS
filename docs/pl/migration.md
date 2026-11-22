@@ -38,8 +38,9 @@ dalej, gdy tylko wskażą nowy serwer.
 4. Gdy urządzenie się połączy, w ciągu minuty dostaje swoje ustawienia.
    Karta pokazuje, które urządzenia są już przeniesione, a które czekają.
 5. Po przestawieniu urządzeń dociągnij nowszą historię: źródło zapisuje
-   pomiary, dopóki urządzenie nie zostanie przeniesione. Potem zakończ
-   przenoszenie.
+   pomiary, dopóki urządzenie nie zostanie przeniesione. Zakończ, gdy
+   wszystkie są przeniesione, bo na tej samej Supli nie da się zacząć
+   przenoszenia od nowa.
 
 Dopóki urządzenia nie przestawisz, działa ze źródłem jak dotąd, a jego
 stary wpis tam zostaje, więc możesz wrócić, ustawiając dawny serwer.

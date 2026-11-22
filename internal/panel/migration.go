@@ -209,23 +209,30 @@ func (s *Server) prepareMigration(w http.ResponseWriter, r *http.Request) {
 		if err := store.SaveState(state); err != nil {
 			return err
 		}
-		importHistory(store, state, b, db, j)
+		if err := importHistory(store, state, b, db, j); err != nil {
+			return fmt.Errorf("the move is prepared, but the measurement history is not complete, copy it again before you end the move: %w", err)
+		}
 		j.Logf("Ready. Switch the devices to this server: they keep their IDs and get their settings when they connect.")
 		return nil
 	})
 }
 
 // importHistory copies the measurement logs from the source; a failure
-// is noted, the move goes on.
-func importHistory(store migrate.Store, state *migrate.State, b *migrate.Bundle, db migrate.DB, j *Job) {
+// is noted in the state and returned, the move stays prepared.
+func importHistory(store migrate.Store, state *migrate.State, b *migrate.Bundle, db migrate.DB, j *Job) error {
 	j.Logf("Copying the measurement history")
 	run := &migrate.HistoryRun{Time: time.Now().UTC()}
+	// Nothing noted as copied: all is read, so the count starts anew.
+	again := len(state.Copied) > 0
+	if state.Copied == nil {
+		state.Copied = map[string]int64{}
+	}
 	src, err := migrate.NewSource(state.SourceToken)
 	if err == nil {
-		run.Added, err = migrate.ImportHistory(src, db, b, j)
+		run.Added, err = migrate.ImportHistory(src, db, b, state.Copied, j)
 	}
 	run.Items = run.Added
-	if state.History != nil {
+	if again && state.History != nil {
 		run.Items += state.History.Items
 	}
 	if err != nil {
@@ -235,7 +242,10 @@ func importHistory(store migrate.Store, state *migrate.State, b *migrate.Bundle,
 		j.Logf("History: %d new log items", run.Added)
 	}
 	state.History = run
-	store.SaveState(state)
+	if serr := store.SaveState(state); err == nil {
+		err = serr
+	}
+	return err
 }
 
 // historyMigration copies again the measurement logs the source made
@@ -256,11 +266,7 @@ func (s *Server) historyMigration(w http.ResponseWriter, r *http.Request) {
 		if state.Prepared.IsZero() {
 			return errors.New("prepare the move first")
 		}
-		importHistory(store, state, b, migrate.StackDB{Stack: st}, j)
-		if state.History.Error != "" {
-			return errors.New(state.History.Error)
-		}
-		return nil
+		return importHistory(store, state, b, migrate.StackDB{Stack: st}, j)
 	})
 }
 

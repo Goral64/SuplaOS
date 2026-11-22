@@ -347,7 +347,9 @@
     "finish": "End the move",
     "forget": "Forget",
     "cancelConfirm": "Forget the account read from the source?",
-    "cancelPreparedConfirm": "End the move? Devices that connect later do not get their settings any more. What was added to the Supla here stays.",
+    "endWaiting": "Devices not moved yet: {n} of {all}. After the end they do not get their settings or the newer history any more.",
+    "endHistory": "The measurement history is not complete. After the end it cannot be copied any more.",
+    "cancelPreparedConfirm": "End the move? It cannot be undone or started again on this Supla. What was added to it stays.",
     "also": "Also",
     "made": "Made",
     "notMade": "Not moved, set them again here:",
@@ -361,6 +363,7 @@
       "directLinks": "direct links"
     },
     "history": "Measurement history: {n} log items, last copied {date}.",
+    "historyFailed": "The measurement history was not copied to the end. Click “Copy the newer history” before you end the move.",
     "historyAgain": "Copy the newer history",
     "historyHelp": "The source keeps logging until a device is switched here. Copy the newer history after switching the devices, before you end the move.",
     "scriptsHelp": "Scenes, thermostats and notifications of SUPLA Scripts of the source account move to SUPLA Scripts here. They refer to the channels by the IDs the move keeps. An account that logs in there only through Supla Cloud needs a username and password first (SUPLA Scripts login page: other ways to log in, link with a private Supla Cloud by a token). Phones for notifications are registered again in the app.",

@@ -2,6 +2,16 @@
 
 [Po polsku](docs/pl/CHANGELOG.md)
 
+## Unreleased
+
+- Move from Supla Cloud: "Copy the newer history" skipped what the source
+  logged before a device was switched, when the device had logged here
+  already. If your move has not ended yet, click it once more and the
+  missing items are added.
+- Ending the move warns about devices not moved yet and about history that
+  is not complete. A failed copy of the history is no longer shown as a
+  success.
+
 ## 0.12.0
 
 - Limits of the Supla Cloud accounts (devices, locations, scenes and so

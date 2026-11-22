@@ -2,6 +2,16 @@
 
 [In English](../../CHANGELOG.md)
 
+## Niewydane
+
+- Przeniesienie z Supla Cloud: „Dociągnij nowszą historię” pomijało
+  pomiary źródła sprzed przestawienia urządzenia, jeśli zdążyło już
+  zapisać coś tutaj. Jeśli przenoszenie nie jest jeszcze zakończone,
+  kliknij je jeszcze raz, brakujące wpisy zostaną dodane.
+- Zakończenie przenoszenia ostrzega o nieprzeniesionych urządzeniach
+  i o niepełnej historii. Nieudane kopiowanie historii nie wygląda już na
+  udane.
+
 ## 0.12.0
 
 - Limity kont Supla Cloud (urządzenia, lokalizacje, sceny itd.) można
