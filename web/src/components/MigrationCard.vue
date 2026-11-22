@@ -145,7 +145,7 @@ const when = (d) => new Date(d).toLocaleString(locale.value)
             </tr>
           </table>
         </template>
-        <p>{{ $t('migration.switch', { server: view.server }) }}</p>
+        <p>{{ $t('migration.switch', { server: view.server, email: view.email }) }}</p>
         <p v-if="count('error')" class="alert error">{{ $t('migration.errors', { n: count('error') }) }}</p>
         <details>
           <summary>{{ $t('migration.list', { waiting: count('waiting') }) }}</summary>

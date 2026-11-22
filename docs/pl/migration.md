@@ -33,8 +33,10 @@ dalej, gdy tylko wskażą nowy serwer.
 3. Przestawiaj urządzenia po kolei na ten serwer: w ustawieniach urządzenia
    (GUI-Generic, SuplaDevice) wpisz adres SuplaOS jako serwer, w aplikacji
    Supla Config dla urządzeń fabrycznych, w opcjach Zigbee2Supla. E-mail
-   zostaje. Żeby urządzenie sprawdzało certyfikat serwera, użyj Custom CA
-   z certyfikatem ze strony Supli, zobacz [certyfikat](certificate.md).
+   w urządzeniu musi być e-mailem konta źródłowego, także gdy masz tu inne
+   konto: z innym urządzenie nie wejdzie na swój wpis z historią. Żeby
+   urządzenie sprawdzało certyfikat serwera, użyj Custom CA z certyfikatem
+   ze strony Supli, zobacz [certyfikat](certificate.md).
 4. Gdy urządzenie się połączy, w ciągu minuty dostaje swoje ustawienia.
    Karta pokazuje, które urządzenia są już przeniesione, a które czekają.
 5. Po przestawieniu urządzeń dociągnij nowszą historię: źródło zapisuje

@@ -33,8 +33,11 @@ point to the new server.
 3. Switch the devices one by one to this server: in the settings of a device
    (GUI-Generic, SuplaDevice) set the address of SuplaOS as the server, in
    the Supla Config app for factory devices, in the options of Zigbee2Supla.
-   The e-mail stays. To check the server certificate, use Custom CA with the
-   certificate from the Supla page, see [certificate](certificate.md).
+   The e-mail in the device has to be that of the source account, also
+   when you have another account here: with another one the device does
+   not get its entry with the history. To check the server certificate,
+   use Custom CA with the certificate from the Supla page, see
+   [certificate](certificate.md).
 4. When a device connects, it gets its settings within a minute. The card
    shows which devices are moved and which are waiting.
 5. After switching the devices, copy the newer history: the source keeps

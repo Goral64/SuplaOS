@@ -2,6 +2,12 @@
 
 [Po polsku](docs/pl/CHANGELOG.md)
 
+## Unreleased
+
+- The card of the move from Supla Cloud says which e-mail has to be in
+  the devices: with another one a device registers apart from its entry
+  with the history.
+
 ## 0.13.0
 
 - Supla is updated on releases of supla-docker, no longer with SuplaOS: a

@@ -2,6 +2,12 @@
 
 [In English](../../CHANGELOG.md)
 
+## Niewydane
+
+- Karta przeniesienia z Supla Cloud mówi, jaki e-mail ma być
+  w urządzeniach: z innym urządzenie rejestruje się poza swoim wpisem
+  z historią.
+
 ## 0.13.0
 
 - Supla aktualizuje się z wydaniami supla-docker, już nie z SuplaOS:

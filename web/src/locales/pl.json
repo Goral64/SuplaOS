@@ -358,7 +358,7 @@
     "prepare": "Przygotuj przeniesienie",
     "prepareConfirm": "Urządzenia, kanały, lokalizacje i identyfikatory dostępu zostaną dodane do Supli tutaj z ich ID. Potem przestaw urządzenia po kolei na ten serwer. Kontynuować?",
     "progress": "Przeniesione urządzenia: {done} z {all}.",
-    "switch": "Przestaw każde urządzenie na serwer {server}: na jego stronie konfiguracji (GUI-Generic, SuplaDevice), w aplikacji Supla Config dla urządzeń fabrycznych albo w opcjach Zigbee2Supla. Gdy się połączy, w ciągu minuty dostanie swoje ustawienia.",
+    "switch": "Przestaw każde urządzenie na serwer {server}: na jego stronie konfiguracji (GUI-Generic, SuplaDevice), w aplikacji Supla Config dla urządzeń fabrycznych albo w opcjach Zigbee2Supla. E-mail w urządzeniu musi być {email}, także gdy masz tu inne konto: z innym e-mailem nie wejdzie na swój wpis z historią. Gdy się połączy, w ciągu minuty dostanie swoje ustawienia.",
     "errors": "Urządzenia, które się połączyły, ale części ustawień nie przyjęto: {n}, zobacz listę.",
     "list": "Urządzenia (czeka: {waiting})",
     "status": {

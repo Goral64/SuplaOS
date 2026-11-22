@@ -358,7 +358,7 @@
     "prepare": "Prepare the move",
     "prepareConfirm": "The devices, channels, locations and access IDs are added to the Supla here with their IDs. Then switch the devices one by one to this server. Continue?",
     "progress": "{done} of {all} devices moved.",
-    "switch": "Switch every device to the server {server}: in its configuration page (GUI-Generic, SuplaDevice), in the Supla Config app for factory devices, or in the options of Zigbee2Supla. When it connects, it gets its settings within a minute.",
+    "switch": "Switch every device to the server {server}: in its configuration page (GUI-Generic, SuplaDevice), in the Supla Config app for factory devices, or in the options of Zigbee2Supla. The e-mail in the device has to be {email}, also when you have another account here: with another e-mail it does not get its entry with the history. When it connects, it gets its settings within a minute.",
     "errors": "{n} devices connected, but some settings were not accepted, see the list.",
     "list": "Devices ({waiting} waiting)",
     "status": {
