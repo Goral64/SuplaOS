@@ -11,6 +11,9 @@
 - Zakończenie przenoszenia ostrzega o nieprzeniesionych urządzeniach
   i o niepełnej historii. Nieudane kopiowanie historii nie wygląda już na
   udane.
+- Da się przenieść konto z własnego serwera, gdzie lokalizacja
+  i identyfikator dostępu mają często ID 1, na świeżą Suplę. Było to
+  odrzucane, bo nowe konto tutaj dostaje te same ID.
 
 ## 0.12.0
 

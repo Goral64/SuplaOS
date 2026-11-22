@@ -7,6 +7,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"slices"
 	"strconv"
 	"strings"
 	"time"
@@ -173,17 +174,49 @@ func Prepare(db DB, b *Bundle, log io.Writer) error {
 	if err != nil {
 		return err
 	}
+	replace := false
 	if len(conflicts) > 0 {
+		if replace, err = replaceable(db, b, user, conflicts); err != nil {
+			return err
+		}
+	}
+	if len(conflicts) > 0 && !replace {
 		return fmt.Errorf("the Supla Cloud of this device already has objects with the same IDs (%s): the move needs a Supla without them", strings.Join(conflicts, ", "))
 	}
-	q, err := SkeletonSQL(b, user)
+	q, err := SkeletonSQL(b, user, replace)
 	if err != nil {
 		return err
+	}
+	if replace {
+		fmt.Fprintln(log, "Replacing the location and access ID the account was made with")
 	}
 	fmt.Fprintf(log, "Adding %d locations, %d access IDs, %d devices and %d channels\n",
 		len(b.Locations), len(b.AccessIDs), len(b.Devices), b.ChannelCount())
 	_, err = db.Query(q)
 	return err
+}
+
+// replaceable tells whether all the conflicts are the location and the
+// access ID a new account gets, which are 1 and 1 on a fresh Supla, as
+// they often are on an own server the account comes from.
+func replaceable(db DB, b *Bundle, user int, conflicts []string) (bool, error) {
+	if len(b.Locations) == 0 || len(b.AccessIDs) == 0 {
+		return false, nil
+	}
+	rows, err := db.Query(UntouchedSQL(user))
+	if err != nil {
+		return false, err
+	}
+	var own []string
+	for _, r := range rows {
+		own = append(own, strings.Join(r, " "))
+	}
+	for _, c := range conflicts {
+		if !slices.Contains(own, c) {
+			return false, nil
+		}
+	}
+	return true, nil
 }
 
 // Connected returns the devices of the bundle that have connected to this

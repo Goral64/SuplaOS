@@ -347,7 +347,7 @@
     "finish": "End the move",
     "forget": "Forget",
     "cancelConfirm": "Forget the account read from the source?",
-    "endWaiting": "Devices not moved yet: {n} of {all}. After the end they do not get their settings or the newer history any more.",
+    "endWaiting": "Devices not moved yet: {n} of {all}. After the end the panel does not copy their settings or newer history any more.",
     "endHistory": "The measurement history is not complete. After the end it cannot be copied any more.",
     "cancelPreparedConfirm": "End the move? It cannot be undone or started again on this Supla. What was added to it stays.",
     "also": "Also",

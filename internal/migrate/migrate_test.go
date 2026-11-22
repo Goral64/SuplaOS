@@ -30,7 +30,7 @@ func bundle() *Bundle {
 }
 
 func TestSkeletonSQL(t *testing.T) {
-	q, err := SkeletonSQL(bundle(), 3)
+	q, err := SkeletonSQL(bundle(), 3, false)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -54,8 +54,44 @@ func TestSkeletonSQL(t *testing.T) {
 	}
 	b := bundle()
 	b.Devices[0].GUID = "nie-guid"
-	if _, err := SkeletonSQL(b, 3); err == nil {
+	if _, err := SkeletonSQL(b, 3, false); err == nil {
 		t.Error("bad GUID accepted")
+	}
+}
+
+func TestPrepareDefaults(t *testing.T) {
+	own := [][]string{{"location", "1"}, {"accessid", "1"}}
+	for _, c := range []struct {
+		name      string
+		conflicts [][]string
+		untouched [][]string
+		ok        bool
+	}{
+		{"new account", own, own, true},
+		{"only the access ID", own[1:], own, true},
+		{"account in use", own, nil, false},
+		{"of another account", [][]string{{"location", "2"}}, own, false},
+		{"a device too", [][]string{{"location", "1"}, {"device", "700"}}, own, false},
+	} {
+		db := &fakeDB{rows: map[string][][]string{
+			"SELECT id FROM supla_user": {{"3"}}, "SELECT 'location'": c.conflicts, "SELECT o.kind": c.untouched,
+		}}
+		err := Prepare(db, bundle(), io.Discard)
+		last := db.ran[len(db.ran)-1]
+		if !c.ok {
+			if err == nil || strings.Contains(last, "DELETE") {
+				t.Errorf("%s: not refused: %v", c.name, err)
+			}
+			continue
+		}
+		del, ins := strings.Index(last, "DELETE FROM supla_location WHERE user_id = 3;"), strings.Index(last, "INSERT INTO supla_location")
+		if err != nil || !strings.HasPrefix(last, "START TRANSACTION") || del < 0 || del > ins {
+			t.Errorf("%s: %v\n%s", c.name, err, last)
+		}
+	}
+	db := &fakeDB{rows: map[string][][]string{"SELECT id FROM supla_user": {{"3"}}}}
+	if err := Prepare(db, bundle(), io.Discard); err != nil || strings.Contains(db.ran[len(db.ran)-1], "DELETE") {
+		t.Errorf("deleted without a conflict: %v", err)
 	}
 }
 

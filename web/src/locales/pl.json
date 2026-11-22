@@ -347,7 +347,7 @@
     "finish": "Zakończ przenoszenie",
     "forget": "Zapomnij",
     "cancelConfirm": "Zapomnieć konto odczytane ze źródła?",
-    "endWaiting": "Jeszcze nieprzeniesione urządzenia: {n} z {all}. Po zakończeniu nie dostaną już swoich ustawień ani nowszej historii.",
+    "endWaiting": "Jeszcze nieprzeniesione urządzenia: {n} z {all}. Po zakończeniu panel nie przeniesie już ich ustawień ani nowszej historii.",
     "endHistory": "Historia pomiarów nie jest pełna. Po zakończeniu nie da się jej dociągnąć.",
     "cancelPreparedConfirm": "Zakończyć przenoszenie? Tego nie da się cofnąć ani zacząć ponownie na tej Supli. To, co do niej dodano, zostaje.",
     "also": "Do tego",

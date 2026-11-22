@@ -85,6 +85,35 @@ UNION ALL SELECT 'channel', id FROM supla_dev_channel WHERE id IN (%s);
 		ids(channels, func(c Channel) int { return c.ID })), nil
 }
 
+// UntouchedSQL lists the location and the access ID of an account that has
+// only those it was made with and nothing that uses them: no devices,
+// phones, channel groups, scenes, tokens of apps or notifications. No
+// lines for any other account.
+func UntouchedSQL(userID int) string {
+	return fmt.Sprintf(`SELECT o.kind, o.id FROM (
+SELECT 'location' AS kind, id FROM supla_location WHERE user_id = %[1]d
+UNION ALL SELECT 'accessid', id FROM supla_accessid WHERE user_id = %[1]d) o
+WHERE (SELECT COUNT(*) FROM supla_location WHERE user_id = %[1]d) <= 1
+AND (SELECT COUNT(*) FROM supla_accessid WHERE user_id = %[1]d) <= 1
+AND NOT EXISTS (SELECT 1 FROM supla_iodevice WHERE user_id = %[1]d)
+AND NOT EXISTS (SELECT 1 FROM supla_client WHERE user_id = %[1]d)
+AND NOT EXISTS (SELECT 1 FROM supla_dev_channel_group WHERE user_id = %[1]d)
+AND NOT EXISTS (SELECT 1 FROM supla_scene WHERE user_id = %[1]d)
+AND NOT EXISTS (SELECT 1 FROM supla_oauth_access_tokens t JOIN supla_accessid a ON a.id = t.access_id WHERE a.user_id = %[1]d)
+AND NOT EXISTS (SELECT 1 FROM supla_rel_aid_pushnotification n JOIN supla_accessid a ON a.id = n.access_id WHERE a.user_id = %[1]d);
+`, userID)
+}
+
+// removeUntouchedSQL deletes the location and the access ID of an untouched
+// account, so that those of the source can have their IDs.
+func removeUntouchedSQL(userID int) string {
+	return fmt.Sprintf(`DELETE r FROM supla_rel_aidloc r JOIN supla_location l ON l.id = r.location_id WHERE l.user_id = %[1]d;
+DELETE r FROM supla_rel_aidloc r JOIN supla_accessid a ON a.id = r.access_id WHERE a.user_id = %[1]d;
+DELETE FROM supla_accessid WHERE user_id = %[1]d;
+DELETE FROM supla_location WHERE user_id = %[1]d;
+`, userID)
+}
+
 // LimitsSQL raises the limits of the local account so that the objects
 // of the bundle fit with room to spare: an account of the public Cloud may
 // have higher limits than a new one, and on an own server they only get
@@ -130,12 +159,17 @@ func AddScopeSQL(token, scope string) string {
 // bundle in the database of this server with their IDs, for the user.
 // Devices get no auth key: supla-server lets the device in with any key
 // once and stores it. The settings of channels that need the device (their
-// configuration) are set later through the Cloud.
-func SkeletonSQL(b *Bundle, userID int) (string, error) {
+// configuration) are set later through the Cloud. With replace the location
+// and the access ID of the account, which has to be untouched, give way to
+// those of the source.
+func SkeletonSQL(b *Bundle, userID int, replace bool) (string, error) {
 	var sb strings.Builder
 	w := func(format string, args ...any) { fmt.Fprintf(&sb, format, args...) }
 	w("START TRANSACTION;\n")
 	sb.WriteString(LimitsSQL(b, userID))
+	if replace {
+		sb.WriteString(removeUntouchedSQL(userID))
+	}
 	for _, l := range b.Locations {
 		w("INSERT INTO supla_location (id, user_id, password, caption, enabled) VALUES (%d, %d, %s, %s, %s);\n",
 			l.ID, userID, str(l.Password), strp(l.Caption), boolean(l.Enabled))

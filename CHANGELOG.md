@@ -11,6 +11,9 @@
 - Ending the move warns about devices not moved yet and about history that
   is not complete. A failed copy of the history is no longer shown as a
   success.
+- An account from an own server, where the location and access ID often
+  have ID 1, can be moved to a fresh Supla. It used to be refused, as a new
+  account here gets the same IDs.
 
 ## 0.12.0
 
