@@ -90,8 +90,21 @@ func newestRelease(r io.Reader) (*SuplaRelease, error) {
 	return best, nil
 }
 
-// LatestSuplaRelease asks GitHub for the newest release of supla-docker.
+// LatestSuplaRelease asks GitHub for the newest release of supla-docker:
+// the API, or the web pages when that does not answer (its limit).
 func LatestSuplaRelease(ctx context.Context) (*SuplaRelease, error) {
+	r, err := releaseFromAPI(ctx)
+	if err == nil {
+		return r, nil
+	}
+	r, werr := releaseFromWeb(ctx)
+	if werr != nil {
+		return nil, errors.Join(err, werr)
+	}
+	return r, nil
+}
+
+func releaseFromAPI(ctx context.Context) (*SuplaRelease, error) {
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, suplaReleasesURL, nil)
 	if err != nil {
 		return nil, err

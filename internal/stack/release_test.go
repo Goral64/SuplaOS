@@ -148,3 +148,32 @@ func TestDecideUpdateDatabase(t *testing.T) {
 		}
 	}
 }
+
+func TestReleaseFromFeed(t *testing.T) {
+	feed := `<feed xmlns="http://www.w3.org/2005/Atom">
+<entry><updated>2026-11-22T17:14:32Z</updated><link rel="alternate" href="https://github.com/SUPLA/supla-docker/releases/tag/v26.11"/>
+<content type="html">&lt;table&gt;&lt;td&gt;&lt;img data-canonical-src="https://img.shields.io/github/v/release/SUPLA/supla-cloud?filter=v26.11.01"&gt;
+&lt;img data-canonical-src="https://img.shields.io/github/v/release/SUPLA/supla-core?filter=v26.11.02"&gt;&lt;/td&gt;&lt;/table&gt;
+&lt;p&gt;In &lt;code&gt;.env&lt;/code&gt; rename:&lt;/p&gt;&lt;ul&gt;&lt;li&gt;A &amp;amp; B&lt;/li&gt;&lt;/ul&gt;</content></entry>
+<entry><updated>2026-05-13T21:11:23Z</updated><link rel="alternate" href="https://github.com/SUPLA/supla-docker/releases/tag/v26.05"/><content type="html">old</content></entry>
+</feed>`
+	r, err := releaseFromFeed(strings.NewReader(feed), "v26.11")
+	if err != nil || r.Versions != (SuplaVersions{"26.11.01", "26.11.02"}) || r.Notes != "In `.env` rename:* A & B" {
+		t.Errorf("%+v %v", r, err)
+	}
+	if _, err := releaseFromFeed(strings.NewReader(feed), "v27.01"); err == nil {
+		t.Error("a release not in the feed")
+	}
+}
+
+func TestReleaseWebLive(t *testing.T) {
+	if os.Getenv("SUPLAOS_LIVE") == "" {
+		t.Skip("SUPLAOS_LIVE not set")
+	}
+	r, err := releaseFromWeb(context.Background())
+	must(t, err)
+	if r.Versions == (SuplaVersions{}) {
+		t.Fatalf("no versions: %+v", r)
+	}
+	t.Logf("%s %+v", r.Tag, r.Versions)
+}
