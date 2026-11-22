@@ -454,6 +454,9 @@ func (s *Server) getAddons(w http.ResponseWriter, r *http.Request) {
 		}
 		if d.Installed {
 			d.Images, d.Update = s.addonImages(a.Services)
+			if id == stack.SuplaID {
+				d.Update = s.suplaUpdateState()
+			}
 			for _, svc := range a.Services {
 				if c, ok := byService[svc]; ok {
 					d.Containers = append(d.Containers, c)
@@ -688,6 +691,14 @@ func (s *Server) addonAction(w http.ResponseWriter, r *http.Request) {
 		case "stop", "restart":
 			return st.Compose(append([]string{action}, services...)...)
 		case "update":
+			if id == stack.SuplaID {
+				// Never by services: only the whole package, on a release.
+				ctx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
+				defer cancel()
+				err := st.UpgradeSupla(ctx, "")
+				s.checkImagesAfter(j)
+				return err
+			}
 			if st.Catalog[id].Backup != nil {
 				path, err := st.Backup(id)
 				if err != nil {
@@ -913,6 +924,9 @@ func (s *Server) getUpdates(w http.ResponseWriter, r *http.Request) {
 			pending = p
 		}
 		for _, a := range st.Order() {
+			if a.ID == stack.SuplaID {
+				continue // only as a whole, on its own card
+			}
 			if imgs, update := s.addonImages(a.Services); update == "available" {
 				images = append(images, imagesDTO{a.ID, a.Name, imgs})
 			}

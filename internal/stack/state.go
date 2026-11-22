@@ -24,13 +24,18 @@ const ProjectName = "supla"
 // Installed is an installed add-on with the values of its options.
 type Installed struct {
 	Options map[string]string `yaml:"options"`
-	// Images are kept instead of the set of the catalog, which is older,
-	// see keepNewer.
+	// Images were kept by SuplaOS 0.12.2 instead of its set; they go to
+	// Package.
 	Images map[string]string `yaml:"images,omitempty"`
+	// Package is what is installed of an add-on updated as a whole.
+	Package *Package `yaml:"package,omitempty"`
 }
 
 type State struct {
 	Addons map[string]*Installed `yaml:"addons"`
+	// Removed are the packages of add-ons removed with their data left: a
+	// new install over the data is the same package, not an update.
+	Removed map[string]*Package `yaml:"removed,omitempty"`
 }
 
 // Stack is the SuplaOS data directory: state.yaml, the compose project in

@@ -20,21 +20,22 @@ const sourceFile = ".source"
 // cache, unless they are already there from the same URL.
 func (s *Stack) fetch(a *addon.Addon) error {
 	dir := s.cacheDir(a.ID)
-	if src, err := os.ReadFile(filepath.Join(dir, sourceFile)); err == nil && string(src) == a.Fetch.URL {
+	url := s.sourceURL(a)
+	if src, err := os.ReadFile(filepath.Join(dir, sourceFile)); err == nil && string(src) == url {
 		return nil
 	}
 	client := &http.Client{Timeout: 2 * time.Minute}
-	resp, err := client.Get(a.Fetch.URL)
+	resp, err := client.Get(url)
 	if err != nil {
 		return fmt.Errorf("%s: download: %w", a.ID, err)
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("%s: download %s: %s", a.ID, a.Fetch.URL, resp.Status)
+		return fmt.Errorf("%s: download %s: %s", a.ID, url, resp.Status)
 	}
 	files, err := extract(resp.Body, a.Fetch.Files)
 	if err != nil {
-		return fmt.Errorf("%s: %s: %w", a.ID, a.Fetch.URL, err)
+		return fmt.Errorf("%s: %s: %w", a.ID, url, err)
 	}
 	if err := os.RemoveAll(dir); err != nil {
 		return err
@@ -44,11 +45,11 @@ func (s *Stack) fetch(a *addon.Addon) error {
 			return err
 		}
 	}
-	return s.writeFile(filepath.Join(dir, sourceFile), []byte(a.Fetch.URL), 0o644)
+	return s.writeFile(filepath.Join(dir, sourceFile), []byte(url), 0o644)
 }
 
 // Refetch downloads again the files of installed add-ons whose upstream URL
-// changed in the catalog.
+// changed in the catalog, or in their package for those updated as a whole.
 func (s *Stack) Refetch() error {
 	for _, a := range s.Order() {
 		if a.Fetch != nil {

@@ -148,12 +148,24 @@ Gdy aktualizacja przynosi nowe wersje plików dodatków, panel sam je
 stosuje po aktualizacji, najpierw robiąc kopię, a kontenery tych dodatków
 powstają od nowa. Do wersji 1.0 dzieje się to bez pytania.
 
-Supla aktualizuje się w całości, razem z SuplaOS: każda wersja SuplaOS ma
-zestaw supla-docker, Supla Cloud i supla-server sprawdzonych razem.
-Wersje części widać na stronie dodatku, także gdy jest już nowsza. Nowsze
-obrazy pozostałych dodatków pobiera przycisk Aktualizuj na stronie
-dodatku. Panel co kilka godzin sprawdza, czy są, i pokazuje wersje oraz
-link do listy zmian.
+Supla aktualizuje się w całości i osobno od SuplaOS, gdy supla-docker ma
+nowe wydanie: SuplaOS bierze wersje z jego opisu i robi to, co
+`supla.sh upgrade` (kopia, pobranie wszystkich obrazów Supli, odtworzenie
+kontenerów). Gdy Supla potem nie działa, wszystko wraca, razem z kopią
+bazy sprzed aktualizacji. Przycisk jest na stronie Aktualizacje i na
+stronie Supli, a przez SSH:
+
+    suplaos supla check
+    suplaos supla upgrade
+
+Baza jest jej częścią: gdy `.env.default` wydania ma wyższą wersję,
+aktualizacja ją podnosi, po skopiowaniu jej katalogu przy zatrzymanej
+Supli. Aktualizacja SuplaOS nie zmienia wersji Supli. Nowa instalacja
+zaczyna od najnowszego wydania z MariaDB 12.2.2, nowsza baza jest wtedy
+aktualizacją.
+
+Nowsze obrazy pozostałych dodatków pobiera przycisk Aktualizuj na stronie
+dodatku. Panel sprawdza co kilka godzin.
 
 Co się zmieniło w kolejnych wersjach, jest w [CHANGELOG.md](CHANGELOG.md).
 

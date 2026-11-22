@@ -17,6 +17,8 @@ import (
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/Goral64/SuplaOS/internal/addon"
 )
 
 // newStack opens a stack in a temporary directory with the repository
@@ -34,6 +36,9 @@ func newStack(t *testing.T) *Stack {
 		return []string{"suplaos.local", "localhost"}, []net.IP{net.ParseIP("192.168.1.20"), net.ParseIP("127.0.0.1")}
 	}
 	t.Cleanup(func() { deviceNames = names })
+	release := newInstallPackage
+	newInstallPackage = func(*Stack, *addon.Addon) *Package { return nil }
+	t.Cleanup(func() { newInstallPackage = release })
 	used := containerImage
 	containerImage = func(string, string) (*usedImage, error) { return nil, nil }
 	t.Cleanup(func() { containerImage = used })
@@ -549,10 +554,11 @@ func TestPending(t *testing.T) {
 		os.WriteFile(filepath.Join(dir, f), data, 0o644)
 	}
 	a.Dir = dir
-	// And a new supla-docker commit.
+	// A newer supla-docker in the catalog is not: Supla changes only with
+	// its own update.
 	s.Catalog["supla"].Fetch.URL += "?new"
 	p, err := s.Pending()
-	if err != nil || strings.Join(p, ",") != "mosquitto,supla" {
+	if err != nil || strings.Join(p, ",") != "mosquitto" {
 		t.Fatalf("pending = %v %v", p, err)
 	}
 	s.Catalog["supla"].Fetch.URL = strings.TrimSuffix(s.Catalog["supla"].Fetch.URL, "?new")
@@ -602,8 +608,8 @@ func TestImageVersion(t *testing.T) {
 }
 
 // TestSuplaDockerFiles checks the supla add-on with real supla-docker files
-// from the directory in SUPLAOS_SUPLA_DOCKER (the supla-docker workflow sets
-// it): docker compose has to accept the project without unset variables.
+// from the directory in SUPLAOS_SUPLA_DOCKER, when it is set: docker
+// compose has to accept the project without unset variables.
 func TestSuplaDockerFiles(t *testing.T) {
 	dir := os.Getenv("SUPLAOS_SUPLA_DOCKER")
 	if dir == "" {

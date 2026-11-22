@@ -3,11 +3,13 @@
 package main
 
 import (
+	"context"
 	"errors"
 	"flag"
 	"fmt"
 	"os"
 	"path/filepath"
+	"slices"
 	"sort"
 	"strings"
 	"text/tabwriter"
@@ -36,7 +38,8 @@ Containers:
   status                       containers of the installed add-ons
   start|stop|restart [add-on...]
   logs [add-on...] [-f] [--tail N]
-  update [add-on...]           backup, pull new images and recreate
+  update [add-on...]           backup, pull new images and recreate (Supla only
+                               as suplaos supla upgrade does)
   backup [add-on...]           dump add-on data to /srv/suplaos/backups
   restore <add-on> <file>      load a backup (a name from backups/ or a path),
                                the current data is backed up first
@@ -44,6 +47,12 @@ Containers:
                                add-on command, e.g. suplaos run supla console
   apply                        apply new versions of the add-ons (after backups)
   compose [args...]            docker compose on the SuplaOS project
+
+Supla:
+  supla check                  the newest release of supla-docker
+  supla upgrade                update the whole Supla to it, as supla.sh upgrade:
+                               backup, pull of all its images, up; all of it
+                               goes back when it does not work afterwards
 
 System:
   upgrade                      update the system and SuplaOS (as root)
@@ -137,6 +146,8 @@ func run(args []string) error {
 		return logs(s, args)
 	case "update":
 		return update(s, args)
+	case "supla":
+		return suplaCmd(s, args)
 	case "export":
 		return export(s, args)
 	case "import":
@@ -656,9 +667,67 @@ func importBackup(s *stack.Stack, args []string) error {
 	return nil
 }
 
-func update(s *stack.Stack, ids []string) error {
+func suplaCmd(s *stack.Stack, args []string) error {
+	if len(args) != 1 || (args[0] != "check" && args[0] != "upgrade") {
+		return errors.New("usage: suplaos supla check|upgrade")
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
+	defer cancel()
+	if args[0] == "upgrade" {
+		if err := s.Lock(); err != nil {
+			return err
+		}
+		return s.UpgradeSupla(ctx, "")
+	}
+	u, err := s.CheckSupla(ctx)
+	if err != nil {
+		return err
+	}
+	r := u.Release
+	fmt.Printf("supla-docker %s (%s): %s\n", r.Tag, r.Published.Local().Format("2006-01-02"), u.State)
+	if r.Versions.Cloud != "" {
+		fmt.Printf("Supla Cloud %s, supla-server %s\n", r.Versions.Cloud, r.Versions.Server)
+	}
+	if d := u.Database; d != nil && d.Here != d.Release {
+		note := "(it is not moved back)"
+		if d.Raise {
+			note = "(raised with the update of Supla)"
+		}
+		fmt.Printf("database: %s here, %s in the release %s\n", d.Here, d.Release, note)
+	}
+	for _, w := range u.Waiting {
+		fmt.Printf("not out yet: %s\n", w)
+	}
+	fmt.Println(r.URL)
+	return nil
+}
+
+func update(s *stack.Stack, ids []string) (err error) {
 	if err := s.Lock(); err != nil {
 		return err
+	}
+	all := len(ids) == 0
+	if all {
+		for _, a := range s.Order() {
+			ids = append(ids, a.ID)
+		}
+	}
+	// Supla never by services, the other add-ons as before.
+	if slices.Contains(ids, stack.SuplaID) {
+		ctx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
+		defer cancel()
+		if serr := s.UpgradeSupla(ctx, ""); serr != nil {
+			if !all {
+				return serr
+			}
+			// E.g. a release waiting for its images: the others anyway.
+			fmt.Fprintln(os.Stderr, "Supla:", serr)
+			defer func() { err = errors.Join(err, serr) }()
+		}
+		ids = slices.DeleteFunc(slices.Clone(ids), func(id string) bool { return id == stack.SuplaID })
+		if len(ids) == 0 {
+			return nil
+		}
 	}
 	services, err := s.Services(ids...)
 	if err != nil {
@@ -674,9 +743,6 @@ func update(s *stack.Stack, ids []string) error {
 	// ones depending on them (zigbee2supla on supla-server).
 	if err := s.Compose(append([]string{"up", "-d"}, services...)...); err != nil {
 		return err
-	}
-	if len(ids) == 0 {
-		return s.VerifyAll()
 	}
 	return s.Verify(ids...)
 }

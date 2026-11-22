@@ -208,6 +208,9 @@ type Fetch struct {
 // its output is saved, gzipped, as File ({time} is replaced by a timestamp).
 // Restore, also run in Service, reads such a dump on its input.
 type Backup struct {
+	// Dir is the directory of the database: copied before its version
+	// changes, a database does not go back to an older one otherwise.
+	Dir     string   `yaml:"dir"`
 	Service string   `yaml:"service"`
 	Command []string `yaml:"command"`
 	File    string   `yaml:"file"`
@@ -263,8 +266,8 @@ func (w *Web) URLScheme() string {
 // Image describes the image of a service. VersionEnv is the variable with
 // its version, for images without the org.opencontainers.image.version
 // label (also older ones); Changelog is a page with the changes. Image
-// pins the exact image, repository:version@sha256:digest: the add-on is
-// then updated as a set with SuplaOS.
+// pins the exact image, repository:version@sha256:digest, of a new
+// install: the add-on is then updated only as a whole.
 type Image struct {
 	VersionEnv string `yaml:"version_env"`
 	Changelog  string `yaml:"changelog"`
@@ -291,7 +294,7 @@ func (i Image) Digest() string {
 	return digest
 }
 
-// Pinned tells whether the add-on is updated as a set of exact images.
+// Pinned tells whether the add-on is updated as a whole, with exact images.
 func (a *Addon) Pinned() bool {
 	for _, i := range a.Images {
 		if i.Image != "" {
@@ -490,6 +493,9 @@ func (a *Addon) validate() error {
 	}
 	if a.Backup != nil && (a.Backup.Service == "" || len(a.Backup.Command) == 0 || a.Backup.File == "") {
 		return fmt.Errorf("%s: backup needs service, command and file", a.ID)
+	}
+	if a.Backup != nil && a.Backup.Dir != "" && !local(a.Backup.Dir) {
+		return fmt.Errorf("%s: path %q leaves the stack directory", a.ID, a.Backup.Dir)
 	}
 	for _, d := range a.FullBackup.Skip {
 		if !local(d) || !slices.ContainsFunc(a.Data, func(data string) bool { return within(d, data) }) {

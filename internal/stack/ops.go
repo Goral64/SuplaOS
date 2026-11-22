@@ -43,16 +43,25 @@ func (s *Stack) Install(id string, set map[string]string) error {
 	if err := s.setOptions(a, inst, set); err != nil {
 		return err
 	}
-	if a.Fetch != nil {
-		if err := s.fetch(a); err != nil {
-			return err
+	if a.Pinned() {
+		// Data left by a removed one: its package. Otherwise the newest
+		// release.
+		if inst.Package = s.State.Removed[id]; inst.Package == nil {
+			inst.Package = newInstallPackage(s, a)
 		}
 	}
 	s.State.Addons[id] = inst
+	if a.Fetch != nil {
+		if err := s.fetch(a); err != nil {
+			delete(s.State.Addons, id)
+			return err
+		}
+	}
 	if err := s.Apply(); err != nil {
 		delete(s.State.Addons, id)
 		return err
 	}
+	delete(s.State.Removed, id)
 	s.queueAfter(a, nil)
 	return s.Save()
 }
@@ -139,6 +148,12 @@ func (s *Stack) Remove(id string) error {
 		s.State.Addons[id] = inst
 		return err
 	}
+	if inst.Package != nil {
+		if s.State.Removed == nil {
+			s.State.Removed = map[string]*Package{}
+		}
+		s.State.Removed[id] = inst.Package
+	}
 	return s.Save()
 }
 
@@ -153,6 +168,12 @@ func (s *Stack) Purge(id string) error {
 			if errors.Is(err, os.ErrPermission) {
 				return fmt.Errorf("%w (files created by containers belong to root, try: sudo suplaos purge %s)", err, id)
 			}
+			return err
+		}
+	}
+	if s.State.Removed[id] != nil {
+		delete(s.State.Removed, id)
+		if err := s.Save(); err != nil {
 			return err
 		}
 	}

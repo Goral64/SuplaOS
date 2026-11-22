@@ -9,38 +9,20 @@ import (
 	"slices"
 	"strings"
 	"time"
-
-	"github.com/Goral64/SuplaOS/internal/addon"
 )
 
-// An add-on with images in addon.yaml is updated as a set: exact images
-// tested together, that come with SuplaOS. The compose file with them is
-// generated, so a new set is pending like any other new file of an add-on.
+// An add-on with images in addon.yaml is updated as a whole, see
+// package.go. The compose file with its images is generated.
 
 func pinsFile(id string) string { return "docker-compose." + id + "-images.yml" }
 
-// pinsCompose is the compose file with the images of the set, or with
-// those kept (Installed.Images). The set is in it either way, so that a
-// new one is pending also when images are kept.
-func pinsCompose(a *addon.Addon, kept map[string]string) []byte {
+// pinsCompose is the compose file with the images of the package.
+func pinsCompose(images map[string]string) []byte {
 	var sb strings.Builder
 	sb.WriteString(header)
-	services := slices.Sorted(maps.Keys(a.Images))
-	for _, svc := range services {
-		if pin := a.Images[svc].Image; pin != "" {
-			fmt.Fprintf(&sb, "# Set of SuplaOS: %s\n", pin)
-		}
-	}
 	sb.WriteString("services:\n")
-	for _, svc := range services {
-		ref := a.Images[svc].Image
-		if ref == "" {
-			continue
-		}
-		if k := kept[svc]; k != "" {
-			ref = k
-		}
-		fmt.Fprintf(&sb, "  %s:\n    image: %s\n", svc, ref)
+	for _, svc := range slices.Sorted(maps.Keys(images)) {
+		fmt.Fprintf(&sb, "  %s:\n    image: %s\n", svc, images[svc])
 	}
 	return []byte(sb.String())
 }
@@ -69,16 +51,19 @@ var containerImage = func(svc, versionEnv string) (*usedImage, error) {
 	if len(ids) == 0 {
 		return nil, nil
 	}
-	if out, err = exec.CommandContext(ctx, "docker", "inspect", "--format", "{{.Image}}", ids[0]).Output(); err != nil {
+	if out, err = exec.CommandContext(ctx, "docker", "inspect", "--format", "{{.Image}} {{.Config.Image}}", ids[0]).Output(); err != nil {
 		return nil, fmt.Errorf("docker inspect: %w", err)
 	}
-	id := strings.TrimSpace(string(out))
+	id, asked, _ := strings.Cut(strings.TrimSpace(string(out)), " ")
 	img, err := inspectImage(ctx, id)
 	if err != nil {
 		return nil, err
 	}
 	u := &usedImage{Ref: id, Version: img.Config.version(versionEnv)}
-	if len(img.RepoDigests) > 0 {
+	if strings.Contains(asked, "@sha256:") {
+		// Exact already: the same, so that nothing is recreated.
+		u.Ref = asked
+	} else if len(img.RepoDigests) > 0 {
 		u.Ref = img.RepoDigests[0]
 	}
 	return u, nil
@@ -89,54 +74,13 @@ func imageNewer(a, b string) bool {
 	return versionNewer(strings.TrimPrefix(a, "v"), strings.TrimPrefix(b, "v"))
 }
 
-// keepNewer keeps the images of an add-on that already runs newer ones
-// than the set, e.g. updated before SuplaOS had sets: the database is
-// migrated by then and an older set would not start with it. All of the
-// set are kept, until SuplaOS brings one that is not older. It tells
-// whether the state changed.
-func (s *Stack) keepNewer() (bool, error) {
-	changed := false
-	for _, a := range s.Order() {
-		inst := s.State.Addons[a.ID]
-		used := map[string]string{}
-		newer := false
-		for svc, m := range a.Images {
-			if m.Image == "" {
-				continue
-			}
-			u, err := containerImage(svc, m.VersionEnv)
-			if err != nil {
-				return changed, fmt.Errorf("%s: %w", svc, err)
-			}
-			if u == nil {
-				continue
-			}
-			used[svc] = u.Ref
-			newer = newer || imageNewer(u.Version, m.Tag())
-		}
-		if len(used) == 0 {
-			// No containers to compare with: as it was.
-			continue
-		}
-		var keep map[string]string
-		if newer {
-			keep = used
-		}
-		if !maps.Equal(keep, inst.Images) {
-			inst.Images = keep
-			changed = true
-		}
-	}
-	return changed, nil
-}
-
 // How long Verify waits for the containers, and how often it looks.
 var (
 	verifyTimeout = 8 * time.Minute
 	verifyEvery   = 5 * time.Second
 )
 
-// Verify waits until the services of the add-ons updated as a set work:
+// Verify waits until the services of the add-ons updated as a whole work:
 // a container may run with nothing working in it (supla-server gives up
 // on a database it does not know, supervisord stays). Other add-ons are
 // not checked.

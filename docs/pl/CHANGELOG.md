@@ -2,6 +2,25 @@
 
 [In English](../../CHANGELOG.md)
 
+## 0.13.0
+
+- Supla aktualizuje się z wydaniami supla-docker, już nie z SuplaOS:
+  karta na stronach Aktualizacje i Supla pokazuje wydanie z wersjami
+  z jego opisu i aktualizuje całą Suplę tak jak `supla.sh upgrade`. Gdy
+  potem nie działa, wszystko wraca, z bazą z kopii (pomiary z tych kilku
+  minut przepadają). W terminalu: `suplaos supla check`
+  i `suplaos supla upgrade`.
+- Aktualizacja SuplaOS nie zmienia wersji Supli. Pierwsza, do 0.13.0,
+  tworzy jej kontenery od nowa, na tych samych obrazach.
+- Baza aktualizuje się razem z Suplą, gdy `.env.default` wydania ma
+  wyższą wersję (w v26.11 to 12.3.3). Najpierw jej katalog jest kopiowany
+  przy zatrzymanej Supli i wraca, gdy aktualizacja się nie uda. Potrzeba
+  na to tyle wolnego miejsca, ile zajmuje baza.
+- Nowa instalacja Supli zaczyna od najnowszego wydania, z MariaDB 12.2.2,
+  bo od zera na 12.3.3 nie wstaje. Nowsza baza jest wtedy aktualizacją.
+- Aktualizacja SUPLA Scripts nie może już wymienić bazy Supli, która
+  używa tego samego tagu obrazu.
+
 ## 0.12.2
 
 - Supla aktualizuje się w całości, razem z SuplaOS: Supla Cloud

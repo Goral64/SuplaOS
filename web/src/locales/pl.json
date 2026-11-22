@@ -89,7 +89,7 @@
     "settings": "Ustawienia",
     "noSettings": "Ten dodatek nie ma ustawień.",
     "install": "Zainstaluj",
-    "upstream": "{version} (jest już {upstream}, przyjdzie z aktualizacją SuplaOS)",
+    "upstream": "{version} (jest już {upstream}, wejdzie z wydaniem supla-docker)",
     "installTitle": "Instalacja: {name}",
     "save": "Zapisz i uruchom ponownie",
     "start": "Uruchom",
@@ -322,6 +322,28 @@
     "gpioHelp": "Oficjalny wentylator obudowy Raspberry Pi 4 jest na GPIO 14, Pimoroni Fan SHIM na GPIO 18. Wyłącza się 10 °C niżej. Steruje nim jądro, także gdy panel nie działa.",
     "rebootNeeded": "Uruchom urządzenie ponownie, żeby zastosować ustawienia wentylatora."
   },
+  "suplaUpdate": {
+    "title": "Aktualizacja Supli",
+    "check": "Sprawdź",
+    "notChecked": "Jeszcze nie sprawdzono.",
+    "here": "zainstalowane",
+    "database": "Baza danych",
+    "state": {
+      "current": "Supla jest aktualna: supla-docker {tag}.",
+      "available": "Jest aktualizacja Supli: supla-docker {tag} z {date}.",
+      "waiting": "Wydanie supla-docker {tag} czeka na oficjalne obrazy.",
+      "unreadable": "Opis wydania supla-docker {tag} nie podaje wersji. Zobacz wydanie.",
+      "newer": "Supla tutaj jest nowsza niż wydanie supla-docker {tag}, nie jest cofana."
+    },
+    "waiting": "Jeszcze nieopublikowane: {list}",
+    "databaseChanged": "Aktualizacja podniesie też bazę danych do {to}, zgodnie z .env.default wydania.",
+    "confirmDatabase": "Baza danych: {from} → {to}. Nie da się jej potem cofnąć do starszej wersji. Przed zmianą Supla jest zatrzymywana na czas skopiowania katalogu bazy, potrzeba na to tyle wolnego miejsca, ile zajmuje baza.",
+    "notes": "Uwagi do wydania, przeczytaj przed aktualizacją",
+    "help": "Jak supla.sh upgrade: kopia bazy, pobranie wszystkich obrazów Supli, odtworzenie kontenerów. Gdy potem nie działa, wszystko wraca do poprzedniego stanu.",
+    "upgrade": "Aktualizuj Suplę",
+    "terminal": "albo w terminalu:",
+    "confirm": "Zaktualizować całą Suplę do supla-docker {tag}? Przez kilka minut może być niedostępna."
+  },
   "migration": {
     "title": "Przeniesienie z innego Supla Cloud",
     "intro": "Przenosi tu Twoje konto z publicznego Supla Cloud (albo innego własnego serwera): urządzenia, kanały, lokalizacje, identyfikatory dostępu, grupy kanałów, sceny, harmonogramy, reakcje, linki bezpośrednie, ikony i historię pomiarów. Urządzenia i kanały zachowują swoje ID, więc aplikacje, MQTT, Home Assistant i skrypty, które z nich korzystają, działają dalej.",
@@ -479,6 +501,8 @@
     "busy": "Trwa inna operacja."
   },
   "jobTitle": {
+    "checkSupla": "Sprawdzanie aktualizacji Supli",
+    "updateSupla": "Aktualizacja Supli",
     "createAccount": "Zakładanie konta Supla",
     "checkUpdates": "Sprawdzanie aktualizacji",
     "applyUpdates": "Stosowanie aktualizacji dodatków",

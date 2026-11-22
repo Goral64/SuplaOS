@@ -89,7 +89,7 @@
     "settings": "Settings",
     "noSettings": "This add-on has no settings.",
     "install": "Install",
-    "upstream": "{version} ({upstream} is out, it comes with an update of SuplaOS)",
+    "upstream": "{version} ({upstream} is out, it comes with a release of supla-docker)",
     "installTitle": "Install {name}",
     "save": "Save and restart",
     "start": "Start",
@@ -322,6 +322,28 @@
     "gpioHelp": "The official Raspberry Pi 4 case fan is on GPIO 14, the Pimoroni Fan SHIM on GPIO 18. The fan goes off 10 °C below. The kernel switches it, also when the panel does not run.",
     "rebootNeeded": "Restart the device to apply the fan settings."
   },
+  "suplaUpdate": {
+    "title": "Update of Supla",
+    "check": "Check",
+    "notChecked": "Not checked yet.",
+    "here": "installed",
+    "database": "Database",
+    "state": {
+      "current": "Supla is up to date: supla-docker {tag}.",
+      "available": "There is an update of Supla: supla-docker {tag} of {date}.",
+      "waiting": "The release supla-docker {tag} waits for official images.",
+      "unreadable": "The notes of supla-docker {tag} do not name the versions. See the release.",
+      "newer": "The Supla here is newer than supla-docker {tag}, it is not moved back."
+    },
+    "waiting": "Not published yet: {list}",
+    "databaseChanged": "The update also raises the database to {to}, as in .env.default of the release.",
+    "confirmDatabase": "Database: {from} → {to}. It cannot be moved back to an older version later. Before the change Supla is stopped while the directory of the database is copied, that needs as much free space as the database takes.",
+    "notes": "Notes of the release, read them before updating",
+    "help": "As supla.sh upgrade: a backup of the database, all images of Supla pulled, containers created again. When it does not work afterwards, all of it goes back.",
+    "upgrade": "Update Supla",
+    "terminal": "or in a terminal:",
+    "confirm": "Update the whole Supla to supla-docker {tag}? It may be unavailable for a few minutes."
+  },
   "migration": {
     "title": "Move from another Supla Cloud",
     "intro": "Moves your account on the public Supla Cloud (or another own server) here: devices, channels, locations, access IDs, channel groups, scenes, schedules, reactions, direct links, icons and the measurement history. Devices and channels keep their IDs, so the apps, MQTT, Home Assistant and scripts that use them keep working.",
@@ -479,6 +501,8 @@
     "busy": "Another operation is running."
   },
   "jobTitle": {
+    "checkSupla": "Checking for an update of Supla",
+    "updateSupla": "Update of Supla",
     "createAccount": "Creating a Supla account",
     "checkUpdates": "Checking for updates",
     "applyUpdates": "Applying add-on updates",

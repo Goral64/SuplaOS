@@ -182,7 +182,7 @@ func (s *Stack) Plan() (*Plan, error) {
 		}
 		if a.Pinned() {
 			name := pinsFile(a.ID)
-			if err := add(a.ID, name, pinsCompose(a, s.State.Addons[a.ID].Images)); err != nil {
+			if err := add(a.ID, name, pinsCompose(s.packageImages(a))); err != nil {
 				return nil, err
 			}
 			p.ComposeFiles = append(p.ComposeFiles, name)
@@ -215,6 +215,13 @@ func (s *Stack) Plan() (*Plan, error) {
 		}
 		for _, kv := range a.FixedEnv {
 			setEnv(kv.Key, kv.Value)
+		}
+		if pkg := s.State.Addons[a.ID].Package; pkg != nil {
+			for _, k := range packageEnv {
+				if v := pkg.Env[k]; v != "" {
+					setEnv(k, v)
+				}
+			}
 		}
 
 		files := map[string]*envList{}
@@ -368,7 +375,7 @@ func (s *Stack) Pending() ([]string, error) {
 		if a.Fetch == nil {
 			continue
 		}
-		if src, err := os.ReadFile(filepath.Join(s.cacheDir(a.ID), sourceFile)); err != nil || string(src) != a.Fetch.URL {
+		if src, err := os.ReadFile(filepath.Join(s.cacheDir(a.ID), sourceFile)); err != nil || string(src) != s.sourceURL(a) {
 			pending[a.ID] = true
 		}
 	}
@@ -398,7 +405,7 @@ func (s *Stack) Expand(str string) string {
 // Apply writes the stack directory for the current state.
 func (s *Stack) Apply() error {
 	filled := s.fillGenerated()
-	kept, err := s.keepNewer()
+	adopted, err := s.adoptPackages()
 	if err != nil {
 		return err
 	}
@@ -416,7 +423,7 @@ func (s *Stack) Apply() error {
 	if err := s.certificates(); err != nil {
 		return err
 	}
-	if filled || kept {
+	if filled || adopted {
 		return s.Save()
 	}
 	return nil

@@ -54,7 +54,7 @@ func (s *Stack) Images(ctx context.Context) (map[string]Image, error) {
 		for _, svc := range a.Services {
 			m := a.Images[svc]
 			meta[svc] = imageMeta{versionEnv: m.VersionEnv, changelog: m.Changelog, set: m,
-				kept: s.State.Addons[a.ID].Images[svc], inSet: a.Pinned()}
+				use: s.packageImages(a)[svc], inSet: a.Pinned()}
 		}
 	}
 	out, err := s.Command(ctx, "images", "--format", "json").Output()
@@ -86,8 +86,12 @@ func (s *Stack) Images(ctx context.Context) (map[string]Image, error) {
 		info := Image{Version: local.Config.version(m.versionEnv), Created: local.Created, Changelog: m.changelog}
 		if m.set.Image != "" {
 			result[svc] = pinnedInfo(info, m, local)
-			if err := s.upstream(ctx, svc, m, result); err != nil {
-				errs = append(errs, fmt.Errorf("%s: %w", svc, err))
+			// The newest version of the database says nothing about Supla:
+			// its version is in the files of supla-docker.
+			if m.versionEnv != "" {
+				if err := s.upstream(ctx, svc, m, result); err != nil {
+					errs = append(errs, fmt.Errorf("%s: %w", svc, err))
+				}
 			}
 			continue
 		}
@@ -139,27 +143,29 @@ func (s *Stack) Images(ctx context.Context) (map[string]Image, error) {
 
 type imageMeta struct {
 	versionEnv, changelog string
-	// set is the image in the catalog, kept the one used instead of it.
-	set  addon.Image
-	kept string
-	// inSet: the add-on of the service is updated as a set.
+	// set is the image in the catalog, use the one of the package.
+	set addon.Image
+	use string
+	// inSet: the add-on of the service is updated as a whole.
 	inSet bool
 }
 
-// pinnedInfo compares the image of a container with the set: an update is
-// only what SuplaOS brought and is not in use yet, e.g. it could not be
-// downloaded.
+// pinnedInfo compares the image of a container with the package: an
+// update here is only a package that is not in use yet, e.g. it could not
+// be downloaded.
 func pinnedInfo(info Image, m imageMeta, local *localImage) Image {
 	info.Checked = true
-	if m.kept != "" {
+	_, digest, ok := strings.Cut(m.use, "@")
+	if !ok {
 		return info
 	}
 	for _, d := range local.RepoDigests {
-		if strings.HasSuffix(d, "@"+m.set.Digest()) {
+		if strings.HasSuffix(d, "@"+digest) {
 			return info
 		}
 	}
-	info.Update, info.NewVersion = true, m.set.Tag()
+	info.Update = true
+	info.NewVersion = addon.Image{Image: m.use}.Tag()
 	return info
 }
 
@@ -282,6 +288,9 @@ var manifestTypes = strings.Join([]string{
 	"application/vnd.oci.image.manifest.v1+json",
 }, ", ")
 
+// errNoImage: the registry has no such tag, or none for this architecture.
+var errNoImage = errors.New("no image")
+
 // registry talks to one repository of a registry, with an anonymous token
 // when the registry wants one (Docker Hub, ghcr.io).
 type registry struct {
@@ -309,6 +318,10 @@ func (r *registry) get(ctx context.Context, method, path string) (*http.Response
 				return nil, err
 			}
 			continue
+		}
+		if resp.StatusCode == http.StatusNotFound {
+			resp.Body.Close()
+			return nil, fmt.Errorf("registry: %s: %w", resp.Status, errNoImage)
 		}
 		if resp.StatusCode != http.StatusOK {
 			resp.Body.Close()
@@ -373,7 +386,7 @@ func RemoteConfig(ctx context.Context, ref, digest string) (*imageConfig, error)
 			}
 		}
 		if platform == "" {
-			return nil, fmt.Errorf("no image for linux/%s", runtime.GOARCH)
+			return nil, fmt.Errorf("linux/%s: %w", runtime.GOARCH, errNoImage)
 		}
 		m.Manifests = nil
 		if err := r.getJSON(ctx, "manifests/"+platform, &m); err != nil {

@@ -23,9 +23,13 @@ compose:
   - file: docker-compose.supla-domain.yml
     when: {option: "suplaos:DOMAIN", not_empty: true}
 services: [supla-cloud, supla-db, supla-server]
-# Supla is updated as a set: these images and the files of supla-docker
-# above, tested together (the supla-docker workflow proposes new ones).
+# Supla is updated only as a whole, on releases of supla-docker. These
+# images and the files above are those of a new install; an installed
+# Supla keeps its own until its update. The database is exact too: other
+# add-ons pull the same tag.
 images:
+  supla-db:
+    image: mariadb:12.2.2@sha256:6a4c4bbf0447c2247801309513fcc0dd17c3f35390368139ce419387fdd1144d
   supla-cloud:
     image: supla/supla-cloud:26.11.01@sha256:e2455c4daa2e8ac601c8e1f182645441f06f6355eccc7c851ab2257df4e1d398
     version_env: CLOUD_VERSION
@@ -55,10 +59,10 @@ certificates:
 trust:
   - dir: ssl/trust
     restart: [supla-server]
-data: [ssl/cloud, ssl/server, var/mysql, var/cloud-local, var/cloud-logs]
+data: [ssl/cloud, ssl/server, var/mysql, var/mysql.before, var/cloud-local, var/cloud-logs]
 # The database goes into a full backup as a dump (backup below).
 full_backup:
-  skip: [var/mysql, var/cloud-logs]
+  skip: [var/mysql, var/mysql.before, var/cloud-logs]
 
 options:
   - key: SUPLA_HOST_ADDRESS
@@ -142,6 +146,7 @@ web:
 
 backup:
   service: supla-db
+  dir: var/mysql
   command: [sh, -c, 'exec mariadb-dump --routines --user=supla --password="$MYSQL_PASSWORD" supla']
   file: supla-{time}.sql
   # Tables and views are dropped first, so none of a newer Cloud version is

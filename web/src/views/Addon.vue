@@ -10,6 +10,7 @@ import OptionField from '../components/OptionField.vue'
 import StateBadge from '../components/StateBadge.vue'
 import LogView from '../components/LogView.vue'
 import AccountFields from '../components/AccountFields.vue'
+import SuplaUpdateCard from '../components/SuplaUpdateCard.vue'
 import MigrationCard from '../components/MigrationCard.vue'
 import SuplaDevicesCard from '../components/SuplaDevicesCard.vue'
 import CloudRegistrationCard from '../components/CloudRegistrationCard.vue'
@@ -219,7 +220,7 @@ const webURL = (a) => a.web.url
           <button :disabled="allRunning" @click="action('start')">{{ $t('addon.start') }}</button>
           <button :disabled="!anyRunning" @click="action('stop')">{{ $t('addon.stop') }}</button>
           <button :disabled="!anyRunning" @click="action('restart')">{{ $t('addon.restart') }}</button>
-          <button :disabled="addon.update === 'none'" :title="$t(addon.update === 'none' ? 'addon.upToDate' : 'addon.updateHelp')" @click="action('update')">{{ $t('addon.update') }}</button>
+          <button v-if="addon.id !== 'supla'" :disabled="addon.update === 'none'" :title="$t(addon.update === 'none' ? 'addon.upToDate' : 'addon.updateHelp')" @click="action('update')">{{ $t('addon.update') }}</button>
           <span class="spacer"></span>
           <button class="link" @click="showLogs = !showLogs">{{ showLogs ? $t('addon.hideLogs') : $t('addon.showLogs') }}</button>
         </div>
@@ -284,6 +285,8 @@ const webURL = (a) => a.web.url
 
       <SuplaDevicesCard v-if="addon.id === 'supla' && suplaRunning && deviceCA >= 0"
         :path="`/addons/supla/downloads/${deviceCA}`" :server="addon.values.SUPLA_HOST_ADDRESS" />
+
+      <SuplaUpdateCard v-if="addon.id === 'supla'" @updated="load" />
 
       <CloudRegistrationCard v-if="addon.id === 'supla' && suplaRunning" />
 

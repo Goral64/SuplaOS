@@ -5,6 +5,7 @@ import { useI18n } from 'vue-i18n'
 import { api, imageVersions, text } from '../api'
 import { activeJob, runJob, showOutput } from '../components/jobs'
 import { ask } from '../components/dialog'
+import SuplaUpdateCard from '../components/SuplaUpdateCard.vue'
 import ChangelogDialog from '../components/ChangelogDialog.vue'
 
 const { t, locale } = useI18n()
@@ -171,6 +172,8 @@ async function reboot() {
       <p class="muted small mt">{{ $t('updates.autoHelp') }}</p>
       <p v-if="info.auto" class="muted small">{{ $t('updates.autoLast', { time: when(info.autoLast) }) }}</p>
     </div>
+
+    <SuplaUpdateCard @updated="load" />
 
     <div v-if="images.length" class="card">
       <h2>{{ $t('updates.imagesTitle') }}</h2>

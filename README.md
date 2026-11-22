@@ -151,12 +151,24 @@ When an update brings new versions of add-on files, the panel applies
 them after the update, making a backup first, and the containers of those
 add-ons are created again. Until 1.0 this happens without asking.
 
-Supla is updated as a whole, with SuplaOS: each version of SuplaOS has a
-set of supla-docker, Supla Cloud and supla-server that were tested
-together. The versions of the parts are shown on the add-on page, also
-when a newer one is out already. Newer images of the other add-ons are
-downloaded with the Update button on the add-on page. The panel checks for
-them every few hours and shows the versions and a link to the changes.
+Supla is updated as a whole and on its own, when supla-docker has a new
+release: SuplaOS takes the versions from its notes and does what
+`supla.sh upgrade` does (a backup, pull of all images of Supla, the
+containers created again). If Supla doesn't work afterwards, all of it
+goes back, with the backup of the database from before. The button is on
+the Updates page and on the Supla page, or over SSH:
+
+    suplaos supla check
+    suplaos supla upgrade
+
+The database is a part of it: when `.env.default` of the release has a
+higher version, the update raises it, after copying its directory with
+Supla stopped. An update of SuplaOS doesn't change the versions of Supla.
+A new install starts from the newest release with MariaDB 12.2.2, a newer
+database is then an update.
+
+Newer images of the other add-ons are downloaded with the Update button on
+the add-on page. The panel checks every few hours.
 
 What changed in each version is in [CHANGELOG.md](CHANGELOG.md).
 
