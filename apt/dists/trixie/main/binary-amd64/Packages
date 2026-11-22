@@ -1,27 +1,5 @@
 Package: suplaos
 Architecture: amd64
-Version: 0.11.0
-Priority: optional
-Section: admin
-Maintainer: Goral64 <goral64@gmail.com>
-Depends: docker.io, docker-cli, docker-compose, network-manager, wpasupplicant, dnsmasq-base, wireless-regdb, iw, avahi-daemon, cloud-guest-utils, e2fsprogs, ca-certificates, cifs-utils, nfs-common
-Recommends: firmware-iwlwifi, firmware-atheros, firmware-realtek
-Filename: pool/main/s/suplaos/suplaos_0.11.0_amd64.deb
-Size: 7182896
-MD5sum: 8498dcc731bbda3935705cb232bc77e2
-SHA1: 40444feaa4c1698ca6d964d70ff0da1dda0e12c3
-SHA256: ac799ad5a0512b824a5a79302675b3957b1ce29055d2e96355ecfa9f6d63900f
-SHA512: 9edfc4467b7a6c4b691a9fc2dd73d0899a9d3fe1faa8eaa846056064a36a98a229b9c279bcbc2d5c5450d8a4243a8c3cff2f89c9dfb5cb9363c845e211975987
-Homepage: https://github.com/Goral64/SuplaOS
-Description: SuplaOS panel and add-ons
- Web panel and suplaos command of SuplaOS: your own Supla server with
- add-ons (Mosquitto, Zigbee2MQTT, zigbee2supla) on one device.
- .
- Part of the SuplaOS images, not meant for installing on an existing
- Debian system.
-
-Package: suplaos
-Architecture: amd64
 Version: 0.11.1
 Priority: optional
 Section: admin
@@ -100,6 +78,28 @@ MD5sum: 539a2203be2fce05b0b5a2f2c9d03392
 SHA1: cda54fc98dab66bb00777c22f3683eb9d0fe30d4
 SHA256: d9b5f35d88290b9729541abf3baa4676479983e82cfd4e5e3d3bc94797b672b6
 SHA512: 53bbcf264e9a1148e144dc2fb29e216fc099611177660654e373d3853b75d359d22d878ca25c62a716ff6a4442b167589439a588d32ad4a8e490d480c1cbcbb0
+Homepage: https://github.com/Goral64/SuplaOS
+Description: SuplaOS panel and add-ons
+ Web panel and suplaos command of SuplaOS: your own Supla server with
+ add-ons (Mosquitto, Zigbee2MQTT, zigbee2supla) on one device.
+ .
+ Part of the SuplaOS images, not meant for installing on an existing
+ Debian system.
+
+Package: suplaos
+Architecture: amd64
+Version: 0.12.2
+Priority: optional
+Section: admin
+Maintainer: Goral64 <goral64@gmail.com>
+Depends: docker.io, docker-cli, docker-compose, network-manager, wpasupplicant, dnsmasq-base, wireless-regdb, iw, avahi-daemon, cloud-guest-utils, e2fsprogs, ca-certificates, cifs-utils, nfs-common
+Recommends: firmware-iwlwifi, firmware-atheros, firmware-realtek
+Filename: pool/main/s/suplaos/suplaos_0.12.2_amd64.deb
+Size: 7217168
+MD5sum: f83cbe81f606275613d3ddd75b3ed916
+SHA1: 923eb65da5a865625ed6b54b6149096472b57f3e
+SHA256: ebc9949030859b58711f227b2daa2cd4a1d3d6c0abc07f02685fc1b7c4195495
+SHA512: 4006be4d217595ff510a97ebca8b75e2421e2c22e10355a3df276eeb95ed7f137fe8f37d3c16e1d8249ada3588b008d71dbd7afefb26b38ac769e87aa601ad2e
 Homepage: https://github.com/Goral64/SuplaOS
 Description: SuplaOS panel and add-ons
  Web panel and suplaos command of SuplaOS: your own Supla server with
