@@ -2,7 +2,7 @@
 
 [In English](../../CHANGELOG.md)
 
-## Niewydane
+## 0.12.1
 
 - Przeniesienie z Supla Cloud: „Dociągnij nowszą historię” pomijało
   pomiary źródła sprzed przestawienia urządzenia, jeśli zdążyło już

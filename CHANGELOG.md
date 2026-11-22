@@ -2,7 +2,7 @@
 
 [Po polsku](docs/pl/CHANGELOG.md)
 
-## Unreleased
+## 0.12.1
 
 - Move from Supla Cloud: "Copy the newer history" skipped what the source
   logged before a device was switched, when the device had logged here
