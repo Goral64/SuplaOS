@@ -180,6 +180,13 @@ func (s *Stack) Plan() (*Plan, error) {
 			}
 			p.ComposeFiles = append(p.ComposeFiles, c.File)
 		}
+		if a.Pinned() {
+			name := pinsFile(a.ID)
+			if err := add(a.ID, name, pinsCompose(a, s.State.Addons[a.ID].Images)); err != nil {
+				return nil, err
+			}
+			p.ComposeFiles = append(p.ComposeFiles, name)
+		}
 
 		env.comment(a.ID)
 		// own collects the .env variables of this add-on alone, for its
@@ -391,6 +398,10 @@ func (s *Stack) Expand(str string) string {
 // Apply writes the stack directory for the current state.
 func (s *Stack) Apply() error {
 	filled := s.fillGenerated()
+	kept, err := s.keepNewer()
+	if err != nil {
+		return err
+	}
 	p, err := s.Plan()
 	if err != nil {
 		return err
@@ -405,7 +416,7 @@ func (s *Stack) Apply() error {
 	if err := s.certificates(); err != nil {
 		return err
 	}
-	if filled {
+	if filled || kept {
 		return s.Save()
 	}
 	return nil

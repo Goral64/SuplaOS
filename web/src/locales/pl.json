@@ -89,6 +89,7 @@
     "settings": "Ustawienia",
     "noSettings": "Ten dodatek nie ma ustawień.",
     "install": "Zainstaluj",
+    "upstream": "{version} (jest już {upstream}, przyjdzie z aktualizacją SuplaOS)",
     "installTitle": "Instalacja: {name}",
     "save": "Zapisz i uruchom ponownie",
     "start": "Uruchom",

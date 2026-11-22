@@ -11,6 +11,8 @@ import (
 	"os/exec"
 	"runtime"
 	"strings"
+
+	"github.com/Goral64/SuplaOS/internal/addon"
 )
 
 // Image is the image of a service of an installed add-on.
@@ -26,6 +28,9 @@ type Image struct {
 	Changelog  string `json:"changelog"`
 	// Checked: the registry answered.
 	Checked bool `json:"checked"`
+	// Upstream is a newer version in the registry than the set has: it
+	// comes with an update of SuplaOS.
+	Upstream string `json:"upstream"`
 }
 
 // Images returns the images of the containers of the installed add-ons and
@@ -46,8 +51,10 @@ func (s *Stack) Images(ctx context.Context) (map[string]Image, error) {
 	}
 	meta := map[string]imageMeta{}
 	for _, a := range s.Order() {
-		for svc, m := range a.Images {
-			meta[svc] = imageMeta{m.VersionEnv, m.Changelog}
+		for _, svc := range a.Services {
+			m := a.Images[svc]
+			meta[svc] = imageMeta{versionEnv: m.VersionEnv, changelog: m.Changelog, set: m,
+				kept: s.State.Addons[a.ID].Images[svc], inSet: a.Pinned()}
 		}
 	}
 	out, err := s.Command(ctx, "images", "--format", "json").Output()
@@ -77,6 +84,20 @@ func (s *Stack) Images(ctx context.Context) (map[string]Image, error) {
 			continue
 		}
 		info := Image{Version: local.Config.version(m.versionEnv), Created: local.Created, Changelog: m.changelog}
+		if m.set.Image != "" {
+			result[svc] = pinnedInfo(info, m, local)
+			if err := s.upstream(ctx, svc, m, result); err != nil {
+				errs = append(errs, fmt.Errorf("%s: %w", svc, err))
+			}
+			continue
+		}
+		// The other services of a set (the database, its version is in the
+		// files of supla-docker) are no updates of their own.
+		if m.inSet {
+			info.Checked = true
+			result[svc] = info
+			continue
+		}
 		// Built locally or without a tag: nothing to compare with.
 		if len(local.RepoDigests) == 0 || img.Repository == "" || img.Tag == "" || img.Tag == "<none>" {
 			result[svc] = info
@@ -118,6 +139,48 @@ func (s *Stack) Images(ctx context.Context) (map[string]Image, error) {
 
 type imageMeta struct {
 	versionEnv, changelog string
+	// set is the image in the catalog, kept the one used instead of it.
+	set  addon.Image
+	kept string
+	// inSet: the add-on of the service is updated as a set.
+	inSet bool
+}
+
+// pinnedInfo compares the image of a container with the set: an update is
+// only what SuplaOS brought and is not in use yet, e.g. it could not be
+// downloaded.
+func pinnedInfo(info Image, m imageMeta, local *localImage) Image {
+	info.Checked = true
+	if m.kept != "" {
+		return info
+	}
+	for _, d := range local.RepoDigests {
+		if strings.HasSuffix(d, "@"+m.set.Digest()) {
+			return info
+		}
+	}
+	info.Update, info.NewVersion = true, m.set.Tag()
+	return info
+}
+
+// upstream notes a version newer than the one in use in the registry, for
+// information.
+func (s *Stack) upstream(ctx context.Context, svc string, m imageMeta, result map[string]Image) error {
+	ref := m.set.Repo() + ":latest"
+	digest, err := RemoteDigest(ctx, ref)
+	if err != nil {
+		return err
+	}
+	config, err := RemoteConfig(ctx, ref, digest)
+	if err != nil {
+		return err
+	}
+	info := result[svc]
+	if v := config.version(m.versionEnv); imageNewer(v, info.Version) && imageNewer(v, m.set.Tag()) {
+		info.Upstream = v
+		result[svc] = info
+	}
+	return nil
 }
 
 type composeImage struct {

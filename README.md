@@ -147,12 +147,16 @@ Debian security and stable updates are also installed automatically every
 day (it can be turned off on the same page); the panel reminds you to
 restart the device when a new kernel is waiting.
 
-When an update brings new versions of add-on files (e.g. a newer
-supla-docker), the panel applies them on its own after the update, with
-a backup first, and their containers are recreated. Until version 1.0 this
-happens without asking. Containers of add-ons get newer images with Update
-on the add-on page. Every few hours the panel checks the registries for them
-and shows the versions, the new ones and a link to their changes.
+When an update brings new versions of add-on files, the panel applies
+them after the update, making a backup first, and the containers of those
+add-ons are created again. Until 1.0 this happens without asking.
+
+Supla is updated as a whole, with SuplaOS: each version of SuplaOS has a
+set of supla-docker, Supla Cloud and supla-server that were tested
+together. The versions of the parts are shown on the add-on page, also
+when a newer one is out already. Newer images of the other add-ons are
+downloaded with the Update button on the add-on page. The panel checks for
+them every few hours and shows the versions and a link to the changes.
 
 What changed in each version is in [CHANGELOG.md](CHANGELOG.md).
 

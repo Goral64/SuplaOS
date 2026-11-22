@@ -150,6 +150,6 @@ func (s *Server) restoreFullBackup(w http.ResponseWriter, r *http.Request) {
 				log.Printf("certificate after restore: %v", err)
 			}
 		}()
-		return nil
+		return st.VerifyAll()
 	})
 }

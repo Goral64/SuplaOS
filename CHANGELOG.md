@@ -2,6 +2,16 @@
 
 [Po polsku](docs/pl/CHANGELOG.md)
 
+## 0.12.2
+
+- Supla is updated as a whole, with SuplaOS: Supla Cloud and supla-server
+  come as a set tested together, no longer each as the newest image. This
+  update brings Supla 26.11.01, with a backup of the database first. A
+  Supla that is newer already is not moved back.
+- The panel shows when supla-server does not work though its container
+  runs, and installing, updating or restoring Supla fails then, instead of
+  ending as done.
+
 ## 0.12.1
 
 - Move from Supla Cloud: "Copy the newer history" skipped what the source

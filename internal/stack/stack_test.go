@@ -34,6 +34,9 @@ func newStack(t *testing.T) *Stack {
 		return []string{"suplaos.local", "localhost"}, []net.IP{net.ParseIP("192.168.1.20"), net.ParseIP("127.0.0.1")}
 	}
 	t.Cleanup(func() { deviceNames = names })
+	used := containerImage
+	containerImage = func(string, string) (*usedImage, error) { return nil, nil }
+	t.Cleanup(func() { containerImage = used })
 	cache := s.cacheDir("supla")
 	if err := os.MkdirAll(cache, 0o755); err != nil {
 		t.Fatal(err)
@@ -74,7 +77,7 @@ func TestInstallSupla(t *testing.T) {
 	env := readEnv(t, s, ".env")
 	want := map[string]string{
 		"COMPOSE_PROJECT_NAME": "supla",
-		"COMPOSE_FILE":         "docker-compose.yml:docker-compose.standalone.yml:docker-compose.supla-suplaos.yml",
+		"COMPOSE_FILE":         "docker-compose.yml:docker-compose.standalone.yml:docker-compose.supla-suplaos.yml:docker-compose.supla-images.yml",
 		"VOLUME_DATA":          "./var",
 		"PORT_HTTPS":           "443",
 		"SUPLA_HOST_ADDRESS":   "192.168.1.5",
@@ -133,7 +136,7 @@ func TestZigbeeSetup(t *testing.T) {
 	must(t, s.Install("zigbee2supla", map[string]string{"Z2S_SUPLA_EMAIL": "a@b.c"}))
 
 	env := readEnv(t, s, ".env")
-	if got, want := env["COMPOSE_FILE"], "docker-compose.mosquitto.yml:docker-compose.yml:docker-compose.standalone.yml:docker-compose.supla-suplaos.yml:"+
+	if got, want := env["COMPOSE_FILE"], "docker-compose.mosquitto.yml:docker-compose.yml:docker-compose.standalone.yml:docker-compose.supla-suplaos.yml:docker-compose.supla-images.yml:"+
 		"docker-compose.zigbee2mqtt.yml:docker-compose.zigbee2mqtt-usb.yml:docker-compose.zigbee2mqtt-usb-adapter.yml:"+
 		"docker-compose.zigbee2supla.yml:docker-compose.zigbee2supla-supla.yml:docker-compose.zigbee2supla-mosquitto.yml"; got != want {
 		t.Errorf("COMPOSE_FILE = %s", got)

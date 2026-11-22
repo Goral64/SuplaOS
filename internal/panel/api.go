@@ -589,6 +589,10 @@ func (s *Server) installAddon(w http.ResponseWriter, r *http.Request) {
 		if err := st.Up(); err != nil {
 			return err
 		}
+		if err := st.Verify(id); err != nil {
+			s.checkImagesAfter(j)
+			return err
+		}
 		if req.Account != nil {
 			if err := req.Account.create(st, j); err != nil {
 				return err
@@ -698,7 +702,7 @@ func (s *Server) addonAction(w http.ResponseWriter, r *http.Request) {
 				return err
 			}
 			s.checkImagesAfter(j)
-			return nil
+			return st.Verify(id)
 		default: // backup
 			path, err := st.Backup(id)
 			if err != nil {
@@ -1016,6 +1020,9 @@ func (s *Server) applyPending(st *stack.Stack, j *Job) error {
 		return err
 	}
 	s.checkImagesAfter(j)
+	if err := st.Verify(pending...); err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -1178,7 +1185,7 @@ func (s *Server) restoreAddon(w http.ResponseWriter, r *http.Request) {
 			return err
 		}
 		j.Logf("Restored from %s", req.Name)
-		return nil
+		return st.Verify(id)
 	})
 }
 

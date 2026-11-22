@@ -24,6 +24,9 @@ const ProjectName = "supla"
 // Installed is an installed add-on with the values of its options.
 type Installed struct {
 	Options map[string]string `yaml:"options"`
+	// Images are kept instead of the set of the catalog, which is older,
+	// see keepNewer.
+	Images map[string]string `yaml:"images,omitempty"`
 }
 
 type State struct {

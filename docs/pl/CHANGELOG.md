@@ -2,6 +2,16 @@
 
 [In English](../../CHANGELOG.md)
 
+## 0.12.2
+
+- Supla aktualizuje się w całości, razem z SuplaOS: Supla Cloud
+  i supla-server to zestaw sprawdzony razem, a nie każde osobno najnowszy
+  obraz. Ta aktualizacja przynosi Suplę 26.11.01, najpierw robi kopię
+  bazy. Nowszej Supli nie cofa.
+- Panel pokazuje, gdy supla-server nie działa, choć jego kontener jest
+  uruchomiony, a instalacja, aktualizacja albo przywracanie Supli kończy
+  się wtedy błędem zamiast „Gotowe”.
+
 ## 0.12.1
 
 - Przeniesienie z Supla Cloud: „Dociągnij nowszą historię” pomijało

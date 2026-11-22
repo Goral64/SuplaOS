@@ -89,6 +89,7 @@
     "settings": "Settings",
     "noSettings": "This add-on has no settings.",
     "install": "Install",
+    "upstream": "{version} ({upstream} is out, it comes with an update of SuplaOS)",
     "installTitle": "Install {name}",
     "save": "Save and restart",
     "start": "Start",

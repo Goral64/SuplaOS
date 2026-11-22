@@ -87,6 +87,7 @@ export function text(t, lang) {
 // one when there is an update. A new build of the same version shows its
 // build time instead.
 export function imageVersions(img, t, lang) {
+  if (img.upstream && !img.update) return t('addon.upstream', { version: img.version || '-', upstream: img.upstream })
   const version = img.version || '-'
   if (!img.update) return version
   if (img.newVersion && img.newVersion !== img.version) return `${version} → ${img.newVersion}`

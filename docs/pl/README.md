@@ -144,12 +144,16 @@ bezpieczeństwa i aktualizacje stabilnego Debiana instalują się też same
 codziennie (można to wyłączyć na tej samej stronie), a panel przypomina
 o restarcie, gdy czeka nowe jądro.
 
-Gdy aktualizacja przynosi nowe wersje plików dodatków (np. nowszy
-supla-docker), panel sam je stosuje po aktualizacji, najpierw robiąc kopię,
-a kontenery tych dodatków powstają od nowa. Do wersji 1.0 dzieje się to bez
-pytania. Nowsze obrazy kontenerów dodatków pobiera przycisk Aktualizuj na
-stronie dodatku. Panel co kilka godzin sprawdza, czy są, i pokazuje wersje,
-nowe wersje i link do listy zmian.
+Gdy aktualizacja przynosi nowe wersje plików dodatków, panel sam je
+stosuje po aktualizacji, najpierw robiąc kopię, a kontenery tych dodatków
+powstają od nowa. Do wersji 1.0 dzieje się to bez pytania.
+
+Supla aktualizuje się w całości, razem z SuplaOS: każda wersja SuplaOS ma
+zestaw supla-docker, Supla Cloud i supla-server sprawdzonych razem.
+Wersje części widać na stronie dodatku, także gdy jest już nowsza. Nowsze
+obrazy pozostałych dodatków pobiera przycisk Aktualizuj na stronie
+dodatku. Panel co kilka godzin sprawdza, czy są, i pokazuje wersje oraz
+link do listy zmian.
 
 Co się zmieniło w kolejnych wersjach, jest w [CHANGELOG.md](CHANGELOG.md).
 

@@ -34,6 +34,16 @@ services:
     # Webhooks may go to <name>.local, e.g. SUPLA Scripts on this device.
     extra_hosts:
       - "${SUPLAOS_HOSTNAME}.local:host-gateway"
+    # supervisord keeps the container running when supla-server has given
+    # up (e.g. a database of another version): look at the scheduler and
+    # at who listens on 2016 (07E0), without connecting to it.
+    healthcheck:
+      test: ["CMD-SHELL", "pidof supla-scheduler >/dev/null && grep -qs ':07E0 [0-9A-F:]* 0A ' /proc/net/tcp /proc/net/tcp6"]
+      interval: 20s
+      timeout: 5s
+      retries: 3
+      start_period: 1m
+      start_interval: 5s
     depends_on:
       supla-cloud:
         condition: service_healthy

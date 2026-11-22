@@ -1,59 +1,114 @@
 name: supla-docker
 
-# Once a day: a newer supla-docker on its master branch becomes a pull
-# request that points the supla add-on at it, after the tests pass with
-# its files. A failure opens an issue instead.
+# Once a day: a newer set of Supla (supla-docker and the images of
+# supla-cloud and supla-server) becomes a pull request that points the
+# supla add-on at it, after a new install and an update work with it on
+# amd64 and arm64. A failure opens an issue instead, e.g. when only one of
+# the images is out yet.
 on:
   schedule:
     - cron: "23 4 * * *"
   workflow_dispatch:
 
 permissions:
-  contents: write
-  pull-requests: write
-  issues: write
+  contents: read
 
 jobs:
-  update:
+  check:
     runs-on: ubuntu-24.04
+    outputs:
+      set: ${{ steps.check.outputs.set }}
     env:
       GH_TOKEN: ${{ github.token }}
     steps:
       - uses: actions/checkout@v7
-      - name: Look for a newer supla-docker
+      - name: Look for a newer set
         id: check
-        run: tools/supla-docker.sh "$RUNNER_TEMP/supla-docker" >> "$GITHUB_OUTPUT"
+        run: tools/supla-docker.sh "$RUNNER_TEMP/supla" >> "$GITHUB_OUTPUT"
+      - uses: actions/upload-artifact@v7
+        if: steps.check.outputs.set
+        with:
+          name: supla-set
+          path: ${{ runner.temp }}/supla
+          include-hidden-files: true
+          retention-days: 7
+
+  test:
+    needs: check
+    if: needs.check.outputs.set
+    strategy:
+      fail-fast: false
+      matrix:
+        runner: [ubuntu-24.04, ubuntu-24.04-arm]
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/download-artifact@v8
+        with:
+          name: supla-set
+          path: ${{ runner.temp }}/supla
+      - name: The new set in the add-on
+        run: |
+          cp -r addons "$RUNNER_TEMP/addons-old"
+          cp "$RUNNER_TEMP/supla/addon.yaml" addons/supla/addon.yaml
       - name: Tests with the new files
-        if: steps.check.outputs.commit
         run: |
           tools/go.sh vet ./...
           tools/go.sh test ./...
           tools/go.sh test -c -o out/stack.test ./internal/stack
           cd internal/stack
-          SUPLAOS_SUPLA_DOCKER="$RUNNER_TEMP/supla-docker/new" ../../out/stack.test -test.run TestSuplaDockerFiles -test.v
-      - name: Pull request
-        if: steps.check.outputs.commit
-        env:
-          COMMIT: ${{ steps.check.outputs.commit }}
+          SUPLAOS_SUPLA_DOCKER="$RUNNER_TEMP/supla/new" ../../out/stack.test -test.run TestSuplaDockerFiles -test.v
+      - name: New install and update
         run: |
-          title="Supla: supla-docker ${COMMIT:0:7}"
+          tools/go.sh build -o out/suplaos ./cmd/suplaos
+          tools/supla-set-test.sh out/suplaos "$RUNNER_TEMP/addons-old" addons
+
+  pull-request:
+    needs: [check, test]
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+      pull-requests: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      SET: ${{ needs.check.outputs.set }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/download-artifact@v8
+        with:
+          name: supla-set
+          path: ${{ runner.temp }}/supla
+      - name: Pull request
+        run: |
+          title="Supla: $SET"
+          cp "$RUNNER_TEMP/supla/addon.yaml" addons/supla/addon.yaml
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git checkout -B supla-docker
           git commit -q -am "$title"
           git push -q -f origin supla-docker
           if [ "$(gh pr view supla-docker --json state -q .state 2>/dev/null)" = OPEN ]; then
-            gh pr edit supla-docker --title "$title" --body-file "$RUNNER_TEMP/supla-docker/pr.md"
+            gh pr edit supla-docker --title "$title" --body-file "$RUNNER_TEMP/supla/pr.md"
           else
-            gh pr create --head supla-docker --base main --title "$title" --body-file "$RUNNER_TEMP/supla-docker/pr.md"
+            gh pr create --head supla-docker --base main --title "$title" --body-file "$RUNNER_TEMP/supla/pr.md"
           fi
+
+  report:
+    needs: [check, test]
+    if: failure() && needs.check.outputs.set
+    runs-on: ubuntu-24.04
+    permissions:
+      issues: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      SET: ${{ needs.check.outputs.set }}
+      RUN: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+    steps:
       - name: Report the failure
-        if: failure() && steps.check.outputs.commit
-        env:
-          COMMIT: ${{ steps.check.outputs.commit }}
-          RUN: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
-          title="supla-docker ${COMMIT:0:7}: tests failed"
+          title="Supla $SET: tests failed"
           if [ -z "$(gh issue list --state open --search "\"$title\" in:title" -q '.[0].number' --json number)" ]; then
-            gh issue create --title "$title" --body "The tests failed with supla-docker ${COMMIT:0:7}: $RUN"
+            gh issue create --title "$title" --body "The tests failed with this set of Supla: $RUN"
           fi

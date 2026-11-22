@@ -23,11 +23,15 @@ compose:
   - file: docker-compose.supla-domain.yml
     when: {option: "suplaos:DOMAIN", not_empty: true}
 services: [supla-cloud, supla-db, supla-server]
+# Supla is updated as a set: these images and the files of supla-docker
+# above, tested together (the supla-docker workflow proposes new ones).
 images:
   supla-cloud:
+    image: supla/supla-cloud:26.11.01@sha256:e2455c4daa2e8ac601c8e1f182645441f06f6355eccc7c851ab2257df4e1d398
     version_env: CLOUD_VERSION
     changelog: https://github.com/SUPLA/supla-cloud/releases
   supla-server:
+    image: supla/supla-server:26.11.01@sha256:362b9789865a70a20b5f2b1dd91549161373acbe460aee2c685fdfeee8a01af6
     version_env: SERVER_VERSION
     changelog: https://github.com/SUPLA/supla-core/releases
 dirs: [ssl/cloud, ssl/server, var]

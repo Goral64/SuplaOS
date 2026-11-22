@@ -262,10 +262,43 @@ func (w *Web) URLScheme() string {
 
 // Image describes the image of a service. VersionEnv is the variable with
 // its version, for images without the org.opencontainers.image.version
-// label (also older ones); Changelog is a page with the changes.
+// label (also older ones); Changelog is a page with the changes. Image
+// pins the exact image, repository:version@sha256:digest: the add-on is
+// then updated as a set with SuplaOS.
 type Image struct {
 	VersionEnv string `yaml:"version_env"`
 	Changelog  string `yaml:"changelog"`
+	Image      string `yaml:"image"`
+}
+
+// Repo is the repository of a pinned image.
+func (i Image) Repo() string {
+	ref, _, _ := strings.Cut(i.Image, "@")
+	repo, _, _ := strings.Cut(ref, ":")
+	return repo
+}
+
+// Tag is the version of a pinned image.
+func (i Image) Tag() string {
+	ref, _, _ := strings.Cut(i.Image, "@")
+	_, tag, _ := strings.Cut(ref, ":")
+	return tag
+}
+
+// Digest is the digest of a pinned image.
+func (i Image) Digest() string {
+	_, digest, _ := strings.Cut(i.Image, "@")
+	return digest
+}
+
+// Pinned tells whether the add-on is updated as a set of exact images.
+func (a *Addon) Pinned() bool {
+	for _, i := range a.Images {
+		if i.Image != "" {
+			return true
+		}
+	}
+	return false
 }
 
 type Addon struct {
@@ -323,6 +356,8 @@ func (a *Addon) Option(key string) *Option {
 var (
 	idRe  = regexp.MustCompile(`^[a-z0-9][a-z0-9-]*$`)
 	keyRe = regexp.MustCompile(`^[A-Za-z_][A-Za-z0-9_]*$`)
+	// pinRe is an exact image: repository:version@digest.
+	pinRe = regexp.MustCompile(`^[a-z0-9][a-z0-9./_-]*:v?[0-9][0-9.]*@sha256:[0-9a-f]{64}$`)
 	// hostLabel is a label of a DNS name.
 	hostLabel = regexp.MustCompile(`^[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?$`)
 )
@@ -356,9 +391,12 @@ func (a *Addon) validate() error {
 	if len(a.Services) == 0 {
 		return fmt.Errorf("%s: no services", a.ID)
 	}
-	for svc := range a.Images {
+	for svc, img := range a.Images {
 		if !slices.Contains(a.Services, svc) {
 			return fmt.Errorf("%s: image of unknown service %s", a.ID, svc)
+		}
+		if img.Image != "" && !pinRe.MatchString(img.Image) {
+			return fmt.Errorf("%s: image of %s must be repository:version@sha256:digest: %q", a.ID, svc, img.Image)
 		}
 	}
 	seen := map[string]bool{}

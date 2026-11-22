@@ -162,6 +162,9 @@ func run(args []string) error {
 		if err := s.Restore(args[0], path); err != nil {
 			return err
 		}
+		if err := s.Verify(args[0]); err != nil {
+			return err
+		}
 		fmt.Printf("%s: restored from %s\n", args[0], filepath.Base(path))
 		return nil
 	case "run":
@@ -186,7 +189,10 @@ func run(args []string) error {
 		if err := s.Apply(); err != nil {
 			return err
 		}
-		return s.Up()
+		if err := s.Up(); err != nil {
+			return err
+		}
+		return s.Verify(pending...)
 	case "upgrade":
 		if os.Geteuid() != 0 {
 			return errors.New("run it as root: sudo suplaos upgrade")
@@ -371,7 +377,10 @@ func install(s *stack.Stack, args []string) error {
 	if *noStart {
 		return nil
 	}
-	return s.Up()
+	if err := s.Up(); err != nil {
+		return err
+	}
+	return s.Verify(id)
 }
 
 func remove(s *stack.Stack, args []string) error {
@@ -640,6 +649,9 @@ func importBackup(s *stack.Stack, args []string) error {
 	if err := s.Import(file, opt); err != nil {
 		return err
 	}
+	if err := s.VerifyAll(); err != nil {
+		return err
+	}
 	fmt.Println("Full backup restored")
 	return nil
 }
@@ -660,5 +672,11 @@ func update(s *stack.Stack, ids []string) error {
 	}
 	// Only these services: up on the whole project would also recreate the
 	// ones depending on them (zigbee2supla on supla-server).
-	return s.Compose(append([]string{"up", "-d"}, services...)...)
+	if err := s.Compose(append([]string{"up", "-d"}, services...)...); err != nil {
+		return err
+	}
+	if len(ids) == 0 {
+		return s.VerifyAll()
+	}
+	return s.Verify(ids...)
 }
