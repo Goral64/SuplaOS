@@ -2,7 +2,7 @@
 
 [In English](../../CHANGELOG.md)
 
-## Niewydane
+## 0.15.0
 
 - Pierwsze kroki: opis krok po kroku od wgrania obrazu do pierwszego
   urządzenia, także przez aplikację SUPLA.

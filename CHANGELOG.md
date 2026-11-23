@@ -2,7 +2,7 @@
 
 [Po polsku](docs/pl/CHANGELOG.md)
 
-## Unreleased
+## 0.15.0
 
 - Getting started: a step-by-step guide from writing the image to the
   first device, also with the SUPLA app.
