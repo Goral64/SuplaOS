@@ -47,7 +47,7 @@ set up in the panel: in the setup wizard or later in System, Network.
   disk, temperature on a Raspberry Pi)?
 - Supla: install it with the first account (or create one on the Supla
   add-on page later), log in to
-  Supla Cloud at https://<device address> and connect a Supla device.
+  Supla Cloud at `https://<device address>` and connect a Supla device.
 - ZigBee (if you have a coordinator): install Mosquitto, Zigbee2MQTT and
   Zigbee2Supla. Pick the USB coordinator from the list and its type
   (zstack, ember, deconz), Zigbee2MQTT then starts without its own first

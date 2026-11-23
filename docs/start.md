@@ -40,7 +40,7 @@ Put the drive in, connect the network cable, power the device on and wait
 Open https://suplaos.local:8443 in a browser. Not every phone and computer
 knows `.local` names. Then take the IP address from the list of devices in
 the router or from a screen connected to the device, and open
-https://<IP address>:8443.
+`https://<IP address>:8443`.
 
 The browser warns about the certificate, as the device makes its own.
 Accept it for now; later you can install the
@@ -71,7 +71,7 @@ You can give the first account right away, e-mail and password. The account
 doesn't need a confirmation by e-mail. It can also be made later on the
 page of the Supla add-on.
 
-Supla Cloud is then at https://<device address>, without a port. Log in
+Supla Cloud is then at `https://<device address>`, without a port. Log in
 there with that account.
 
 Already have an account in the public Supla Cloud? You can move it with

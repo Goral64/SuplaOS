@@ -46,7 +46,7 @@ w kreatorze pierwszego uruchomienia albo później w System, Sieć.
   temperatura na Raspberry Pi)?
 - Supla: zainstaluj ją z pierwszym kontem (albo załóż je później na stronie
   dodatku Supla), zaloguj się do
-  Supla Cloud pod https://<adres urządzenia> i podłącz jakieś urządzenie Supla.
+  Supla Cloud pod `https://<adres urządzenia>` i podłącz jakieś urządzenie Supla.
 - ZigBee (jeśli masz koordynator): zainstaluj Mosquitto, Zigbee2MQTT
   i Zigbee2Supla. Wybierz koordynator USB z listy i jego typ (zstack,
   ember, deconz), Zigbee2MQTT startuje wtedy bez własnej strony pierwszego

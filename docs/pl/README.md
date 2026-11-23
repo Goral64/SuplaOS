@@ -49,10 +49,10 @@ zobacz [własna domena](domain.md).
 ## Dodatki
 
 Dodatki instaluje się, konfiguruje i aktualizuje w panelu, w zakładce Dodatki.
-Po instalacji Supli Supla Cloud jest pod https://<adres urządzenia>.
+Po instalacji Supli Supla Cloud jest pod `https://<adres urządzenia>`.
 Pierwsze konto można podać już przy instalacji Supli (także w kreatorze
 pierwszego uruchomienia) albo założyć później na stronie dodatku Supla.
-Interfejs Zigbee2MQTT jest pod https://<adres urządzenia>:8080, udostępnia
+Interfejs Zigbee2MQTT jest pod `https://<adres urządzenia>:8080`, udostępnia
 go panel po zalogowaniu. Z [własną domeną](domain.md) panel i dodatki mają
 też własne nazwy na porcie 443.
 
@@ -61,7 +61,7 @@ scenami i historią pomiarów, a urządzenia i kanały zachowują swoje ID:
 zobacz [przeniesienie z Supla Cloud](migration.md).
 
 [SUPLA Scripts](https://github.com/fracz/supla-scripts) jest pod
-https://<adres urządzenia>:8444. Loguje się tam tokenem osobistym z Supla
+`https://<adres urządzenia>:8444`. Loguje się tam tokenem osobistym z Supla
 Cloud (Konto, Bezpieczeństwo, Osobiste tokeny dostępowe) z dostępem do
 konta, urządzeń i kanałów, a potem zakłada login i hasło do samego SUPLA
 Scripts. Działa z Cloud na tym urządzeniu i z cloud.supla.org. Obraz buduje
@@ -75,7 +75,7 @@ urządzeniu ustawienia dodatku przyjmują aplikację OAuth założoną ręcznie
 (Integracje, Moje aplikacje OAuth, adres przekierowania https://<adres
 urządzenia>:8444/authorize).
 
-[Node-RED](https://nodered.org) jest pod https://<adres urządzenia>:1880,
+[Node-RED](https://nodered.org) jest pod `https://<adres urządzenia>:1880`,
 też przez panel, po zalogowaniu do niego. Ma od razu
 [węzły Supli](https://github.com/Goral64/SuplaNodeRED) i gotowe połączenie
 z Suplą, które bierze ustawienia z dodatku. Gdy Supla działa na tym samym

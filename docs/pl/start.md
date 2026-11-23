@@ -39,7 +39,7 @@ minuty: przy pierwszym starcie system powiększa się na cały dysk.
 Otwórz w przeglądarce https://suplaos.local:8443. Nie każdy telefon
 i komputer zna nazwy `.local`. Wtedy weź adres IP z listy urządzeń
 w routerze albo z ekranu podłączonego do urządzenia i otwórz
-https://<adres IP>:8443.
+`https://<adres IP>:8443`.
 
 Przeglądarka ostrzeże przed certyfikatem, bo urządzenie tworzy własny.
 Na początek go zaakceptuj, potem możesz zainstalować
@@ -68,7 +68,7 @@ Supla). Pobieranie obrazów trwa kilka minut, zależnie od łącza. Od razu
 możesz podać pierwsze konto, e-mail i hasło. Konto nie wymaga potwierdzenia
 e-mailem. Można je też założyć później na stronie dodatku Supla.
 
-Supla Cloud jest potem pod https://<adres urządzenia>, bez portu.
+Supla Cloud jest potem pod `https://<adres urządzenia>`, bez portu.
 Zaloguj się tam tym kontem.
 
 Masz już konto w publicznym Supla Cloud? Możesz je przenieść razem

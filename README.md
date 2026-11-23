@@ -50,10 +50,10 @@ anything, see [own domain](docs/domain.md).
 ## Add-ons
 
 Add-ons are installed, configured and updated in the panel, under Add-ons.
-After installing Supla, Supla Cloud is at https://<device address>. The
+After installing Supla, Supla Cloud is at `https://<device address>`. The
 first account can be given already when installing Supla (also in the first
 run wizard), or created later on the Supla add-on page. The Zigbee2MQTT
-interface is at https://<device address>:8080, served by the panel after
+interface is at `https://<device address>:8080`, served by the panel after
 logging in to it. With an [own domain](docs/domain.md) the panel and the
 add-ons also get names of their own on port 443.
 
@@ -62,7 +62,7 @@ scenes and measurement history, the devices and channels keep their IDs:
 see [moving from Supla Cloud](docs/migration.md).
 
 [SUPLA Scripts](https://github.com/fracz/supla-scripts) is at
-https://<device address>:8444. You log in there with a personal access
+`https://<device address>:8444`. You log in there with a personal access
 token from Supla Cloud (Account, Security, Personal access tokens) with
 access to the account, devices and channels, and then make a login and a
 password for SUPLA Scripts itself. It works with the Cloud on this device and
@@ -75,9 +75,9 @@ the account you give, the password isn't saved) and from then on SUPLA
 Scripts offers logging in with Supla Cloud and gets changes of the channels
 right away. Without Supla on the device the settings of the add-on take an
 OAuth app made by hand (Integrations, My OAuth apps, redirect address
-https://<device address>:8444/authorize).
+`https://<device address>:8444/authorize`).
 
-[Node-RED](https://nodered.org) is at https://<device address>:1880, also
+[Node-RED](https://nodered.org) is at `https://<device address>:1880`, also
 served by the panel after logging in to it. It comes with the
 [Supla nodes](https://github.com/Goral64/SuplaNodeRED) and a ready Supla
 connection that takes its settings from the add-on. With Supla on the same

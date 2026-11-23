@@ -325,7 +325,7 @@
 
 ## 0.4.0
 
-- Tylko HTTPS. Panel jest teraz pod https://<nazwa>.local:8443, port 80
+- Tylko HTTPS. Panel jest teraz pod `https://<nazwa>.local:8443`, port 80
   tylko tam przekierowuje. Supla Cloud zostaje na 443 i nie nasłuchuje już
   na 8081. Interfejs Zigbee2MQTT jest dalej na porcie 8080, ale po HTTPS
   i dopiero po zalogowaniu do panelu.
