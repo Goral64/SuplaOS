@@ -26,7 +26,10 @@ type Cloud interface {
 
 // DeviceState is how far the move of a device is.
 type DeviceState struct {
-	// Status: waiting (not connected to this server yet), done, error.
+	// Status: waiting (not connected to this server yet), done, error. A
+	// resumed move also has kept (here already, its settings left as they
+	// are), missing (not here) and foreign (its ID or GUID taken here); the
+	// move leaves those alone.
 	Status string    `json:"status"`
 	Error  string    `json:"error,omitempty"`
 	Done   time.Time `json:"done,omitzero"`
@@ -50,6 +53,10 @@ type State struct {
 	Copied map[string]int64 `json:"copied,omitempty"`
 	// Scripts is the result of moving the objects of SUPLA Scripts.
 	Scripts *ScriptsResult `json:"scripts,omitempty"`
+	// Resumed: a move ended before and started again on what is here
+	// already (Resume). SkipChannels are left alone.
+	Resumed      bool  `json:"resumed,omitempty"`
+	SkipChannels []int `json:"skipChannels,omitempty"`
 }
 
 // HistoryRun is the last import of measurement logs: Items of all of
@@ -289,7 +296,7 @@ func Apply(db DB, cloud Cloud, b *Bundle, s *State, log io.Writer) (int, error) 
 			ds = &DeviceState{Status: "waiting"}
 			s.Devices[d.ID] = ds
 		}
-		if ds.Status == "done" {
+		if ds.Status != "waiting" && ds.Status != "error" {
 			continue
 		}
 		if !connected[d.ID] {

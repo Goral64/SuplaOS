@@ -8,10 +8,13 @@ import (
 	"net"
 	"os"
 	"path/filepath"
+	"regexp"
+	"slices"
 	"strconv"
 	"strings"
 
 	"github.com/Goral64/SuplaOS/internal/addon"
+	"gopkg.in/yaml.v3"
 )
 
 // Install adds an add-on to the state with the given option values on top
@@ -219,6 +222,71 @@ func (s *Stack) setOptions(a *addon.Addon, inst *Installed, set map[string]strin
 		return fmt.Errorf("%s: %s", a.ID, strings.Join(errs, "; "))
 	}
 	return nil
+}
+
+// ownComposeFile is the name of the own compose file of an add-on in the
+// stack directory.
+func ownComposeFile(id string) string { return "docker-compose." + id + "-own.yml" }
+
+var envKey = regexp.MustCompile(`^[A-Za-z_][A-Za-z0-9_]*$`)
+
+// ownEnv reads the own variables of an add-on. Those SuplaOS sets itself
+// are refused: options (of any add-on, the .env is shared), the database of
+// a package, which only its update changes, and the variables of compose.
+func (s *Stack) ownEnv(a *addon.Addon, text string) ([]addon.KV, error) {
+	kvs, err := parseEnv([]byte(text))
+	if err != nil {
+		return nil, err
+	}
+	for _, kv := range kvs {
+		switch {
+		case !envKey.MatchString(kv.Key):
+			return nil, fmt.Errorf("invalid variable name %q", kv.Key)
+		case strings.ContainsAny(kv.Value, "'\n\r"):
+			return nil, fmt.Errorf("%s must not contain quotes or line breaks", kv.Key)
+		case slices.Contains(packageEnv, kv.Key) && a.Pinned():
+			return nil, fmt.Errorf("%s changes only with an update of %s", kv.Key, a.ID)
+		case strings.HasPrefix(kv.Key, "COMPOSE_") || strings.HasPrefix(kv.Key, "SUPLAOS_") || kv.Key == "TZ":
+			return nil, fmt.Errorf("%s is set by SuplaOS", kv.Key)
+		}
+		for _, other := range s.Catalog {
+			if other.Option(kv.Key) != nil {
+				return nil, fmt.Errorf("%s is an option of %s, set it there", kv.Key, other.ID)
+			}
+		}
+	}
+	return kvs, nil
+}
+
+// SetOwn sets the own variables and compose file of an add-on, checked by
+// docker compose before they are kept.
+func (s *Stack) SetOwn(id, env, compose string) error {
+	a := s.Catalog[id]
+	inst := s.State.Addons[id]
+	if a == nil || inst == nil {
+		return fmt.Errorf("%s is not installed", id)
+	}
+	if _, err := s.ownEnv(a, env); err != nil {
+		return err
+	}
+	if strings.TrimSpace(compose) != "" {
+		var doc map[string]any
+		if err := yaml.Unmarshal([]byte(compose), &doc); err != nil || doc == nil {
+			return fmt.Errorf("the compose file is not a YAML mapping: %v", err)
+		}
+	}
+	oldEnv, oldCompose := inst.OwnEnv, inst.OwnCompose
+	inst.OwnEnv, inst.OwnCompose = env, compose
+	err := s.Apply()
+	if err == nil {
+		err = s.Compose("config", "--quiet")
+	}
+	if err != nil {
+		inst.OwnEnv, inst.OwnCompose = oldEnv, oldCompose
+		s.Apply()
+		return err
+	}
+	return s.Save()
 }
 
 func checkValue(o *addon.Option, v string) error {

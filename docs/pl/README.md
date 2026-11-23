@@ -164,6 +164,14 @@ Supli. Aktualizacja SuplaOS nie zmienia wersji Supli. Nowa instalacja
 zaczyna od najnowszego wydania z MariaDB 12.2.2, nowsza baza jest wtedy
 aktualizacją.
 
+Przed aktualizacją karta pokazuje, co się zmienia w `.env.default`.
+Ustawienia supla-docker, których nie ma w opcjach strony Supli (np. ręczny
+krok z opisu wydania), wpisuje się w karcie Własne zmienne i compose:
+zmienne nadpisujące `.env.default` i plik compose dokładany po plikach
+supla-docker. Zostają przy aktualizacjach i są w pełnej kopii. Obrazy Supli
+i bazy zostają takie, jak w zainstalowanym wydaniu, zmienia je tylko
+aktualizacja.
+
 Nowsze obrazy pozostałych dodatków pobiera przycisk Aktualizuj na stronie
 dodatku. Panel sprawdza co kilka godzin.
 

@@ -2,6 +2,7 @@
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { api } from '../api'
+import { localError } from '../errors'
 
 // The page restarts the device, with its own question.
 const emit = defineEmits(['reboot'])
@@ -54,7 +55,7 @@ async function save() {
       {{ view.model }} · {{ $t('fan.temperature', { temp: view.temperature.toFixed(1) }) }}
       <template v-if="view.settings.kind === 'argon' && !view.rebootNeeded"> · {{ $t('fan.speed', { speed: view.speed }) }}</template>
     </p>
-    <div v-if="view.error && view.settings.kind === 'argon' && !view.rebootNeeded" class="alert error">{{ $t('fan.error', { error: view.error }) }}</div>
+    <div v-if="view.error && view.settings.kind === 'argon' && !view.rebootNeeded" class="alert error">{{ $t('fan.error', { error: localError(view.error) }) }}</div>
     <p v-if="pi5" class="muted small">{{ $t('fan.pi5') }}</p>
 
     <form @submit.prevent="save">

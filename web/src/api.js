@@ -1,4 +1,5 @@
 import { reactive } from 'vue'
+import { localError } from './errors'
 
 // Session state shared by the whole interface.
 export const session = reactive({
@@ -42,7 +43,7 @@ export async function api(method, path, body) {
       session.loggedIn = false
       window.location.assign('/login')
     }
-    throw new ApiError(res.status, (data && data.error) || res.statusText, data)
+    throw new ApiError(res.status, localError((data && data.error) || res.statusText), data)
   }
   return data
 }
@@ -60,13 +61,19 @@ export function followJob(id, onLine) {
     es.addEventListener('line', (e) => onLine(e.data))
     es.addEventListener('end', (e) => {
       es.close()
-      resolve(JSON.parse(e.data))
+      resolve(localJob(JSON.parse(e.data)))
     })
     es.onerror = () => {
       es.close()
-      api('GET', `/jobs/${id}`).then(resolve, () => resolve({ state: 'failed', error: 'connection lost' }))
+      api('GET', `/jobs/${id}`).then((job) => resolve(localJob(job)), () => resolve({ state: 'failed', error: localError('connection lost') }))
     }
   })
+}
+
+// localJob shows the error of a finished job in the language of the
+// interface.
+function localJob(job) {
+  return job && job.error ? { ...job, error: localError(job.error) } : job
 }
 
 export function formatBytes(n) {

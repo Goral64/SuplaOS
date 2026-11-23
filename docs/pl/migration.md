@@ -41,8 +41,14 @@ dalej, gdy tylko wskażą nowy serwer.
    Karta pokazuje, które urządzenia są już przeniesione, a które czekają.
 5. Po przestawieniu urządzeń dociągnij nowszą historię: źródło zapisuje
    pomiary, dopóki urządzenie nie zostanie przeniesione. Zakończ, gdy
-   wszystkie są przeniesione, bo na tej samej Supli nie da się zacząć
-   przenoszenia od nowa.
+   wszystkie są przeniesione.
+
+Jeśli urządzenie zostało przestawione dopiero po zakończeniu, odczytaj konto
+ponownie tokenem. Karta zaproponuje wtedy wznowienie przenoszenia dla
+urządzeń, które są tu ze swoim ID i GUID: te jeszcze niepołączone dostaną
+ustawienia po połączeniu, a historia dociągnie się bez podwójnych wpisów.
+Urządzenia już połączone zachowują ustawienia, które mają tutaj, chyba że je
+zaznaczysz. Nic innego nie powstaje drugi raz.
 
 Dopóki urządzenia nie przestawisz, działa ze źródłem jak dotąd, a jego
 stary wpis tam zostaje, więc możesz wrócić, ustawiając dawny serwer.

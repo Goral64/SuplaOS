@@ -15,6 +15,15 @@
 - Przeniesienie kopiuje też kolumnę temperatury z historii kanałów
   wilgotności, wcześniej było tam 0.
 - Node-RED 5.0.10 z węzłami Supli 0.1.3.
+- Przeniesienie z Supla Cloud zakończone za wcześnie można wznowić:
+  po ponownym odczytaniu konta karta proponuje to dla urządzeń, które są
+  tu ze swoim ID i GUID. Urządzenia już tu połączone zachowują ustawienia,
+  chyba że je zaznaczysz, nic innego nie powstaje drugi raz.
+- Strona Supli, karta Własne zmienne i compose: własne zmienne `.env`
+  i własny plik compose dla supla-docker, zachowywane przy aktualizacjach
+  i w pełnej kopii. Karta aktualizacji pokazuje zmiany `.env.default`.
+- Komunikaty błędów w polskim panelu są po polsku. Te, które przychodzą
+  z Dockera albo z Supla Cloud, zostają bez zmian, tak samo logi zadań.
 
 ## 0.13.0
 

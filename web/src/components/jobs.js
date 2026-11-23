@@ -31,6 +31,7 @@ const fixedTitles = {
   'full backup': 'fullBackup',
   'restore full backup': 'restoreFull',
   'prepare the move from Supla Cloud': 'prepareMove',
+  'resume the move from Supla Cloud': 'resumeMove',
   'check for an update of Supla': 'checkSupla',
   'update Supla': 'updateSupla',
   'copy the measurement history': 'copyHistory',

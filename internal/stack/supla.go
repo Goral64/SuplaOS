@@ -7,6 +7,7 @@ import (
 	"io"
 	"maps"
 	"net/http"
+	"slices"
 	"strings"
 	"time"
 
@@ -46,11 +47,58 @@ func (s *Stack) CheckSupla(ctx context.Context) (*SuplaUpdate, error) {
 		}
 		*v = used.Version
 	}
-	db, err := s.databaseVersions(ctx, r.Tag)
+	db, release, err := s.databaseVersions(ctx, r.Tag)
 	if err != nil {
 		return nil, err
 	}
-	return decideUpdate(ctx, lookupImage, r, tag, here, db)
+	u, err := decideUpdate(ctx, lookupImage, r, tag, here, db)
+	if err != nil {
+		return nil, err
+	}
+	if u.State == SuplaAvailable {
+		u.Env = s.envChanges(a, release)
+	}
+	return u, nil
+}
+
+// envChanges compares .env.default of the installed release with that of
+// another one.
+func (s *Stack) envChanges(a *addon.Addon, release []addon.KV) []EnvChange {
+	data, err := s.source(a, a.EnvBase)
+	if err != nil {
+		return nil
+	}
+	installed, err := parseEnv(data)
+	if err != nil {
+		return nil
+	}
+	own := map[string]bool{}
+	if inst := s.State.Addons[a.ID]; inst != nil {
+		if kvs, err := parseEnv([]byte(inst.OwnEnv)); err == nil {
+			for _, kv := range kvs {
+				own[kv.Key] = true
+			}
+		}
+	}
+	here, there := map[string]string{}, map[string]string{}
+	for _, kv := range installed {
+		here[kv.Key] = kv.Value
+	}
+	var out []EnvChange
+	for _, kv := range release {
+		there[kv.Key] = kv.Value
+		old, ok := here[kv.Key]
+		if (ok && old == kv.Value) || slices.Contains(packageEnv, kv.Key) {
+			continue
+		}
+		out = append(out, EnvChange{Key: kv.Key, Here: old, Release: kv.Value, New: !ok, Own: own[kv.Key]})
+	}
+	for _, kv := range installed {
+		if _, ok := there[kv.Key]; !ok && !slices.Contains(packageEnv, kv.Key) {
+			out = append(out, EnvChange{Key: kv.Key, Here: kv.Value, Removed: true, Own: own[kv.Key]})
+		}
+	}
+	return out
 }
 
 // UpgradeSupla updates Supla to the newest release of supla-docker, the
@@ -186,30 +234,30 @@ func databaseEnv(d *DatabaseVersions) map[string]string {
 
 // databaseVersions compares the database installed with .env.default of
 // the release, as one does after git pull.
-func (s *Stack) databaseVersions(ctx context.Context, tag string) (*DatabaseVersions, error) {
+func (s *Stack) databaseVersions(ctx context.Context, tag string) (*DatabaseVersions, []addon.KV, error) {
 	here, err := s.databaseHere()
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, fmt.Sprintf(suplaEnvDefault, tag), nil)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf(".env.default of supla-docker %s: %s", tag, resp.Status)
+		return nil, nil, fmt.Errorf(".env.default of supla-docker %s: %s", tag, resp.Status)
 	}
 	data, err := io.ReadAll(io.LimitReader(resp.Body, 1<<20))
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	env, err := parseEnv(data)
 	if err != nil {
-		return nil, fmt.Errorf(".env.default of supla-docker %s: %w", tag, err)
+		return nil, nil, fmt.Errorf(".env.default of supla-docker %s: %w", tag, err)
 	}
 	db := &DatabaseVersions{Here: here}
 	for _, kv := range env {
@@ -221,7 +269,7 @@ func (s *Stack) databaseVersions(ctx context.Context, tag string) (*DatabaseVers
 		}
 	}
 	if db.Release == "" {
-		return nil, nil
+		return nil, env, nil
 	}
-	return db, nil
+	return db, env, nil
 }

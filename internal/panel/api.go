@@ -636,6 +636,57 @@ func (s *Server) configAddon(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
+// getOwn returns the own variables and compose file of an add-on, with the
+// compose files they go over.
+func (s *Server) getOwn(w http.ResponseWriter, r *http.Request) {
+	st, err := s.openStack()
+	if err != nil {
+		jsonError(w, http.StatusInternalServerError, err)
+		return
+	}
+	id := r.PathValue("id")
+	inst := st.State.Addons[id]
+	if inst == nil {
+		jsonError(w, http.StatusNotFound, fmt.Errorf("%s is not installed", id))
+		return
+	}
+	writeJSON(w, http.StatusOK, map[string]string{"env": inst.OwnEnv, "compose": inst.OwnCompose})
+}
+
+// setOwn keeps the own variables and compose file of an add-on and
+// recreates what they change.
+func (s *Server) setOwn(w http.ResponseWriter, r *http.Request) {
+	id := r.PathValue("id")
+	var req struct {
+		Env     string `json:"env"`
+		Compose string `json:"compose"`
+	}
+	if err := readJSON(r, &req); err != nil {
+		jsonError(w, http.StatusBadRequest, err)
+		return
+	}
+	s.stackJob(w, "configure "+id, func(st *stack.Stack, j *Job) error {
+		inst := st.State.Addons[id]
+		if inst == nil {
+			return fmt.Errorf("%s is not installed", id)
+		}
+		oldEnv, oldCompose := inst.OwnEnv, inst.OwnCompose
+		if err := st.SetOwn(id, req.Env, req.Compose); err != nil {
+			return err
+		}
+		err := st.Up()
+		if err != nil {
+			// docker compose config does not check everything: what does
+			// not start goes back.
+			j.Logf("Going back to the previous own settings")
+			if rerr := st.SetOwn(id, oldEnv, oldCompose); rerr == nil {
+				st.Up()
+			}
+		}
+		return err
+	})
+}
+
 func (s *Server) removeAddon(w http.ResponseWriter, r *http.Request) {
 	id := r.PathValue("id")
 	var req struct{ Purge bool }
@@ -1191,7 +1242,7 @@ func (s *Server) restoreAddon(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if st.Catalog.BackupOwner(req.Name) != id {
-		jsonError(w, http.StatusBadRequest, errors.New("not a backup of "+id))
+		jsonError(w, http.StatusBadRequest, fmt.Errorf("not a backup of %s", id))
 		return
 	}
 	s.stackJob(w, "restore "+id, func(st *stack.Stack, j *Job) error {

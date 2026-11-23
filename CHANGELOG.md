@@ -15,6 +15,15 @@
 - The move copies the temperature column of the history of humidity
   channels too, before it was 0.
 - Node-RED 5.0.10 with the Supla nodes 0.1.3.
+- A move from Supla Cloud ended too early can be resumed: read the
+  account again and the card offers it for the devices that are here with
+  their ID and GUID. Devices connected here already keep their settings
+  unless ticked, nothing else is made twice.
+- Supla page, card Own variables and compose: own `.env` variables and an
+  own compose file for supla-docker, kept through updates and in a full
+  backup. The update card lists the changes of `.env.default`.
+- Error messages are shown in Polish in the Polish panel. Those that come
+  from Docker or Supla Cloud stay as they are, and so do the logs of jobs.
 
 ## 0.13.0
 

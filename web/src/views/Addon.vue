@@ -12,6 +12,7 @@ import LogView from '../components/LogView.vue'
 import AccountFields from '../components/AccountFields.vue'
 import SuplaUpdateCard from '../components/SuplaUpdateCard.vue'
 import MigrationCard from '../components/MigrationCard.vue'
+import OwnConfigCard from '../components/OwnConfigCard.vue'
 import SuplaDevicesCard from '../components/SuplaDevicesCard.vue'
 import CloudRegistrationCard from '../components/CloudRegistrationCard.vue'
 import AccountLimitsCard from '../components/AccountLimitsCard.vue'
@@ -293,6 +294,7 @@ const webURL = (a) => a.web.url
       <AccountLimitsCard v-if="addon.id === 'supla' && suplaRunning" />
 
       <MigrationCard v-if="addon.id === 'supla' && suplaRunning" />
+      <OwnConfigCard v-if="addon.id === 'supla' && addon.installed" id="supla" @saved="load" />
 
       <div v-if="showAccount" class="card">
         <h2>{{ $t('addon.account') }}</h2>

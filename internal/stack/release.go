@@ -145,6 +145,21 @@ type SuplaUpdate struct {
 	// Database is the version installed next to that in .env.default of
 	// the release.
 	Database *DatabaseVersions `json:"database,omitempty"`
+	// Env are the changes of .env.default from the installed release to
+	// this one, without the database (above).
+	Env []EnvChange `json:"env,omitempty"`
+}
+
+// EnvChange is a variable of .env.default that the release adds (Here
+// empty), removes (Release empty) or changes. Own: the user's own value
+// is used instead.
+type EnvChange struct {
+	Key     string `json:"key"`
+	Here    string `json:"here"`
+	Release string `json:"release"`
+	New     bool   `json:"new,omitempty"`
+	Removed bool   `json:"removed,omitempty"`
+	Own     bool   `json:"own,omitempty"`
 }
 
 // DatabaseVersions are the images of the database: installed and in

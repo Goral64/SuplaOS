@@ -180,6 +180,15 @@ func (s *Stack) Plan() (*Plan, error) {
 			}
 			p.ComposeFiles = append(p.ComposeFiles, c.File)
 		}
+		// The own compose file of the user: before the pinned images, so
+		// that those stay as the package has them.
+		if inst := s.State.Addons[a.ID]; inst != nil && strings.TrimSpace(inst.OwnCompose) != "" {
+			name := ownComposeFile(a.ID)
+			if err := add(a.ID, name, []byte(inst.OwnCompose)); err != nil {
+				return nil, err
+			}
+			p.ComposeFiles = append(p.ComposeFiles, name)
+		}
 		if a.Pinned() {
 			name := pinsFile(a.ID)
 			if err := add(a.ID, name, pinsCompose(s.packageImages(a))); err != nil {
@@ -243,6 +252,18 @@ func (s *Stack) Plan() (*Plan, error) {
 				}
 			} else if v != "" {
 				files[o.File].set(o.Key, v)
+			}
+		}
+		if inst := s.State.Addons[a.ID]; inst != nil && inst.OwnEnv != "" {
+			own, err := s.ownEnv(a, inst.OwnEnv)
+			if err != nil {
+				return nil, fmt.Errorf("%s: own variables: %w", a.ID, err)
+			}
+			for _, kv := range own {
+				if globals[kv.Key] {
+					return nil, fmt.Errorf("%s: own variables: %s is set by SuplaOS", a.ID, kv.Key)
+				}
+				setEnv(kv.Key, kv.Value)
 			}
 		}
 		if a.EnvFile != "" {

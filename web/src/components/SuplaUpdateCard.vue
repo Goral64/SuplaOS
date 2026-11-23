@@ -2,6 +2,7 @@
 import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { api } from '../api'
+import { localError } from '../errors'
 import { ask } from './dialog'
 import { runJob } from './jobs'
 
@@ -54,7 +55,7 @@ const notes = computed(() => (update.value?.release.notes || '').split('\n')
       <span class="spacer"></span>
       <button :disabled="busy" @click="check">{{ $t('suplaUpdate.check') }}</button>
     </div>
-    <div v-if="error || view.error" class="alert error mt">{{ error || view.error }}</div>
+    <div v-if="error || view.error" class="alert error mt">{{ error || localError(view.error) }}</div>
     <p v-if="!update" class="muted mt">{{ $t('suplaUpdate.notChecked') }}</p>
     <template v-else>
       <p class="mt" :class="{ 'alert ok': update.state === 'available', 'alert warn': update.state === 'waiting' || update.state === 'unreadable' }">
@@ -69,6 +70,19 @@ const notes = computed(() => (update.value?.release.notes || '').split('\n')
       </table>
       <p v-if="update.waiting?.length" class="small">{{ $t('suplaUpdate.waiting', { list: update.waiting.join(', ') }) }}</p>
       <p v-if="database?.raise" class="alert warn small mt">{{ $t('suplaUpdate.databaseChanged', { to: database.release }) }}</p>
+      <details v-if="update.env?.length" class="mt">
+        <summary>{{ $t('suplaUpdate.env', { n: update.env.length }) }}</summary>
+        <p class="muted small">{{ $t('suplaUpdate.envHelp') }}</p>
+        <table class="small">
+          <tr v-for="c in update.env" :key="c.key">
+            <td><code>{{ c.key }}</code></td>
+            <td v-if="c.new">{{ $t('suplaUpdate.envNew') }} <code>{{ c.release }}</code></td>
+            <td v-else-if="c.removed">{{ $t('suplaUpdate.envRemoved') }} <code>{{ c.here }}</code></td>
+            <td v-else><code>{{ c.here }}</code> → <code>{{ c.release }}</code></td>
+            <td class="muted">{{ c.own ? $t('suplaUpdate.envOwn') : '' }}</td>
+          </tr>
+        </table>
+      </details>
       <details v-if="notes && update.state !== 'current'" class="mt" open>
         <summary>{{ $t('suplaUpdate.notes') }}</summary>
         <pre class="log">{{ notes }}</pre>

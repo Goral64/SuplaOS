@@ -167,6 +167,14 @@ Supla stopped. An update of SuplaOS doesn't change the versions of Supla.
 A new install starts from the newest release with MariaDB 12.2.2, a newer
 database is then an update.
 
+Before the update the card lists what changes in `.env.default`. Settings
+of supla-docker that aren't among the options of the Supla page (e.g. a
+step to do by hand from the notes of a release) go to the card Own
+variables and compose: variables over `.env.default` and a compose file
+added after those of supla-docker. They stay through updates and are in a
+full backup. The images of Supla and the database stay those of the
+installed release, only an update changes them.
+
 Newer images of the other add-ons are downloaded with the Update button on
 the add-on page. The panel checks every few hours.
 

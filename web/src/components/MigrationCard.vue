@@ -2,6 +2,7 @@
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { api } from '../api'
+import { localError } from '../errors'
 import { ask } from './dialog'
 import { runJob } from './jobs'
 
@@ -11,6 +12,8 @@ const token = ref('')
 const scriptsURL = ref('https://scripts.supla.io')
 const scriptsToken = ref('')
 const password = ref('')
+// Devices connected here already that get the settings of the source again.
+const overwrite = ref([])
 const error = ref('')
 const busy = ref(false)
 let timer
@@ -49,6 +52,14 @@ const prepare = () => call(async () => {
   await load()
 })
 
+const resume = () => call(async () => {
+  if (!(await ask(t('migration.resumeConfirm'), { ok: t('migration.resume') }))) return
+  await runJob('POST', '/migration/resume', { password: password.value, overwrite: overwrite.value })
+  password.value = ''
+  overwrite.value = []
+  await load()
+})
+
 const history = () => call(async () => {
   await runJob('POST', '/migration/history')
   await load()
@@ -62,8 +73,8 @@ const moveScripts = () => call(async () => {
 // What is lost by ending the move now.
 function endQuestion() {
   const lines = []
-  const all = view.value.devices.length
-  const left = all - count('done')
+  const all = moving.value
+  const left = all - moved.value
   if (left) lines.push(t('migration.endWaiting', { n: left, all }))
   if (historyBad.value) lines.push(t('migration.endHistory'))
   lines.push(t('migration.cancelPreparedConfirm'))
@@ -81,6 +92,10 @@ const cancel = () => call(async () => {
 })
 
 const count = (status) => view.value?.devices?.filter((d) => d.status === status).length || 0
+// A resumed move leaves alone the devices not here or of another device.
+const moving = computed(() => (view.value?.devices?.length || 0) - count('missing') - count('foreign'))
+const moved = computed(() => count('done') + count('kept'))
+const name = (id) => view.value?.devices?.find((d) => d.id === id)?.name || ''
 // Not copied to the end: a failure, or interrupted before it was noted.
 const historyBad = computed(() => !view.value?.history || !!view.value.history.error)
 // Kinds of objects with their number in the source, those there are.
@@ -109,12 +124,40 @@ const when = (d) => new Date(d).toLocaleString(locale.value)
         {{ $t('migration.summary', { source: view.source, email: view.email, date: when(view.fetched) }) }}<br>
         {{ $t('migration.counts', { devices: view.devices.length, channels: view.channels, locations: view.locations, accessIds: view.accessIds }) }}
       </p>
-      <p v-if="objects.length && !view.prepared">
+      <p v-if="objects.length && !view.prepared && !view.resume">
         {{ $t('migration.also') }}
         <span v-for="([k, n], i) in objects" :key="k">{{ i ? ', ' : ' ' }}{{ $t('migration.kinds.' + k) }}: {{ n }}</span>.
       </p>
 
-      <form v-if="!view.prepared" @submit.prevent="prepare">
+      <form v-if="!view.prepared && view.resume" @submit.prevent="resume">
+        <p>{{ $t('migration.resumeIntro', { email: view.email }) }}</p>
+        <p v-if="view.resume.waiting.length">{{ $t('migration.resumeWaiting', { n: view.resume.waiting.length }) }}</p>
+        <template v-if="view.resume.here.length">
+          <p>{{ $t('migration.resumeHere', { n: view.resume.here.length }) }}</p>
+          <div v-for="id in view.resume.here" :key="id" class="field">
+            <label class="check">
+              <input v-model="overwrite" type="checkbox" :value="id">
+              {{ name(id) }} <span class="muted small">ID {{ id }}</span>
+            </label>
+          </div>
+        </template>
+        <p v-if="view.resume.missing.length" class="muted small">
+          {{ $t('migration.resumeMissing') }} {{ view.resume.missing.map((id) => `${name(id)} (ID ${id})`).join(', ') }}
+        </p>
+        <p v-if="view.resume.foreign.length" class="muted small">
+          {{ $t('migration.resumeForeign') }} {{ view.resume.foreign.map((id) => `${name(id)} (ID ${id})`).join(', ') }}
+        </p>
+        <div class="field">
+          <label for="mig-pass" class="required">{{ $t('migration.password', { email: view.email }) }}</label>
+          <input id="mig-pass" v-model="password" type="password" autocomplete="current-password" required>
+        </div>
+        <div class="row">
+          <button class="primary" :disabled="busy">{{ $t('migration.resume') }}</button>
+          <button type="button" class="link danger" :disabled="busy" @click="cancel">{{ $t('migration.cancel') }}</button>
+        </div>
+      </form>
+
+      <form v-else-if="!view.prepared" @submit.prevent="prepare">
         <p class="muted small">{{ $t('migration.prepareHelp', { email: view.email }) }}</p>
         <div class="field">
           <label for="mig-pass" class="required">{{ $t('migration.password', { email: view.email }) }}</label>
@@ -127,8 +170,8 @@ const when = (d) => new Date(d).toLocaleString(locale.value)
       </form>
 
       <template v-else>
-        <p class="alert ok">{{ $t('migration.progress', { done: count('done'), all: view.devices.length }) }}</p>
-        <p v-if="objects.length">
+        <p class="alert ok">{{ $t('migration.progress', { done: moved, all: moving }) }}</p>
+        <p v-if="objects.length && !view.resumed">
           {{ $t('migration.made') }}
           <span v-for="([k, n], i) in objects" :key="k">{{ i ? ', ' : ' ' }}{{ $t('migration.kinds.' + k) }}: {{ made(k) }}/{{ n }}</span>.
         </p>
@@ -153,15 +196,15 @@ const when = (d) => new Date(d).toLocaleString(locale.value)
             <tr v-for="d in view.devices" :key="d.id">
               <td>{{ d.name }} <span class="muted small">ID {{ d.id }}</span></td>
               <td>
-                <span class="badge" :class="{ ok: d.status === 'done', bad: d.status === 'error' }">{{ $t('migration.status.' + d.status) }}</span>
-                <div v-if="d.error" class="small" style="color: var(--danger)">{{ d.error }}</div>
+                <span class="badge" :class="{ ok: d.status === 'done' || d.status === 'kept', bad: d.status === 'error' }">{{ $t('migration.status.' + d.status) }}</span>
+                <div v-if="d.error" class="small" style="color: var(--danger)">{{ localError(d.error) }}</div>
               </td>
             </tr>
           </table>
         </details>
         <div v-if="historyBad" class="alert error">
           {{ $t('migration.historyFailed') }}
-          <div v-if="view.history?.error" class="small">{{ view.history.error }}</div>
+          <div v-if="view.history?.error" class="small">{{ localError(view.history.error) }}</div>
         </div>
         <p v-else class="muted">
           {{ $t('migration.history', { date: when(view.history.time), n: view.history.items }) }}

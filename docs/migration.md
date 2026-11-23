@@ -42,7 +42,14 @@ point to the new server.
    shows which devices are moved and which are waiting.
 5. After switching the devices, copy the newer history: the source keeps
    logging until a device is moved. End the move when all the devices are
-   moved, it cannot be started again on the same Supla.
+   moved.
+
+If a device was switched only after the end, read the account again with a
+token. The card then offers to resume the move for the devices that are
+here with their ID and GUID: those not connected yet get their settings when
+they connect, and the history is copied again without double items. Devices
+connected here already keep the settings they have here, unless you tick
+them. Nothing else is made a second time.
 
 Until a device is switched, it works with the source as before, and its old
 entry stays there, so you can go back by setting the old server again.

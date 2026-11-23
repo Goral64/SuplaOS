@@ -29,6 +29,11 @@ type Installed struct {
 	Images map[string]string `yaml:"images,omitempty"`
 	// Package is what is installed of an add-on updated as a whole.
 	Package *Package `yaml:"package,omitempty"`
+	// The user's own additions, kept as they are by updates: variables
+	// (KEY=VALUE lines) over those of the .env of the add-on, and a compose
+	// file applied over its own ones.
+	OwnEnv     string `yaml:"own_env,omitempty"`
+	OwnCompose string `yaml:"own_compose,omitempty"`
 }
 
 type State struct {

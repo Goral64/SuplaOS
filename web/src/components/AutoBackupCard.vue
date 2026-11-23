@@ -2,6 +2,7 @@
 import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { api, formatBytes } from '../api'
+import { localError } from '../errors'
 import { runJob } from './jobs'
 
 const emit = defineEmits(['done'])
@@ -82,7 +83,7 @@ const share = computed(() => form.value && form.value.target !== 'device')
     <p v-if="view.status.time" :class="view.status.ok ? 'muted' : 'alert error'">
       {{ $t('autoBackup.last', { date: when(view.status.time) }) }}
       <template v-if="view.status.ok">{{ $t('autoBackup.lastOK', { file: view.status.file, size: formatBytes(view.status.size) }) }}</template>
-      <template v-else>{{ $t('autoBackup.lastFailed', { error: view.status.error }) }}</template>
+      <template v-else>{{ $t('autoBackup.lastFailed', { error: localError(view.status.error) }) }}</template>
     </p>
     <p v-if="view.next" class="muted">{{ $t('autoBackup.next', { date: when(view.next) }) }}</p>
 

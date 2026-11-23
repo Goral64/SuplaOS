@@ -71,9 +71,16 @@ func (s *Server) getMigration(w http.ResponseWriter, r *http.Request) {
 		prepared = &st.Prepared
 	}
 	server, scripts := "", false
+	var resume *migrate.Resume
 	if stk, err := s.openStack(); err == nil && stk.IsInstalled("supla") {
 		server = stk.Values(stk.Catalog["supla"])["SUPLA_HOST_ADDRESS"]
 		scripts = stk.IsInstalled("supla-scripts")
+		// A move ended before: the devices here already.
+		if st.Prepared.IsZero() {
+			if res, err := migrate.CheckResume(migrate.StackDB{Stack: stk}, b); err == nil && res.Possible() {
+				resume = res
+			}
+		}
 	}
 	type link struct {
 		Caption string `json:"caption"`
@@ -93,7 +100,7 @@ func (s *Server) getMigration(w http.ResponseWriter, r *http.Request) {
 			"schedules": len(b.Schedules), "reactions": len(b.Reactions), "directLinks": len(b.DirectLinks),
 		},
 		"made": st.Objects, "links": links, "history": st.History, "scripts": st.Scripts, "scriptsInstalled": scripts,
-		"prepared": prepared, "devices": devices, "server": server,
+		"prepared": prepared, "devices": devices, "server": server, "resume": resume, "resumed": st.Resumed,
 	})
 }
 
@@ -173,27 +180,14 @@ func (s *Server) prepareMigration(w http.ResponseWriter, r *http.Request) {
 				return err
 			}
 		}
-		cloud, err := s.cloudClient("https://127.0.0.1:" + st.Values(st.Catalog["supla"])["PORT_HTTPS"])
+		cloud, token, err := s.moveToken(st, b, req.Password, j)
 		if err != nil {
 			return err
 		}
-		j.Logf("Logging in to Supla Cloud as %s", b.Email)
-		if err := cloud.login(b.Email, req.Password); err != nil {
-			return err
-		}
-		var token struct {
-			ID    int    `json:"id"`
-			Token string `json:"token"`
-		}
-		if err := cloud.call("POST", "/api/v3/oauth-personal-tokens",
-			map[string]string{"name": "SuplaOS: move from " + strings.TrimPrefix(b.Server, "https://"), "scope": migrationScope}, &token); err != nil {
-			return err
-		}
-		// A failed attempt does not leave its token in the account.
 		saved := false
 		defer func() {
-			if !saved && token.ID > 0 {
-				cloud.call("DELETE", fmt.Sprintf("/api/v3/oauth-personal-tokens/%d", token.ID), nil, nil)
+			if !saved {
+				token.remove(cloud)
 			}
 		}()
 		if err := migrate.Prepare(db, b, j); err != nil {
@@ -226,6 +220,100 @@ func (s *Server) prepareMigration(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
+// personalToken is a personal access token made in the local Cloud.
+type personalToken struct {
+	ID    int    `json:"id"`
+	Token string `json:"token"`
+}
+
+// remove deletes the token, so that a failed attempt does not leave it in
+// the account.
+func (t *personalToken) remove(cloud *cloudAPI) {
+	if t.ID > 0 {
+		cloud.call("DELETE", fmt.Sprintf("/api/v3/oauth-personal-tokens/%d", t.ID), nil, nil)
+	}
+}
+
+// moveToken logs in to the local Cloud as the account of the move and
+// makes the token the panel sets the devices with.
+func (s *Server) moveToken(st *stack.Stack, b *migrate.Bundle, password string, j *Job) (*cloudAPI, *personalToken, error) {
+	cloud, err := s.cloudClient("https://127.0.0.1:" + st.Values(st.Catalog["supla"])["PORT_HTTPS"])
+	if err != nil {
+		return nil, nil, err
+	}
+	j.Logf("Logging in to Supla Cloud as %s", b.Email)
+	if err := cloud.login(b.Email, password); err != nil {
+		return nil, nil, err
+	}
+	token := &personalToken{}
+	if err := cloud.call("POST", "/api/v3/oauth-personal-tokens",
+		map[string]string{"name": "SuplaOS: move from " + strings.TrimPrefix(b.Server, "https://"), "scope": migrationScope}, token); err != nil {
+		return nil, nil, err
+	}
+	return cloud, token, nil
+}
+
+// resumeMigration goes on with a move that was ended before all the
+// devices were switched: with the devices here with their ID and GUID,
+// without making the skeleton and the other objects again.
+func (s *Server) resumeMigration(w http.ResponseWriter, r *http.Request) {
+	var req struct {
+		Password string `json:"password"`
+		// Overwrite: devices connected here already that get the settings
+		// of the source again.
+		Overwrite []int `json:"overwrite"`
+	}
+	if err := readJSON(r, &req); err != nil {
+		jsonError(w, http.StatusBadRequest, err)
+		return
+	}
+	store := s.migrationStore()
+	s.stackJob(w, "resume the move from Supla Cloud", func(st *stack.Stack, j *Job) error {
+		s.migration.Lock()
+		defer s.migration.Unlock()
+		b, err := store.Bundle()
+		if err != nil || b == nil {
+			return errors.New("read the source account first")
+		}
+		state, err := store.State()
+		if err != nil {
+			return err
+		}
+		if !state.Prepared.IsZero() {
+			return errors.New("the move is prepared already")
+		}
+		if !st.IsInstalled("supla") {
+			return errors.New("Supla is not installed")
+		}
+		db := migrate.StackDB{Stack: st}
+		res, err := migrate.CheckResume(db, b)
+		if err != nil {
+			return err
+		}
+		if !res.Possible() {
+			return errors.New("none of the devices is here with its ID and GUID on the account, there is nothing to resume")
+		}
+		cloud, token, err := s.moveToken(st, b, req.Password, j)
+		if err != nil {
+			return err
+		}
+		state.Devices = res.Start(req.Overwrite)
+		state.Resumed, state.SkipChannels = true, res.SkipChannels
+		state.Prepared, state.Token = time.Now().UTC(), token.Token
+		if err := store.SaveState(state); err != nil {
+			token.remove(cloud)
+			return err
+		}
+		j.Logf("Waiting: %d devices, here already: %d, not here: %d, of another device or account: %d",
+			len(res.Waiting), len(res.Here), len(res.Missing), len(res.Foreign))
+		if err := importHistory(store, state, b, db, j); err != nil {
+			return fmt.Errorf("the move is resumed, but the measurement history is not complete, copy it again before you end the move: %w", err)
+		}
+		j.Logf("Ready. Switch the remaining devices to this server: they get their settings when they connect.")
+		return nil
+	})
+}
+
 // importHistory copies the measurement logs from the source; a failure
 // is noted in the state and returned, the move stays prepared.
 func importHistory(store migrate.Store, state *migrate.State, b *migrate.Bundle, db migrate.DB, j *Job) error {
@@ -238,7 +326,7 @@ func importHistory(store migrate.Store, state *migrate.State, b *migrate.Bundle,
 	}
 	src, err := migrate.NewSource(state.SourceToken)
 	if err == nil {
-		run.Added, err = migrate.ImportHistory(src, db, b, state.Copied, j)
+		run.Added, err = migrate.ImportHistory(src, db, state.Moved(b), state.Copied, j)
 	}
 	run.Items = run.Added
 	if again && state.History != nil {
@@ -400,7 +488,7 @@ func (s *Server) applyMigration() error {
 		return err
 	}
 	cloud.token = state.Token
-	if _, err := migrate.Apply(migrate.StackDB{Stack: st}, cloudCaller{cloud}, b, state, log.Writer()); err != nil {
+	if _, err := migrate.Apply(migrate.StackDB{Stack: st}, cloudCaller{cloud}, state.Moved(b), state, log.Writer()); err != nil {
 		return err
 	}
 	return store.SaveState(state)
