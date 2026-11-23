@@ -42,10 +42,7 @@ func logKinds(function int) []logKind {
 	case 40: // THERMOMETER
 		f, c := same("temperature")
 		return []logKind{k("supla_temperature_log", f, c)}
-	case 42: // HUMIDITY
-		f, c := same("humidity")
-		return []logKind{k("supla_temphumidity_log", f, c)}
-	case 45: // HUMIDITYANDTEMPERATURE
+	case 42, 45: // HUMIDITY, HUMIDITYANDTEMPERATURE: the same table and columns
 		f, c := same("temperature", "humidity")
 		return []logKind{k("supla_temphumidity_log", f, c)}
 	case 310: // ELECTRICITYMETER

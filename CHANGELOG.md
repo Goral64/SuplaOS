@@ -7,6 +7,14 @@
 - The card of the move from Supla Cloud says which e-mail has to be in
   the devices: with another one a device registers apart from its entry
   with the history.
+- A full backup uploaded in the panel no longer leaves the backup folder
+  owned by root, where `suplaos backup` of the user then failed. The
+  update gives such a folder back.
+- A failed "Prepare the move" no longer leaves a personal access token
+  in the local Cloud.
+- The move copies the temperature column of the history of humidity
+  channels too, before it was 0.
+- Node-RED 5.0.10 with the Supla nodes 0.1.3.
 
 ## 0.13.0
 

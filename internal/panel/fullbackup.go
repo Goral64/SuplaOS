@@ -51,11 +51,15 @@ func (s *Server) uploadFullBackup(w http.ResponseWriter, r *http.Request) {
 	if !stack.IsFullBackup(name) || strings.HasPrefix(name, ".") {
 		name = "suplaos-upload-" + time.Now().Format("20060102150405") + ext
 	}
-	dir := filepath.Join(s.cfg.Root, "backups")
-	if err := os.MkdirAll(dir, 0o755); err != nil {
+	st, err := s.openStack()
+	if err == nil {
+		err = st.MakeBackupDir()
+	}
+	if err != nil {
 		jsonError(w, http.StatusInternalServerError, err)
 		return
 	}
+	dir := st.BackupDir()
 	f, err := os.CreateTemp(dir, ".upload-*")
 	if err != nil {
 		jsonError(w, http.StatusInternalServerError, err)
@@ -71,6 +75,7 @@ func (s *Server) uploadFullBackup(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	os.Chmod(f.Name(), 0o600)
+	st.Own(f.Name())
 	base := strings.TrimSuffix(name, ext)
 	for n := 1; ; n++ {
 		if _, err := os.Stat(filepath.Join(dir, name)); errors.Is(err, os.ErrNotExist) {

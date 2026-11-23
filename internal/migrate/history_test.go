@@ -35,6 +35,11 @@ func TestInsertSQL(t *testing.T) {
 	if !strings.Contains(q, "`phase_no`, `count_total`") || !strings.Contains(q, "(7, FROM_UNIXTIME(2), 1, 3, 0, 0, 0, 0, 0, 0, 229.5, 231, 230.1, 600);") {
 		t.Errorf("aberrations:\n%s", q)
 	}
+	// HUMIDITY keeps the temperature column of the source too.
+	q, _ = insertSQL(logKinds(42)[0], 9, items(t, `[{"date_timestamp":3,"temperature":-275,"humidity":48.5}]`))
+	if !strings.Contains(q, "(9, FROM_UNIXTIME(3), -275, 48.5);") {
+		t.Errorf("humidity:\n%s", q)
+	}
 	if _, err := insertSQL(th, 6, items(t, `[{"date_timestamp":1,"on":"x"}]`)); err == nil {
 		t.Error("a string accepted as a value")
 	}

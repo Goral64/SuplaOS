@@ -182,12 +182,20 @@ func (s *Server) prepareMigration(w http.ResponseWriter, r *http.Request) {
 			return err
 		}
 		var token struct {
+			ID    int    `json:"id"`
 			Token string `json:"token"`
 		}
 		if err := cloud.call("POST", "/api/v3/oauth-personal-tokens",
 			map[string]string{"name": "SuplaOS: move from " + strings.TrimPrefix(b.Server, "https://"), "scope": migrationScope}, &token); err != nil {
 			return err
 		}
+		// A failed attempt does not leave its token in the account.
+		saved := false
+		defer func() {
+			if !saved && token.ID > 0 {
+				cloud.call("DELETE", fmt.Sprintf("/api/v3/oauth-personal-tokens/%d", token.ID), nil, nil)
+			}
+		}()
 		if err := migrate.Prepare(db, b, j); err != nil {
 			return err
 		}
@@ -209,6 +217,7 @@ func (s *Server) prepareMigration(w http.ResponseWriter, r *http.Request) {
 		if err := store.SaveState(state); err != nil {
 			return err
 		}
+		saved = true
 		if err := importHistory(store, state, b, db, j); err != nil {
 			return fmt.Errorf("the move is prepared, but the measurement history is not complete, copy it again before you end the move: %w", err)
 		}

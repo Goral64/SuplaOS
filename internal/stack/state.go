@@ -90,6 +90,14 @@ func Open(root, catalogDir string) (*Stack, error) {
 func (s *Stack) statePath() string { return filepath.Join(s.Root, "state.yaml") }
 func (s *Stack) Dir() string       { return filepath.Join(s.Root, "stack") }
 func (s *Stack) BackupDir() string { return filepath.Join(s.Root, "backups") }
+
+// MakeBackupDir creates the backup directory, owned like the data
+// directory.
+func (s *Stack) MakeBackupDir() error { return s.mkdir(s.BackupDir()) }
+
+// Own gives a file the panel created in the data directory to its owner.
+func (s *Stack) Own(path string) { s.chown(path) }
+
 func (s *Stack) cacheDir(id string) string {
 	return filepath.Join(s.Root, "cache", id)
 }

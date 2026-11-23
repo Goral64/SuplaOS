@@ -7,6 +7,14 @@
 - Karta przeniesienia z Supla Cloud mówi, jaki e-mail ma być
   w urządzeniach: z innym urządzenie rejestruje się poza swoim wpisem
   z historią.
+- Pełna kopia wgrana w panelu nie zostawia już folderu kopii należącego
+  do roota, na którym potem padało `suplaos backup` użytkownika.
+  Aktualizacja oddaje taki folder.
+- Nieudane „Przygotuj przeniesienie” nie zostawia już tokenu osobistego
+  w lokalnym Cloud.
+- Przeniesienie kopiuje też kolumnę temperatury z historii kanałów
+  wilgotności, wcześniej było tam 0.
+- Node-RED 5.0.10 z węzłami Supli 0.1.3.
 
 ## 0.13.0
 

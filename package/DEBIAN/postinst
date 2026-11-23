@@ -31,6 +31,14 @@ EOS
   if [ -d /run/systemd/system ]; then
     systemctl stop rpcbind.socket rpcbind.service >/dev/null 2>&1 || true
   fi
+  # Up to 0.13.0 a backup uploaded in the panel created the backup
+  # directory as root, and the suplaos command of the user failed on it.
+  if [ -d /srv/suplaos/backups ]; then
+    owner=$(stat -c %u:%g /srv/suplaos)
+    if [ "$owner" != 0:0 ]; then
+      find /srv/suplaos/backups -maxdepth 1 -user 0 -exec chown "$owner" {} + || true
+    fi
+  fi
   # On a running system (not while the image is built) use the new panel.
   if [ -d /run/systemd/system ]; then
     systemctl try-restart suplaos-panel.service || true
