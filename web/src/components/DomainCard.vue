@@ -17,9 +17,22 @@ const help = computed(() => 'https://github.com/Goral64/SuplaOS/blob/main/docs/'
 const provider = computed(() => view.value?.providers.find((p) => p.name === form.value?.provider))
 const when = (d) => (d ? new Date(d).toLocaleString(locale.value) : '')
 
+// The port from the internet: the addresses follow it as it is typed.
+const port = ref('')
 async function load() {
   view.value = await api('GET', '/domain')
+  port.value = view.value.port
 }
+let typingPort
+watch(port, (p) => {
+  clearTimeout(typingPort)
+  if (!view.value || p === view.value.port) return
+  typingPort = setTimeout(async () => {
+    const v = await api('GET', '/domain?port=' + encodeURIComponent(p.trim() || '443'))
+    view.value.addresses = v.addresses
+  }, 300)
+})
+const portChanged = computed(() => view.value && port.value.trim() !== view.value.port)
 onMounted(load)
 
 // The default names follow the domain typed in the form.
@@ -77,7 +90,7 @@ const renew = () => job('POST', '/domain/renew')
 
 async function useDomain() {
   const oauth = view.value.scriptsOAuth
-  const result = await job('POST', '/domain/addresses')
+  const result = await job('POST', '/domain/addresses', { port: port.value.trim() || '443' })
   if (result && result.state === 'done' && oauth) message.value = t('domain.reconnect')
 }
 
@@ -109,9 +122,14 @@ async function disable() {
           <code>{{ view.status.lastError }}</code>
           <template v-if="view.status.nextAttempt"><br>{{ $t('domain.next', { date: when(view.status.nextAttempt) }) }}</template>
         </div>
-        <div v-if="view.addresses.length" class="alert warn">
-          {{ $t('domain.addresses') }}
-          <ul>
+        <div v-if="view.status.notAfter" class="field">
+          <label for="domain-port">{{ $t('domain.port') }}</label>
+          <input id="domain-port" v-model="port" inputmode="numeric" placeholder="443" style="max-width: 8em">
+          <div class="help">{{ $t('domain.portHelp') }}</div>
+        </div>
+        <div v-if="view.addresses.length || portChanged" class="alert warn">
+          {{ $t(view.addresses.length ? 'domain.addresses' : 'domain.addressesSame') }}
+          <ul v-if="view.addresses.length">
             <li v-for="a in view.addresses" :key="a.key">
               {{ $t('domain.address.' + a.key) }}: <code>{{ a.from }}</code> → <code>{{ a.to }}</code>
             </li>

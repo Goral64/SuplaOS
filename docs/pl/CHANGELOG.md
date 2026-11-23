@@ -6,6 +6,14 @@
 
 - Pierwsze kroki: opis krok po kroku od wgrania obrazu do pierwszego
   urządzenia, także przez aplikację SUPLA.
+- Strona System, Raport do zgłoszenia: wersje, sprzęt, stan dodatków i ich
+  kontenerów oraz ostatnia nieudana operacja z końcem logu, gotowe do
+  wklejenia na forum. Bez haseł, tokenów, adresów e-mail i domeny.
+- Karta domeny, Port z internetu: gdy router przekierowuje inny port niż
+  443 (np. 9443), Użyj domeny ustawia z nim adresy Supla Cloud i SUPLA
+  Scripts. Adres ustawiony wcześniej ręcznie z portem go zachowuje.
+- Zakończenie przenoszenia z Supla Cloud kasuje jego token w lokalnym
+  Cloud, chyba że przeniesione z nim SUPLA Scripts może go jeszcze używać.
 
 ## 0.14.0
 

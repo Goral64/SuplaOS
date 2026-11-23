@@ -225,7 +225,7 @@ func TestNamedAddresses(t *testing.T) {
 
 	// SUPLA Scripts moves to its name, without a port.
 	var to string
-	for _, c := range s.addressChanges(st) {
+	for _, c := range s.addressChanges(st, "") {
 		if c.Key == "SUPLA_SCRIPTS_URL" {
 			to = c.To
 		}
@@ -254,5 +254,45 @@ func TestPublicPort(t *testing.T) {
 	delete(st.State.Addons, "supla")
 	if got := publicPort(st, "443"); got != "" {
 		t.Errorf("without Supla: %q", got)
+	}
+}
+
+func TestInternetPort(t *testing.T) {
+	s := newServer(t)
+	st := routerStack(t, s)
+	domainCertificate(s, "supla.example.com")
+	to := func(port string) map[string]string {
+		out := map[string]string{}
+		for _, c := range s.addressChanges(st, port) {
+			out[c.Key] = c.To
+		}
+		return out
+	}
+	// Typed: both addresses get it.
+	got := to("9443")
+	if got["SUPLA_HOST_ADDRESS"] != "supla.example.com:9443" || got["SUPLA_SCRIPTS_URL"] != "https://supla-scripts.example.com:9443" {
+		t.Errorf("typed: %v", got)
+	}
+	// Set by hand before in the address of the Cloud: kept.
+	st.State.Addons["supla"].Options = map[string]string{"SUPLA_HOST_ADDRESS": "supla.example.com:9443"}
+	got = to("")
+	if _, ok := got["SUPLA_HOST_ADDRESS"]; ok || got["SUPLA_SCRIPTS_URL"] != "https://supla-scripts.example.com:9443" {
+		t.Errorf("by hand: %v", got)
+	}
+	// 443 typed: no port.
+	if got = to("443"); got["SUPLA_HOST_ADDRESS"] != "supla.example.com" || got["SUPLA_SCRIPTS_URL"] != "https://supla-scripts.example.com" {
+		t.Errorf("443: %v", got)
+	}
+	// Saved: wins over the address of the Cloud.
+	if err := s.acme.SetPort("8444"); err != nil {
+		t.Fatal(err)
+	}
+	if got = to(""); got["SUPLA_HOST_ADDRESS"] != "supla.example.com:8444" {
+		t.Errorf("saved: %v", got)
+	}
+	for _, bad := range []string{"0", "65536", "x", "09443", "-1"} {
+		if s.acme.SetPort(bad) == nil {
+			t.Errorf("port %q accepted", bad)
+		}
 	}
 }

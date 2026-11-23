@@ -361,6 +361,7 @@ func (s *Stack) Command(ctx context.Context, args ...string) *exec.Cmd {
 type Container struct {
 	Name    string `json:"Name"`
 	Service string `json:"Service"`
+	Image   string `json:"Image"`
 	State   string `json:"State"`
 	Health  string `json:"Health"`
 	Status  string `json:"Status"`

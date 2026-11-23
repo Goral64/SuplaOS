@@ -103,9 +103,11 @@ if the app should work away from home. 8883 only for MQTT clients outside.
 Don't forward 2015, it isn't encrypted.
 
 When 443 on the router is taken, forward another port to 443 of the device
-(e.g. 9443) and give the Cloud address with it (`supla.example.com:9443`).
-The device listens on that port too, so the add-ons that connect to the
-Cloud at its address (Node-RED, SUPLA Scripts) reach it on the device.
+(e.g. 9443) and type it in the domain card as Port from the internet. Use
+the domain then sets the addresses of Supla Cloud and SUPLA Scripts with
+that port (`supla.example.com:9443`). The device listens on that port too,
+so the add-ons that connect to the Cloud at its address (Node-RED, SUPLA
+Scripts) reach it on the device.
 
 The panel, Zigbee2MQTT and Node-RED answer only in the local network until
 you turn them on in System, Access, Access from the internet. Supla Cloud

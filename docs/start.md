@@ -140,6 +140,10 @@ won't help when the card dies. See [full backup](backup.md).
 - The panel doesn't open: check the IP address in the router and remember
   `https://` and the port `:8443`. Give the device a few minutes after the
   first start.
+- The System page has a Report for asking for help: versions, hardware,
+  the state of the add-ons and the last failed operation with the end of
+  its log, without passwords, tokens, e-mails and the domain. Paste it when
+  asking for help.
 - A job in the panel failed: its window shows the log, and the add-on page
   has "Show logs" of its containers. The end of the log usually says what
   went wrong.
@@ -151,4 +155,5 @@ won't help when the card dies. See [full backup](backup.md).
 When asking on the forum or in
 [Issues](https://github.com/Goral64/SuplaOS/issues), say what you install
 on, which version of SuplaOS (Updates page), at which step you got stuck
-and what exactly you see, best with the end of the log.
+and what exactly you see. If the panel works, add the report from the
+System page.

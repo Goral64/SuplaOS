@@ -446,7 +446,18 @@ func randomPassword() string {
 func (s *Server) cancelMigration(w http.ResponseWriter, r *http.Request) {
 	s.migration.Lock()
 	defer s.migration.Unlock()
-	if err := s.migrationStore().Cancel(); err != nil {
+	store := s.migrationStore()
+	// The token the devices were set with is of no use any more, a resumed
+	// move makes a new one. SUPLA Scripts moved here logged in with it and
+	// may keep using it.
+	if state, err := store.State(); err == nil && state.Token != "" && state.Scripts == nil {
+		if st, err := s.openStack(); err == nil && st.IsInstalled("supla") {
+			if _, err := (migrate.StackDB{Stack: st}).Query(migrate.DeleteTokenSQL(state.Token)); err != nil {
+				log.Printf("move from Supla Cloud: deleting its token: %v", err)
+			}
+		}
+	}
+	if err := store.Cancel(); err != nil {
 		jsonError(w, http.StatusInternalServerError, err)
 		return
 	}

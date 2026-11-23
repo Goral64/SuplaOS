@@ -9,6 +9,7 @@ import InternetCard from '../components/InternetCard.vue'
 import WifiCard from '../components/WifiCard.vue'
 import SshKeysCard from '../components/SshKeysCard.vue'
 import FanCard from '../components/FanCard.vue'
+import ReportCard from '../components/ReportCard.vue'
 
 // The part of the page shown, from the address: /system/general...
 const props = defineProps({ tab: { type: String, default: 'general' } })
@@ -111,6 +112,7 @@ const power = (action) => call(async () => {
         <button class="danger" :disabled="busy" @click="power('poweroff')">{{ $t('system.poweroff') }}</button>
       </div>
     </div>
+    <ReportCard />
   </template>
 
   <template v-else-if="props.tab === 'network'">

@@ -155,6 +155,11 @@ func AddScopeSQL(token, scope string) string {
 		"WHERE token = %s AND CONCAT(' ', scope, ' ') NOT LIKE %s;\n", str(scope), str(token), str("% "+scope+" %"))
 }
 
+// DeleteTokenSQL deletes a personal access token of the local Cloud.
+func DeleteTokenSQL(token string) string {
+	return "DELETE FROM supla_oauth_access_tokens WHERE token = " + str(token) + ";\n"
+}
+
 // SkeletonSQL puts the locations, access IDs, devices and channels of the
 // bundle in the database of this server with their IDs, for the user.
 // Devices get no auth key: supla-server lets the device in with any key

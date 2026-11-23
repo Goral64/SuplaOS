@@ -6,6 +6,16 @@
 
 - Getting started: a step-by-step guide from writing the image to the
   first device, also with the SUPLA app.
+- System page, Report for asking for help: versions, hardware, the state
+  of the add-ons and their containers and the last failed operation with
+  the end of its log, ready to paste on the forum. Passwords, tokens,
+  e-mail addresses and the domain are left out.
+- Domain card, Port from the internet: when the router forwards another
+  port than 443 (e.g. 9443), Use the domain sets the addresses of Supla
+  Cloud and SUPLA Scripts with it. An address set by hand with a port
+  before keeps it.
+- Ending a move from Supla Cloud deletes its token in the local Cloud,
+  unless SUPLA Scripts was moved with it and may still use it.
 
 ## 0.14.0
 

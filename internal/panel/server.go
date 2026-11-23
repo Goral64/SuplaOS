@@ -133,6 +133,7 @@ func (s *Server) Handler() http.Handler {
 	api("POST /api/ssh-keys/delete", s.deleteSSHKey)
 
 	api("GET /api/system", s.getSystem)
+	api("GET /api/report", s.getReport)
 	api("POST /api/system/{action}", s.power)
 	api("GET /api/settings", s.getSettingsAPI)
 	api("PUT /api/settings", s.putSettings)

@@ -2,6 +2,7 @@ package panel
 
 import (
 	"errors"
+	"net"
 	"net/http"
 	"strings"
 	"time"
@@ -30,6 +31,8 @@ type domainView struct {
 	ScriptsOAuth bool `json:"scriptsOAuth"`
 	// Names of the web interfaces besides the domain.
 	Names []domainName `json:"names"`
+	// Port is the port from the internet the addresses get, "" for 443.
+	Port string `json:"port"`
 }
 
 // domainName is the name of a web interface: set by the user (Name) or
@@ -75,18 +78,44 @@ type addressChange struct {
 	To    string `json:"to"`
 }
 
+// internetPort is the port from the internet the addresses at the domain
+// get: typed (port, "443" for none), saved, or that of the address of the
+// Cloud when it is the domain already, set by hand before the port could
+// be saved.
+func internetPort(st *stack.Stack, set *acme.Settings, domain, port string) string {
+	switch {
+	case port != "":
+	case set != nil && set.Port != "":
+		port = set.Port
+	case st.IsInstalled("supla"):
+		host, p, err := net.SplitHostPort(st.Values(st.Catalog["supla"])["SUPLA_HOST_ADDRESS"])
+		if err == nil && host == domain {
+			port = p
+		}
+	}
+	if port == "443" {
+		return ""
+	}
+	return port
+}
+
 // addressChanges are the addresses of Supla Cloud and SUPLA Scripts that
-// are not the domain yet, once there is a certificate for it.
-func (s *Server) addressChanges(st *stack.Stack) []addressChange {
+// are not the domain yet, once there is a certificate for it. port is
+// the port from the internet typed in the panel, "" for the saved one.
+func (s *Server) addressChanges(st *stack.Stack, port string) []addressChange {
 	c, _ := domaincert.Load(s.cfg.Root, time.Now())
 	if c == nil {
 		return []addressChange{}
 	}
+	set, _ := s.acme.Settings()
+	public := internetPort(st, set, c.Domain, port)
 	out := []addressChange{}
 	if st.IsInstalled("supla") {
 		v := st.Values(st.Catalog["supla"])
 		to := c.Domain
-		if port := v["PORT_HTTPS"]; port != "" && port != "443" {
+		if public != "" {
+			to += ":" + public
+		} else if port := v["PORT_HTTPS"]; port != "" && port != "443" {
 			to += ":" + port
 		}
 		if v["SUPLA_HOST_ADDRESS"] != to {
@@ -97,10 +126,12 @@ func (s *Server) addressChanges(st *stack.Stack) []addressChange {
 		v := st.Values(a)
 		to := "https://" + c.Domain + ":" + v["SUPLA_SCRIPTS_PORT"]
 		// At its own name on the port of the Cloud, through the router.
-		if set, _ := s.acme.Settings(); set != nil {
-			switch port, _, _ := routeTable(st, set); port {
-			case "":
-			case "443":
+		if set != nil {
+			switch port, _, _ := routeTable(st, set); {
+			case port == "":
+			case public != "":
+				to = "https://" + set.Name(addonInterface(a)) + ":" + public
+			case port == "443":
 				to = "https://" + set.Name(addonInterface(a))
 			default:
 				to = "https://" + set.Name(addonInterface(a)) + ":" + port
@@ -143,7 +174,14 @@ func (s *Server) getDomain(w http.ResponseWriter, r *http.Request) {
 		jsonError(w, http.StatusInternalServerError, err)
 		return
 	}
-	v.Addresses = s.addressChanges(st)
+	port := strings.TrimSpace(r.URL.Query().Get("port"))
+	if acme.CheckPort(port) != nil {
+		port = ""
+	}
+	v.Addresses = s.addressChanges(st, port)
+	if c, _ := domaincert.Load(s.cfg.Root, time.Now()); c != nil {
+		v.Port = internetPort(st, set, c.Domain, "")
+	}
 	v.Names = []domainName{}
 	for _, i := range interfacesOf(st) {
 		n := domainName{ID: i.ID, Label: panelLabel}
@@ -165,8 +203,27 @@ func (s *Server) getDomain(w http.ResponseWriter, r *http.Request) {
 
 // useDomain sets the addresses of the add-ons to the domain.
 func (s *Server) useDomain(w http.ResponseWriter, r *http.Request) {
+	var req struct {
+		Port string `json:"port"`
+	}
+	if r.ContentLength != 0 {
+		if err := readJSON(r, &req); err != nil {
+			jsonError(w, http.StatusBadRequest, err)
+			return
+		}
+	}
+	req.Port = strings.TrimSpace(req.Port)
+	if err := acme.CheckPort(req.Port); err != nil {
+		jsonError(w, http.StatusBadRequest, err)
+		return
+	}
 	s.stackJob(w, "addresses at the domain", func(st *stack.Stack, j *Job) error {
-		changes := s.addressChanges(st)
+		changes := s.addressChanges(st, req.Port)
+		if req.Port != "" {
+			if err := s.acme.SetPort(req.Port); err != nil {
+				return err
+			}
+		}
 		if len(changes) == 0 {
 			j.Logf("The addresses are the domain already.")
 			return nil

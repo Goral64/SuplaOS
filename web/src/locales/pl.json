@@ -303,6 +303,15 @@
     "addButton": "Dodaj klucz",
     "deleteConfirm": "Usunąć klucz {name}? Przestanie się logować."
   },
+  "report": {
+    "title": "Raport do zgłoszenia",
+    "intro": "Gdy coś nie działa i pytasz na forum albo w Issues, wklej ten raport: wersje, sprzęt, stan dodatków i ich kontenerów, ostatnia nieudana operacja z końcem logu. Hasła, tokeny, adresy e-mail i domena są usunięte.",
+    "make": "Przygotuj raport",
+    "again": "Przygotuj ponownie",
+    "copy": "Kopiuj do schowka",
+    "copied": "Skopiowano",
+    "check": "Przeczytaj go przed wklejeniem, czy nie ma tam czegoś, czego nie chcesz pokazywać."
+  },
   "fan": {
     "title": "Wentylator",
     "temperature": "procesor {temp} °C",
@@ -620,6 +629,9 @@
       "SUPLA_SCRIPTS_URL": "Adres SUPLA Scripts"
     },
     "addressesOAuth": "SUPLA Scripts loguje się przez Supla Cloud: po zmianie połącz je ponownie.",
+    "port": "Port z internetu",
+    "portHelp": "Gdy router przekierowuje na urządzenie inny port niż 443 (np. 9443, bo 443 zajmuje coś innego), wpisz go tutaj. Adresy Supla Cloud i SUPLA Scripts dostaną ten port.",
+    "addressesSame": "Adresy już są domeną, zapisz tylko port.",
     "useDomain": "Użyj domeny",
     "reconnect": "Gotowe. Teraz połącz ponownie SUPLA Scripts z Supla Cloud: Dodatki, SUPLA Scripts, Połącz z Supla Cloud."
   },

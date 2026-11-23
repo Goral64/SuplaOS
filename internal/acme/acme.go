@@ -23,6 +23,7 @@ import (
 	"os"
 	"path/filepath"
 	"slices"
+	"strconv"
 	"strings"
 	"sync"
 	"syscall"
@@ -64,6 +65,9 @@ type Settings struct {
 	Email    string            `yaml:"email,omitempty" json:"email"`
 	Staging  bool              `yaml:"staging,omitempty" json:"staging"`
 	Names    map[string]string `yaml:"names,omitempty" json:"names"`
+	// Port is the port the router forwards from the internet to the web
+	// interfaces, when it is not 443; set with SetPort.
+	Port string `yaml:"port,omitempty" json:"port"`
 }
 
 // Interface is a web interface with a name of its own besides the domain,
@@ -206,6 +210,10 @@ func (m *Manager) SaveSettings(s Settings) error {
 	if err != nil {
 		return err
 	}
+	s.Port = ""
+	if old != nil {
+		s.Port = old.Port
+	}
 	fields := map[string]string{}
 	for _, f := range p.Fields {
 		v := strings.TrimSpace(s.Fields[f.Env])
@@ -228,6 +236,40 @@ func (m *Manager) SaveSettings(s Settings) error {
 		return err
 	}
 	return m.writeFile("settings.yaml", data, 0o600)
+}
+
+// SetPort saves the port from the internet: "" when it is 443.
+func (m *Manager) SetPort(port string) error {
+	if err := CheckPort(port); err != nil {
+		return err
+	}
+	s, err := m.Settings()
+	if err != nil {
+		return err
+	}
+	if s == nil {
+		return errors.New("no domain is set")
+	}
+	if port == "443" {
+		port = ""
+	}
+	s.Port = port
+	data, err := yaml.Marshal(s)
+	if err != nil {
+		return err
+	}
+	return m.writeFile("settings.yaml", data, 0o600)
+}
+
+// CheckPort checks a port typed by the user, "" for none.
+func CheckPort(port string) error {
+	if port == "" {
+		return nil
+	}
+	if n, err := strconv.Atoi(port); err != nil || n < 1 || n > 65535 || strconv.Itoa(n) != port {
+		return fmt.Errorf("%q is not a port", port)
+	}
+	return nil
 }
 
 // Disable removes the settings with the keys of the DNS provider: the

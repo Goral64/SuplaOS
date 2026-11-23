@@ -303,6 +303,15 @@
     "addButton": "Add key",
     "deleteConfirm": "Delete the key {name}? It will no longer log in."
   },
+  "report": {
+    "title": "Report for asking for help",
+    "intro": "When something doesn't work and you ask on the forum or in Issues, paste this report: versions, hardware, the state of the add-ons and their containers, the last failed operation with the end of its log. Passwords, tokens, e-mail addresses and the domain are left out.",
+    "make": "Make the report",
+    "again": "Make it again",
+    "copy": "Copy to clipboard",
+    "copied": "Copied",
+    "check": "Read it before pasting, in case there's something you don't want to show."
+  },
   "fan": {
     "title": "Fan",
     "temperature": "CPU {temp} °C",
@@ -620,6 +629,9 @@
       "SUPLA_SCRIPTS_URL": "Address of SUPLA Scripts"
     },
     "addressesOAuth": "SUPLA Scripts logs in with Supla Cloud: after the change connect them again.",
+    "port": "Port from the internet",
+    "portHelp": "When the router forwards another port than 443 to the device (e.g. 9443, as 443 is taken by something else), type it here. The addresses of Supla Cloud and SUPLA Scripts get this port.",
+    "addressesSame": "The addresses are the domain already, only the port is saved.",
     "useDomain": "Use the domain",
     "reconnect": "Done. Now connect SUPLA Scripts with Supla Cloud again: Add-ons, SUPLA Scripts, Connect with Supla Cloud."
   },

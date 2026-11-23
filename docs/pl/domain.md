@@ -101,9 +101,11 @@ jeśli aplikacja ma działać poza domem. 8883 tylko dla klientów MQTT
 z zewnątrz. Nie przekierowuj 2015, nie jest szyfrowany.
 
 Gdy port 443 na routerze jest zajęty, przekieruj inny port na 443 urządzenia
-(np. 9443) i podaj adres Cloud z tym portem (`supla.example.pl:9443`).
-Urządzenie słucha też na tym porcie, więc dodatki, które łączą się z Cloud
-pod jego adresem (Node-RED, SUPLA Scripts), trafiają do niego na miejscu.
+(np. 9443) i wpisz go w karcie domeny w polu Port z internetu. Użyj domeny
+ustawi wtedy adresy Supla Cloud i SUPLA Scripts z tym portem
+(`supla.example.pl:9443`). Urządzenie słucha też na tym porcie, więc
+dodatki, które łączą się z Cloud pod jego adresem (Node-RED, SUPLA Scripts),
+trafiają do niego na miejscu.
 
 Panel, Zigbee2MQTT i Node-RED odpowiadają tylko w sieci lokalnej, dopóki nie
 włączysz ich w System, Dostęp, Dostęp z internetu. Supla Cloud i SUPLA

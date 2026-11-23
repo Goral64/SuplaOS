@@ -177,7 +177,8 @@
     "%s changes only with an update of %s": "{0} zmienia się tylko z aktualizacją {1}",
     "%s is set by SuplaOS": "{0} ustawia SuplaOS",
     "%s is an option of %s, set it there": "{0} to opcja dodatku {1}, ustaw ją tam",
-    "the compose file is not a YAML mapping: %v": "plik compose nie jest mapą YAML: {0}"
+    "the compose file is not a YAML mapping: %v": "plik compose nie jest mapą YAML: {0}",
+    "%q is not a port": "{0} nie jest numerem portu"
   },
   "technical": [
     "%s %s: %w",

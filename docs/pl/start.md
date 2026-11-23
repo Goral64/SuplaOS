@@ -136,6 +136,9 @@ karcie nie pomoże, gdy karta padnie. Zobacz [pełna kopia](backup.md).
 
 - Panel się nie otwiera: sprawdź adres IP w routerze i pamiętaj o `https://`
   i porcie `:8443`. Po pierwszym włączeniu daj urządzeniu kilka minut.
+- Na stronie System jest Raport do zgłoszenia: wersje, sprzęt, stan
+  dodatków i ostatnia nieudana operacja z końcem logu, bez haseł, tokenów,
+  e-maili i domeny. Wklej go, pytając o pomoc.
 - Zadanie w panelu się nie udało: jego okno pokazuje log, a strona dodatku
   ma „Pokaż logi” jego kontenerów. Koniec logu zwykle mówi, co poszło nie
   tak.
@@ -147,4 +150,5 @@ karcie nie pomoże, gdy karta padnie. Zobacz [pełna kopia](backup.md).
 Pytając na forum albo w
 [Issues](https://github.com/Goral64/SuplaOS/issues), napisz, na czym
 instalujesz, jaka wersja SuplaOS (strona Aktualizacje), w którym kroku
-utknąłeś i co dokładnie widzisz, najlepiej z końcem logu.
+utknąłeś i co dokładnie widzisz. Jeśli panel działa, dołącz raport ze
+strony System.
