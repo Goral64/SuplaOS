@@ -2,6 +2,11 @@
 
 [Po polsku](docs/pl/CHANGELOG.md)
 
+## Unreleased
+
+- Getting started: a step-by-step guide from writing the image to the
+  first device, also with the SUPLA app.
+
 ## 0.14.0
 
 - The card of the move from Supla Cloud says which e-mail has to be in

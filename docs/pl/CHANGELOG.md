@@ -2,6 +2,11 @@
 
 [In English](../../CHANGELOG.md)
 
+## Niewydane
+
+- Pierwsze kroki: opis krok po kroku od wgrania obrazu do pierwszego
+  urządzenia, także przez aplikację SUPLA.
+
 ## 0.14.0
 
 - Karta przeniesienia z Supla Cloud mówi, jaki e-mail ma być

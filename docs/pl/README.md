@@ -17,6 +17,9 @@ Obrazy są w [Releases](https://github.com/Goral64/SuplaOS/releases).
 
 ## Pierwsze uruchomienie
 
+Opis krok po kroku, od wgrania obrazu do pierwszego urządzenia, jest
+w [pierwszych krokach](start.md).
+
 Podłącz urządzenie kablem do routera, adres dostanie przez DHCP. Otwórz
 w przeglądarce https://suplaos.local:8443 (http://suplaos.local przekieruje
 tam, adres IP widać też na ekranie podłączonym do urządzenia) i zaloguj się

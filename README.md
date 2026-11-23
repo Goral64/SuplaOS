@@ -17,6 +17,9 @@ Images are in [Releases](https://github.com/Goral64/SuplaOS/releases).
 
 ## First start
 
+A step-by-step guide, from writing the image to the first device, is in
+[getting started](docs/start.md).
+
 Connect the device to your router with a cable, it gets its address by
 DHCP. Open https://suplaos.local:8443 in a browser (http://suplaos.local
 takes you there, the IP address is also shown on a screen connected to the
