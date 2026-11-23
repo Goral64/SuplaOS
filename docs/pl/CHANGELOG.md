@@ -2,7 +2,7 @@
 
 [In English](../../CHANGELOG.md)
 
-## Niewydane
+## 0.14.0
 
 - Karta przeniesienia z Supla Cloud mówi, jaki e-mail ma być
   w urządzeniach: z innym urządzenie rejestruje się poza swoim wpisem

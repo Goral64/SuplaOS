@@ -2,7 +2,7 @@
 
 [Po polsku](docs/pl/CHANGELOG.md)
 
-## Unreleased
+## 0.14.0
 
 - The card of the move from Supla Cloud says which e-mail has to be in
   the devices: with another one a device registers apart from its entry
