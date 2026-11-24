@@ -2,7 +2,7 @@
 
 [Po polsku](docs/pl/CHANGELOG.md)
 
-## Unreleased
+## 0.15.1
 
 - Backups page: a fresh install no longer shows a failed automatic
   backup from year 1 before the first one ran.

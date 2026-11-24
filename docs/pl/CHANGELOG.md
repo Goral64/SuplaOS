@@ -2,7 +2,7 @@
 
 [In English](../../CHANGELOG.md)
 
-## Niewydane
+## 0.15.1
 
 - Strona Kopie: na świeżej instalacji nie pokazuje już nieudanej kopii
   automatycznej z roku 1, zanim zrobi się pierwsza.
