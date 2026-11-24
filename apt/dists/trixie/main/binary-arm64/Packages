@@ -1,27 +1,5 @@
 Package: suplaos
 Architecture: arm64
-Version: 0.12.2
-Priority: optional
-Section: admin
-Maintainer: Goral64 <goral64@gmail.com>
-Depends: docker.io, docker-cli, docker-compose, network-manager, wpasupplicant, dnsmasq-base, wireless-regdb, iw, avahi-daemon, cloud-guest-utils, e2fsprogs, ca-certificates, cifs-utils, nfs-common
-Recommends: gpiod
-Filename: pool/main/s/suplaos/suplaos_0.12.2_arm64.deb
-Size: 6138948
-MD5sum: 81e8747ab4131de5773cc3699b113062
-SHA1: b1f051da1a3697230a0b42a160f9ad23554ee48f
-SHA256: be4868af5642c0f0d202e1d82d757f80ca28e1206983ef7f38bdca552d58f09b
-SHA512: 23505e2390329e03ce0cbe120be5ae032af40060cfd3a95adf2c27b5f76b2bc0d46799b5d27e4533e434aa29b6406ff1df193d62e125854996a0dff342651314
-Homepage: https://github.com/Goral64/SuplaOS
-Description: SuplaOS panel and add-ons
- Web panel and suplaos command of SuplaOS: your own Supla server with
- add-ons (Mosquitto, Zigbee2MQTT, zigbee2supla) on one device.
- .
- Part of the SuplaOS images, not meant for installing on an existing
- Debian system.
-
-Package: suplaos
-Architecture: arm64
 Version: 0.13.0
 Priority: optional
 Section: admin
@@ -100,6 +78,28 @@ MD5sum: 1472d7ebe633c0fce066266658e6d42d
 SHA1: 309b3c50c465c03e31b02743fd31bf22d8db1eee
 SHA256: fca42e97573e816764941da926bb3d87a18d54f7c5db0c7f8ba6fa0c0153e8ca
 SHA512: 44d7e01236f8758b7d0b85930b4e4eb55691fb59d7ade9ec1441fbeaf765d04e564f5e3357071ce3c24845e6169b0bd38b4aea5326e8557eb5d9d379c659a169
+Homepage: https://github.com/Goral64/SuplaOS
+Description: SuplaOS panel and add-ons
+ Web panel and suplaos command of SuplaOS: your own Supla server with
+ add-ons (Mosquitto, Zigbee2MQTT, zigbee2supla) on one device.
+ .
+ Part of the SuplaOS images, not meant for installing on an existing
+ Debian system.
+
+Package: suplaos
+Architecture: arm64
+Version: 0.16.0
+Priority: optional
+Section: admin
+Maintainer: Goral64 <goral64@gmail.com>
+Depends: docker.io, docker-cli, docker-compose, network-manager, wpasupplicant, dnsmasq-base, wireless-regdb, iw, avahi-daemon, cloud-guest-utils, e2fsprogs, ca-certificates, cifs-utils, nfs-common
+Recommends: gpiod
+Filename: pool/main/s/suplaos/suplaos_0.16.0_arm64.deb
+Size: 6255876
+MD5sum: 03a7b74b3a0e61c8715747fe874298bb
+SHA1: e2b792fc26ca7817311bf04f764058bbc6dba1a7
+SHA256: 0cfeb82b10ba0922dc13b62f78d969ac715bcc4d53fc7231278449b48e319b8d
+SHA512: dd053f2d95289a56a4098dee11ca6cf1b5651eee373bb26020eddd22faf544dfd66b88464e415649cfe7db890246c465a3786654efc773c32cd5ca73b4392cbf
 Homepage: https://github.com/Goral64/SuplaOS
 Description: SuplaOS panel and add-ons
  Web panel and suplaos command of SuplaOS: your own Supla server with
