@@ -2,6 +2,13 @@
 
 [Po polsku](docs/pl/CHANGELOG.md)
 
+## Unreleased
+
+- Backups page: a fresh install no longer shows a failed automatic
+  backup from year 1 before the first one ran.
+- The first automatic backup to the device failed when no backup had
+  been made there before (no backups directory yet).
+
 ## 0.15.0
 
 - Getting started: a step-by-step guide from writing the image to the

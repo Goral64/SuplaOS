@@ -1,6 +1,7 @@
 package autobackup
 
 import (
+	"encoding/json"
 	"io"
 	"os"
 	"path/filepath"
@@ -208,5 +209,21 @@ func must(t *testing.T, err error) {
 	t.Helper()
 	if err != nil {
 		t.Fatal(err)
+	}
+}
+
+func TestStatusNoRun(t *testing.T) {
+	data, err := json.Marshal(LoadStatus(t.TempDir()))
+	if err != nil || strings.Contains(string(data), `"time"`) {
+		t.Fatalf("%s %v", data, err)
+	}
+}
+
+func TestRunDeviceFresh(t *testing.T) {
+	st, err := stack.Open(t.TempDir(), "../../addons")
+	must(t, err)
+	s := &Settings{Schedule: "daily", Time: "03:30", Target: "device", Keep: 1, Plain: true}
+	if status := s.Run(st, "0.7.0", io.Discard); !status.OK {
+		t.Fatalf("status %+v", status)
 	}
 }

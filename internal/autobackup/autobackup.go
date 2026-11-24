@@ -63,7 +63,7 @@ type Settings struct {
 
 // Status is the result of the last automatic backup.
 type Status struct {
-	Time  time.Time `json:"time"`
+	Time  time.Time `json:"time,omitzero"`
 	OK    bool      `json:"ok"`
 	Error string    `json:"error,omitempty"`
 	File  string    `json:"file,omitempty"`
@@ -376,6 +376,11 @@ func (s *Settings) Run(st *stack.Stack, version string, log io.Writer) Status {
 }
 
 func (s *Settings) run(st *stack.Stack, version string, log io.Writer, status *Status) error {
+	if s.Target == "device" {
+		if err := st.MakeBackupDir(); err != nil {
+			return err
+		}
+	}
 	dir, release, err := s.open(st.BackupDir())
 	if err != nil {
 		return err

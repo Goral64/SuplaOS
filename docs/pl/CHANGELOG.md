@@ -2,6 +2,13 @@
 
 [In English](../../CHANGELOG.md)
 
+## Niewydane
+
+- Strona Kopie: na świeżej instalacji nie pokazuje już nieudanej kopii
+  automatycznej z roku 1, zanim zrobi się pierwsza.
+- Pierwsza kopia automatyczna na urządzeniu nie udawała się, gdy nie było
+  tam jeszcze żadnej kopii (brak katalogu na kopie).
+
 ## 0.15.0
 
 - Pierwsze kroki: opis krok po kroku od wgrania obrazu do pierwszego
