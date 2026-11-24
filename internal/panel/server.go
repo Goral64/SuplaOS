@@ -42,6 +42,9 @@ type Settings struct {
 	Internet []string `yaml:"internet,omitempty" json:"-"`
 	// Fan of a Raspberry Pi case; nil before it is set.
 	Fan *fan.Settings `yaml:"fan,omitempty" json:"-"`
+	// HotspotOff turns off the Wi-Fi network the device makes when it has
+	// none; only after the first run wizard.
+	HotspotOff bool `yaml:"hotspot_off,omitempty" json:"-"`
 }
 
 type Server struct {
@@ -129,6 +132,8 @@ func (s *Server) Handler() http.Handler {
 	api("DELETE /api/domain", s.deleteDomain)
 	api("POST /api/password", s.changePassword)
 	api("GET /api/ssh-keys", s.getSSHKeys)
+	api("GET /api/ssh-password", s.getSSHPassword)
+	api("PUT /api/ssh-password", s.putSSHPassword)
 	api("POST /api/ssh-keys", s.addSSHKey)
 	api("POST /api/ssh-keys/delete", s.deleteSSHKey)
 
@@ -141,6 +146,9 @@ func (s *Server) Handler() http.Handler {
 	api("GET /api/network", s.getNetwork)
 	api("PUT /api/network", s.putNetwork)
 	api("GET /api/wifi", s.getWifi)
+	api("GET /api/hotspot", s.getHotspot)
+	api("PUT /api/hotspot", s.putHotspot)
+	api("POST /api/hotspot/password", s.newHotspotPassword)
 	api("POST /api/wifi/scan", s.scanWifi)
 	api("POST /api/wifi/connect", s.connectWifi)
 	api("POST /api/wifi/disconnect", s.disconnectWifi)

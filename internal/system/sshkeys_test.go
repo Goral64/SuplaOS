@@ -60,3 +60,34 @@ func must(t *testing.T, err error) {
 		t.Fatal(err)
 	}
 }
+
+func TestSSHPasswordLogin(t *testing.T) {
+	dir := t.TempDir()
+	oldKeys, oldFile, oldReload := authorizedKeys, sshKeysOnlyFile, reloadSSH
+	authorizedKeys = filepath.Join(dir, ".ssh", "authorized_keys")
+	sshKeysOnlyFile = filepath.Join(dir, "05-suplaos-keys-only.conf")
+	reloads := 0
+	reloadSSH = func() error { reloads++; return nil }
+	t.Cleanup(func() { authorizedKeys, sshKeysOnlyFile, reloadSSH = oldKeys, oldFile, oldReload })
+
+	if !SSHPasswordLogin() {
+		t.Error("off at the start")
+	}
+	if err := SetSSHPasswordLogin(false); err == nil || !SSHPasswordLogin() {
+		t.Error("turned off without a key")
+	}
+	k, err := AddSSHKey(edKey)
+	must(t, err)
+	must(t, SetSSHPasswordLogin(false))
+	if data, _ := os.ReadFile(sshKeysOnlyFile); SSHPasswordLogin() || !strings.Contains(string(data), "PasswordAuthentication no") {
+		t.Errorf("not off: %q", data)
+	}
+	if err := DeleteSSHKey(k.Fingerprint); err == nil {
+		t.Error("last key deleted while only keys log in")
+	}
+	must(t, SetSSHPasswordLogin(true))
+	if !SSHPasswordLogin() || reloads != 2 {
+		t.Errorf("not on again, %d reloads", reloads)
+	}
+	must(t, DeleteSSHKey(k.Fingerprint))
+}

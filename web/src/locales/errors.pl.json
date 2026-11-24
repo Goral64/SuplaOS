@@ -159,6 +159,8 @@
     "this is a private key, give the public one (.pub)": "to jest klucz prywatny, podaj publiczny (.pub)",
     "this key is already there": "ten klucz już jest",
     "no key %s": "nie ma klucza {0}",
+    "add an SSH key first": "najpierw dodaj klucz SSH",
+    "SSH accepts only keys: turn password logins on first": "SSH wpuszcza tylko z kluczem: najpierw włącz logowanie hasłem",
     "no user %s": "nie ma użytkownika {0}",
     "password too short": "hasło jest za krótkie",
     "password must not contain ':' or line breaks": "hasło nie może zawierać ':' ani podziałów wiersza",

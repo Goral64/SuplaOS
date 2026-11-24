@@ -2,6 +2,17 @@
 
 [In English](../../CHANGELOG.md)
 
+## Niewydane
+
+- Logowanie do panelu: złe hasła liczą się też ze wszystkich adresów
+  razem. Dotąd licznik po adresie dało się ominąć podrobionym nagłówkiem
+  proxy. Po 20 złych hasłach logowanie czeka, także z dobrym; zalogowane
+  już panele działają dalej.
+- Wi-Fi urządzenia bez sieci: po kreatorze ma własne, losowe hasło zamiast
+  `suplaos-setup`. Jest w System, Sieć i na ekranie podłączonym do
+  urządzenia, tam też można tę sieć wyłączyć.
+- Karta kluczy SSH: SSH może wpuszczać tylko z kluczem, bez hasła.
+
 ## 0.15.1
 
 - Strona Kopie: na świeżej instalacji nie pokazuje już nieudanej kopii

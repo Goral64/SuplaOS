@@ -46,3 +46,23 @@ func (s *Server) deleteSSHKey(w http.ResponseWriter, r *http.Request) {
 	}
 	writeJSON(w, http.StatusOK, map[string]any{})
 }
+
+// getSSHPassword tells whether SSH takes the password or only keys.
+func (s *Server) getSSHPassword(w http.ResponseWriter, r *http.Request) {
+	writeJSON(w, http.StatusOK, map[string]any{"enabled": system.SSHPasswordLogin()})
+}
+
+func (s *Server) putSSHPassword(w http.ResponseWriter, r *http.Request) {
+	var req struct {
+		Enabled bool `json:"enabled"`
+	}
+	if err := readJSON(r, &req); err != nil {
+		jsonError(w, http.StatusBadRequest, err)
+		return
+	}
+	if err := system.SetSSHPasswordLogin(req.Enabled); err != nil {
+		jsonError(w, http.StatusBadRequest, err)
+		return
+	}
+	s.getSSHPassword(w, r)
+}

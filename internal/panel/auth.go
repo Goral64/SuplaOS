@@ -21,6 +21,11 @@ const (
 	maxFailures  = 5
 	failDelay    = 30 * time.Second
 	maxFailDelay = time.Hour
+	// The same for wrong passwords from all addresses together, after
+	// maxAllFailures: an address in a header is easy to forge.
+	maxAllFailures = 20
+	// maxAddresses limits the addresses counted one by one.
+	maxAddresses = 1000
 )
 
 type session struct {
@@ -37,8 +42,10 @@ type sessions struct {
 	file  string
 	list  map[string]*session
 	saved time.Time
-	// failed are the wrong passwords in a row by address.
+	// failed are the wrong passwords in a row by address, all of them
+	// together in all.
 	failed map[string]*failures
+	all    failures
 }
 
 type failures struct {
@@ -153,21 +160,30 @@ func (s *sessions) passwordChanged(r *http.Request) {
 
 // throttled tells whether logins from ip have to wait after wrong
 // passwords. Counted by address, so that wrong passwords sent from the
-// internet do not keep the owner out.
+// internet do not keep the owner out, and all together, so that changing
+// the address does not help.
 func (s *sessions) throttled(ip string) bool {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	f := s.failed[ip]
-	if f == nil || f.count < maxFailures {
+	return s.failed[ip].waiting(maxFailures) || s.all.waiting(maxAllFailures)
+}
+
+// waiting tells whether the next login has to wait after count wrong
+// passwords: failDelay after limit of them, twice as long after each next
+// one, up to maxFailDelay.
+func (f *failures) waiting(limit int) bool {
+	if f == nil || f.count < limit {
 		return false
 	}
 	wait := failDelay
-	for i := maxFailures; i < f.count && wait < maxFailDelay; i++ {
+	for i := limit; i < f.count && wait < maxFailDelay; i++ {
 		wait *= 2
 	}
 	return time.Since(f.last) < min(wait, maxFailDelay)
 }
 
+// result counts a login. A good password clears the count of its address,
+// not the one of all: the owner logging in does not end an attack.
 func (s *sessions) result(ip string, ok bool) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -183,8 +199,16 @@ func (s *sessions) result(ip string, ok bool) {
 			delete(s.failed, k)
 		}
 	}
+	if time.Since(s.all.last) > maxFailDelay {
+		s.all.count = 0
+	}
+	s.all.count++
+	s.all.last = time.Now()
 	f := s.failed[ip]
 	if f == nil {
+		if len(s.failed) >= maxAddresses {
+			return
+		}
 		f = &failures{}
 		s.failed[ip] = f
 	}

@@ -35,7 +35,12 @@ znajdzie sieci, tworzy własną, `SuplaOS-XXXX` z hasłem `suplaos-setup`.
 Połącz z nią telefon, panel otworzy się sam (albo otwórz
 https://192.168.4.1:8443), i wybierz swoje Wi-Fi. Urządzenie się z nim
 połączy, a telefon wraca do Twojej sieci. Tak samo dzieje się później, gdy
-urządzenie straci sieć, np. po zmianie hasła Wi-Fi w routerze.
+urządzenie straci sieć, np. po zmianie hasła Wi-Fi w routerze. Po kreatorze
+ta sieć ma hasło tego urządzenia, losowe: jest w System, Sieć (zapisz je)
+i na ekranie podłączonym do urządzenia. Tam też można tę sieć wyłączyć.
+
+Klucze SSH dodaje się w System, Dostęp. Gdy jest już klucz, można tam
+ustawić, żeby SSH wpuszczało tylko z kluczem, bez hasła.
 
 Przeglądarka na początku ostrzeże przed certyfikatem, bo urządzenie tworzy
 własny. Zaakceptuj go albo lepiej raz zainstaluj certyfikat CA urządzenia

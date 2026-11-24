@@ -293,6 +293,19 @@
     "lastFailed": "failed: {error}",
     "next": "Next: {date}."
   },
+  "hotspot": {
+    "title": "Wi-Fi of the device without a network",
+    "intro": "When the device has had no network for 2 minutes (no cable, no Wi-Fi it knows), it makes its own, {ssid}. A phone connected to it opens the panel, where you pick the Wi-Fi, e.g. after the password was changed in the router.",
+    "on": "Make its own network when there is no other",
+    "network": "Network:",
+    "password": "Password:",
+    "passwordHelp": "The password of this device, made at random. Write it down: without it you can reach the device only with a cable. It is also on a screen connected to the device.",
+    "new": "New password",
+    "newConfirm": "Make a new password? A network that is on now keeps the old one until it starts again.",
+    "offHelp": "Off: without a network the device waits for a cable or a Wi-Fi it knows.",
+    "offActive": "The network {ssid} is on now. Turn it off? If you are connected through it, you lose the panel.",
+    "turnOff": "Turn off"
+  },
   "sshKeys": {
     "title": "SSH keys",
     "intro": "Public keys that log in over SSH as {user} without the password.",
@@ -301,7 +314,10 @@
     "add": "Add a public key",
     "help": "One line from a .pub file, e.g. ~/.ssh/id_ed25519.pub on your computer (ssh-keygen -t ed25519 makes one).",
     "addButton": "Add key",
-    "deleteConfirm": "Delete the key {name}? It will no longer log in."
+    "deleteConfirm": "Delete the key {name}? It will no longer log in.",
+    "passwordLogin": "SSH logins with the password too",
+    "passwordLoginHelp": "Off: SSH lets in only the keys above, and guessing the password over SSH gets nowhere. The panel and sudo still use the password.",
+    "passwordLoginNeedsKey": "Add a key before turning it off."
   },
   "report": {
     "title": "Report for asking for help",

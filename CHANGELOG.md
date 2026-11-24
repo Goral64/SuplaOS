@@ -2,6 +2,18 @@
 
 [Po polsku](docs/pl/CHANGELOG.md)
 
+## Unreleased
+
+- Login to the panel: wrong passwords are also counted from all addresses
+  together. Until now the count by address could be avoided with a forged
+  proxy header. After 20 wrong passwords logins wait, also with the right
+  one; panels already logged in keep working.
+- Wi-Fi of the device without a network: after the setup wizard it has a
+  password of its own, made at random, instead of `suplaos-setup`. It's
+  shown in System, Network and on a screen connected to the device, and
+  the network can be turned off there.
+- SSH keys card: SSH can let in only keys, without the password.
+
 ## 0.15.1
 
 - Backups page: a fresh install no longer shows a failed automatic

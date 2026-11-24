@@ -36,7 +36,12 @@ network for 2 minutes, it makes its own, `SuplaOS-XXXX` with the password
 https://192.168.4.1:8443), and pick your Wi-Fi. The device then joins it
 and the phone goes back to your network. The same happens later when the
 device loses its network, e.g. after the Wi-Fi password is changed in the
-router.
+router. After the setup wizard this network has a password of the device,
+made at random: it's in System, Network (write it down) and on a screen
+connected to the device. The network can be turned off there too.
+
+SSH keys are added in System, Access. With a key added, SSH can be set
+there to let in only keys, without the password.
 
 The browser warns about the certificate at first, because the device makes
 its own. Accept it, or better install the CA certificate of the device once

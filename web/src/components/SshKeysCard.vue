@@ -6,12 +6,14 @@ import { ask } from './dialog'
 
 const { t } = useI18n()
 const keys = ref(null)
+const passwordLogin = ref(true)
 const key = ref('')
 const error = ref('')
 const busy = ref(false)
 
 async function load() {
   keys.value = await api('GET', '/ssh-keys')
+  passwordLogin.value = (await api('GET', '/ssh-password')).enabled
 }
 onMounted(load)
 
@@ -31,6 +33,14 @@ const add = () => call(async () => {
   await api('POST', '/ssh-keys', { key: key.value })
   key.value = ''
   await load()
+})
+
+const setPasswordLogin = (e) => call(async () => {
+  try {
+    passwordLogin.value = (await api('PUT', '/ssh-password', { enabled: e.target.checked })).enabled
+  } finally {
+    e.target.checked = passwordLogin.value
+  }
 })
 
 const remove = (k) => call(async () => {
@@ -65,5 +75,7 @@ const remove = (k) => call(async () => {
       </div>
       <button class="primary" :disabled="busy">{{ $t('sshKeys.addButton') }}</button>
     </form>
+    <label class="check mt"><input type="checkbox" :checked="passwordLogin" :disabled="busy || (passwordLogin && !keys.length)" @change="setPasswordLogin"> {{ $t('sshKeys.passwordLogin') }}</label>
+    <p class="muted small">{{ $t('sshKeys.passwordLoginHelp') }}{{ passwordLogin && !keys.length ? ' ' + $t('sshKeys.passwordLoginNeedsKey') : '' }}</p>
   </div>
 </template>

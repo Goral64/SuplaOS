@@ -49,7 +49,7 @@ func main() {
 			log.Printf("wifi country: %v", err)
 		}
 	}()
-	go system.WatchHotspot()
+	go system.WatchHotspot(s.HotspotSettings)
 	handler := s.Handler()
 	go s.WatchProxies(tlsConfig, handler)
 	go s.ApplyPending()

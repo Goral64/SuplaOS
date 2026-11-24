@@ -6,6 +6,7 @@ import (
 	"os"
 	"os/user"
 	"path/filepath"
+	"slices"
 	"strconv"
 	"strings"
 
@@ -103,7 +104,55 @@ func DeleteSSHKey(fingerprint string) error {
 	if !found {
 		return fmt.Errorf("no key %s", fingerprint)
 	}
+	if !SSHPasswordLogin() && !slices.ContainsFunc(keep, func(l string) bool { _, ok := parseKeyLine(l); return ok }) {
+		return errors.New("SSH accepts only keys: turn password logins on first")
+	}
 	return writeAuthorizedKeys(keep)
+}
+
+// sshKeysOnlyFile turns password logins over SSH off. sshd reads it before
+// 10-suplaos.conf and takes the first value it finds.
+var sshKeysOnlyFile = "/etc/ssh/sshd_config.d/05-suplaos-keys-only.conf"
+
+// reloadSSH checks the configuration of sshd and makes it read it again.
+var reloadSSH = func() error {
+	if err := run("sshd", "-t"); err != nil {
+		return err
+	}
+	return run("systemctl", "reload", "ssh")
+}
+
+// SSHPasswordLogin tells whether SSH takes the password, not only keys.
+func SSHPasswordLogin() bool {
+	_, err := os.Stat(sshKeysOnlyFile)
+	return err != nil
+}
+
+// SetSSHPasswordLogin turns password logins over SSH on or off. Off needs a
+// key, so that the account can still log in. Logins already open stay.
+func SetSSHPasswordLogin(on bool) error {
+	if on {
+		if err := os.Remove(sshKeysOnlyFile); err != nil && !errors.Is(err, os.ErrNotExist) {
+			return err
+		}
+		return reloadSSH()
+	}
+	keys, err := SSHKeys()
+	if err != nil {
+		return err
+	}
+	if len(keys) == 0 {
+		return errors.New("add an SSH key first")
+	}
+	data := "# Written by the SuplaOS panel: only SSH keys log in.\nPasswordAuthentication no\nKbdInteractiveAuthentication no\n"
+	if err := os.WriteFile(sshKeysOnlyFile, []byte(data), 0o644); err != nil {
+		return err
+	}
+	if err := reloadSSH(); err != nil {
+		os.Remove(sshKeysOnlyFile)
+		return err
+	}
+	return nil
 }
 
 // writeAuthorizedKeys writes the file as sshd wants it: owned by the user,

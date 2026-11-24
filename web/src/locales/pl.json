@@ -293,6 +293,19 @@
     "lastFailed": "nieudana: {error}",
     "next": "Następna: {date}."
   },
+  "hotspot": {
+    "title": "Wi-Fi urządzenia bez sieci",
+    "intro": "Gdy urządzenie przez 2 minuty nie ma sieci (kabla ani znanego Wi-Fi), tworzy własną, {ssid}. Telefon połączony z nią otwiera panel, w którym wybiera się Wi-Fi, np. po zmianie hasła w routerze.",
+    "on": "Twórz własną sieć, gdy nie ma innej",
+    "network": "Sieć:",
+    "password": "Hasło:",
+    "passwordHelp": "Hasło tego urządzenia, losowe. Zapisz je: bez niego połączysz się z urządzeniem tylko kablem. Jest też na ekranie podłączonym do urządzenia.",
+    "new": "Nowe hasło",
+    "newConfirm": "Wylosować nowe hasło? Sieć, która jest teraz włączona, zostaje ze starym do następnego uruchomienia.",
+    "offHelp": "Wyłączone: bez sieci urządzenie czeka na kabel albo znane Wi-Fi.",
+    "offActive": "Sieć {ssid} jest teraz włączona. Wyłączyć ją? Jeśli łączysz się przez nią, stracisz połączenie z panelem.",
+    "turnOff": "Wyłącz"
+  },
   "sshKeys": {
     "title": "Klucze SSH",
     "intro": "Klucze publiczne, które logują się przez SSH jako {user} bez hasła.",
@@ -301,7 +314,10 @@
     "add": "Dodaj klucz publiczny",
     "help": "Jeden wiersz z pliku .pub, np. ~/.ssh/id_ed25519.pub na Twoim komputerze (tworzy go ssh-keygen -t ed25519).",
     "addButton": "Dodaj klucz",
-    "deleteConfirm": "Usunąć klucz {name}? Przestanie się logować."
+    "deleteConfirm": "Usunąć klucz {name}? Przestanie się logować.",
+    "passwordLogin": "Logowanie przez SSH także hasłem",
+    "passwordLoginHelp": "Wyłączone: SSH wpuszcza tylko z kluczem z listy wyżej, a zgadywanie hasła przez SSH nic nie daje. Panel i sudo dalej używają hasła.",
+    "passwordLoginNeedsKey": "Aby je wyłączyć, dodaj najpierw klucz."
   },
   "report": {
     "title": "Raport do zgłoszenia",

@@ -2,6 +2,7 @@ package panel
 
 import (
 	"context"
+	"fmt"
 	"net"
 	"net/http"
 	"net/http/httptest"
@@ -141,6 +142,32 @@ func TestLoginThrottle(t *testing.T) {
 	s.result("8.8.8.8", true)
 	if s.failed["8.8.8.8"] != nil {
 		t.Error("not cleared after a good password")
+	}
+}
+
+// An address in a header can be forged: wrong passwords from different
+// addresses are counted together too.
+func TestLoginThrottleAll(t *testing.T) {
+	var s sessions
+	for i := range maxAllFailures {
+		s.result(fmt.Sprintf("10.0.%d.%d", i/256, i%256), false)
+	}
+	if !s.throttled("10.9.9.9") {
+		t.Error("new address not waiting")
+	}
+	s.result("10.0.0.0", true)
+	if !s.throttled("10.9.9.9") {
+		t.Error("a good password ended the wait of all")
+	}
+	s.all.last = time.Now().Add(-maxFailDelay - time.Second)
+	if s.throttled("10.9.9.9") {
+		t.Error("still waiting")
+	}
+	for i := range maxAddresses + 10 {
+		s.result(fmt.Sprintf("10.1.%d.%d", i/256, i%256), false)
+	}
+	if len(s.failed) > maxAddresses {
+		t.Errorf("%d addresses kept", len(s.failed))
 	}
 }
 
