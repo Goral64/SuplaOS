@@ -2,7 +2,7 @@
 
 [In English](../../CHANGELOG.md)
 
-## Niewydane
+## 0.16.0
 
 - Logowanie do panelu: złe hasła liczą się też ze wszystkich adresów
   razem. Dotąd licznik po adresie dało się ominąć podrobionym nagłówkiem

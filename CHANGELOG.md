@@ -2,7 +2,7 @@
 
 [Po polsku](docs/pl/CHANGELOG.md)
 
-## Unreleased
+## 0.16.0
 
 - Login to the panel: wrong passwords are also counted from all addresses
   together. Until now the count by address could be avoided with a forged
